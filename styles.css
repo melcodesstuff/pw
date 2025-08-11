@@ -12,7 +12,7 @@ body {
   transition: all 0.3s ease;
 }
 
-.dark body {
+body.dark {
   background: #0f172a;
   color: #f1f5f9;
 }
@@ -49,7 +49,7 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.dark .title {
+body.dark .title {
   background: linear-gradient(135deg, #818cf8, #a78bfa);
   -webkit-background-clip: text;
   background-clip: text;
@@ -62,7 +62,7 @@ body {
   max-width: 600px;
 }
 
-.dark .subtitle {
+body.dark .subtitle {
   color: #94a3b8;
 }
 
@@ -82,12 +82,12 @@ body {
   transform: translateY(-1px);
 }
 
-.dark .theme-toggle {
+body.dark .theme-toggle {
   background: #374151;
   color: #e5e7eb;
 }
 
-.dark .theme-toggle:hover {
+body.dark .theme-toggle:hover {
   background: #4b5563;
 }
 
@@ -128,12 +128,12 @@ body {
   border-color: rgba(148, 163, 184, 0.5);
 }
 
-.dark .card {
+body.dark .card {
   background: rgba(30, 41, 59, 0.9);
   border-color: rgba(71, 85, 105, 0.6);
 }
 
-.dark .card:hover {
+body.dark .card:hover {
   border-color: rgba(100, 116, 139, 0.7);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
@@ -145,7 +145,7 @@ body {
   color: #0f172a;
 }
 
-.dark .card-title {
+body.dark .card-title {
   color: #f1f5f9;
 }
 
@@ -155,7 +155,7 @@ body {
   margin-bottom: 1rem;
 }
 
-.dark .card-desc {
+body.dark .card-desc {
   color: #94a3b8;
 }
 
@@ -165,7 +165,7 @@ body {
   color: #4f46e5;
 }
 
-.dark .card-link {
+body.dark .card-link {
   color: #818cf8;
 }
 
@@ -185,7 +185,7 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.dark .placeholder {
+body.dark .placeholder {
   border-color: rgba(100, 116, 139, 0.5);
   background: rgba(30, 41, 59, 0.3);
 }
@@ -194,7 +194,7 @@ body {
   color: #64748b;
 }
 
-.dark .placeholder .card-title {
+body.dark .placeholder .card-title {
   color: #cbd5e1;
 }
 
@@ -202,7 +202,7 @@ body {
   color: #94a3b8;
 }
 
-.dark .placeholder .card-desc {
+body.dark .placeholder .card-desc {
   color: #64748b;
 }
 
@@ -210,7 +210,7 @@ body {
   color: #94a3b8;
 }
 
-.dark .placeholder .card-link {
+body.dark .placeholder .card-link {
   color: #64748b;
 }
 
@@ -221,7 +221,7 @@ body {
   padding-top: 2rem;
 }
 
-.dark .footer {
+body.dark .footer {
   color: #64748b;
   border-color: rgba(71, 85, 105, 0.6);
 }
