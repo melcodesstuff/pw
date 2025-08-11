@@ -20,15 +20,10 @@ function renderCurrentCard(term){
   if(!term){ currentCard.style.display='none'; return; }
   currentCard.style.display='block';
   currentCard.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-      <div>
-        <span class="star-badge" aria-label="Current term">⭐ Current Term</span>
-        <h2 class="card-title" style="margin:6px 0 2px;">Year ${term.term}</h2>
-        <p class="card-desc">Active ${term.startLabel} – ${term.endLabel} (${term.yearsLabel})</p>
-      </div>
-      <button id="jumpBtnTop" class="btn" type="button">Jump to row</button>
-    </div>`;
-  document.getElementById('jumpBtnTop')?.addEventListener('click',()=>jumpTo(term.term));
+    <p>It is currently <strong>term ${term.term}</strong></p>
+    <h2>The term started on <strong>${term.startLabel}</strong> and will end on <strong>${term.endLabel}</strong></h2>
+    <p class="mono" style="margin-top:2px;">(${term.yearsLabel})</p>
+  `;
 }
 renderCurrentCard(CURRENT);
 
@@ -44,7 +39,7 @@ function apply(){
   let list = ALL_TERMS.filter(t=>{
     if(!monthOK(t)) return false;
     if(!q) return true;
-    // search includes months (even though we don't display a column)
+    // search includes month names even though they aren't shown
     const hay = `year ${t.term} ${t.startLabel} ${t.endLabel} ${t.yearsLabel} ${t.months}`.toLowerCase();
     return hay.includes(q);
   });
@@ -75,7 +70,7 @@ function render(list, current){
 
     tr.innerHTML=`
       <td style="padding:10px; border-bottom:1px solid var(--border);">
-        Year ${t.term} ${current && current.term===t.term ? '<span class="star-badge" style="margin-left:6px;">⭐</span>' : ''}
+        Year ${t.term} ${current && current.term===t.term ? '<span class="term-star" title="Current term">⭐</span>' : ''}
       </td>
       <td style="padding:10px; border-bottom:1px solid var(--border);">${t.startLabel}</td>
       <td style="padding:10px; border-bottom:1px solid var(--border);">${t.endLabel}</td>
