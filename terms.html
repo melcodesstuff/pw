@@ -4,54 +4,97 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>PW Term Date Reference</title>
-  <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="witch-hat.png">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Page-local polish */
+    .controls { margin: 8px 0 18px; }
+    .input, .btn, .select {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .btn { cursor: pointer; }
+    .current-badge { font-size:.75rem; padding:4px 8px; border-radius:999px; background:var(--accent); color:#fff; }
+    .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:12px; }
+    .term-table { width:100%; border-collapse:separate; border-spacing:0; }
+    .term-table thead th { position:sticky; top:0; z-index:1; background:var(--bg); }
+    .term-table tbody tr:nth-child(odd) td { background: rgba(10,18,38,.02); }
+    tr.is-current td { background: rgba(58,99,255,.10); }
+    tr.group-row td {
+      position: sticky; top: 48px; /* below the header row height */
+      background: var(--panel); color: var(--muted);
+      font-weight: 600; letter-spacing: .2px;
+      border-top: 1px solid var(--border);
+    }
+    .tools { display:flex; gap:6px; }
+    .mono { font-feature-settings:"tnum" 1; font-variant-numeric: tabular-nums; }
+    @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(58,99,255,.35);} 100%{box-shadow:0 0 0 12px rgba(58,99,255,0);} }
+    tr.pulse td { animation:pulse .9s ease-out 1; }
+  </style>
 </head>
 <body>
   <div class="container">
     <header class="header">
       <div>
         <h1 class="title">Term Date Reference</h1>
-        <p class="subtitle">
-          Quick reference for Potterworld term start and end dates, sourced from the official PW Timeline.
-        </p>
+        <p class="subtitle">Quick reference for Potterworld term start and end dates, sourced from the official PW Timeline.</p>
       </div>
       <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
     </header>
 
-    <section class="controls" style="margin: 12px 0 20px;">
-      <div class="control-row" style="display:flex; gap:12px; flex-wrap:wrap;">
-        <input id="searchInput" class="input" type="text" placeholder="Search by year or date…" />
-        <select id="rangeSelect" class="input">
-          <option value="all">All years</option>
-          <option value="1-50">Years 1–50</option>
-          <option value="51-100">Years 51–100</option>
-          <option value="101-150">Years 101–150</option>
-          <option value="151-200">Years 151–200</option>
+    <!-- Current term callout -->
+    <section id="currentCard" class="card" style="margin-bottom:16px; display:none;"></section>
+
+    <!-- Controls -->
+    <section class="controls">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+        <div class="input" style="display:flex; align-items:center; gap:8px;">
+          <span aria-hidden="true">🔎</span>
+          <input id="searchInput" type="text" placeholder="Search by term, date, month, or year…" style="border:none; outline:none; background:transparent; width:260px;">
+        </div>
+
+        <select id="monthSelect" class="select">
+          <option value="any">Any month</option>
+          <option value="january">January</option><option value="february">February</option>
+          <option value="march">March</option><option value="april">April</option>
+          <option value="may">May</option><option value="june">June</option>
+          <option value="july">July</option><option value="august">August</option>
+          <option value="september">September</option><option value="october">October</option>
+          <option value="november">November</option><option value="december">December</option>
         </select>
-        <button id="clearBtn" class="btn">Clear</button>
+
+        <select id="lastSelect" class="select">
+          <option value="20" selected>Show last 20</option>
+          <option value="50">Show last 50</option>
+          <option value="all">Show all</option>
+        </select>
+
+        <div style="flex:1"></div>
+        <button id="jumpBtn" class="btn" type="button">Jump to Current</button>
+        <button id="resetBtn" class="btn" type="button">Reset</button>
       </div>
     </section>
 
+    <!-- Table -->
     <div class="content">
-      <div class="table-wrap" style="overflow:auto; border:1px solid var(--border); border-radius:12px;">
-        <table class="term-table" style="width:100%; border-collapse:separate; border-spacing:0;">
-          <thead style="position:sticky; top:0; z-index:1;">
+      <div class="table-wrap">
+        <table class="term-table">
+          <thead>
             <tr>
+              <th style="text-align:left; padding:12px;">Term</th>
+              <th style="text-align:left; padding:12px;">Start</th>
+              <th style="text-align:left; padding:12px;">End</th>
               <th style="text-align:left; padding:12px;">Year</th>
-              <th style="text-align:left; padding:12px;">Start Date</th>
-              <th style="text-align:left; padding:12px;">End Date</th>
-              <th style="text-align:left; padding:12px;">Notes</th>
+              <th style="text-align:left; padding:12px;">Months</th>
+              <th style="text-align:left; padding:12px; width:110px;">Tools</th>
             </tr>
           </thead>
-          <tbody id="termBody">
-            <!-- Populated by terms.js -->
-          </tbody>
+          <tbody id="termBody"></tbody>
         </table>
       </div>
-      <p style="margin-top:10px; font-size:.9rem; color:var(--muted);">
-        Source: Potter’s World forum timeline. See <em>PW Timeline</em> for the authoritative list.
-      </p>
+      <p style="margin-top:10px; font-size:.9rem; color:var(--muted);">Source: PW forum timeline. Paste new lines as they’re posted to keep this page current.</p>
     </div>
 
     <footer class="footer">
