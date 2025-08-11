@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PW Term Date Reference</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="witch-hat.png">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div>
+        <h1 class="title">Term Date Reference</h1>
+        <p class="subtitle">
+          Quick reference for Potterworld term start and end dates, sourced from the official PW Timeline.
+        </p>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+    </header>
+
+    <section class="controls" style="margin: 12px 0 20px;">
+      <div class="control-row" style="display:flex; gap:12px; flex-wrap:wrap;">
+        <input id="searchInput" class="input" type="text" placeholder="Search by year or date…" />
+        <select id="rangeSelect" class="input">
+          <option value="all">All years</option>
+          <option value="1-50">Years 1–50</option>
+          <option value="51-100">Years 51–100</option>
+          <option value="101-150">Years 101–150</option>
+          <option value="151-200">Years 151–200</option>
+        </select>
+        <button id="clearBtn" class="btn">Clear</button>
+      </div>
+    </section>
+
+    <div class="content">
+      <div class="table-wrap" style="overflow:auto; border:1px solid var(--border); border-radius:12px;">
+        <table class="term-table" style="width:100%; border-collapse:separate; border-spacing:0;">
+          <thead style="position:sticky; top:0; z-index:1;">
+            <tr>
+              <th style="text-align:left; padding:12px;">Year</th>
+              <th style="text-align:left; padding:12px;">Start Date</th>
+              <th style="text-align:left; padding:12px;">End Date</th>
+              <th style="text-align:left; padding:12px;">Notes</th>
+            </tr>
+          </thead>
+          <tbody id="termBody">
+            <!-- Populated by terms.js -->
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:10px; font-size:.9rem; color:var(--muted);">
+        Source: Potter’s World forum timeline. See <em>PW Timeline</em> for the authoritative list.
+      </p>
+    </div>
+
+    <footer class="footer">
+      <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
+    </footer>
+  </div>
+
+  <script src="intro.js"></script>
+  <script src="terms.js"></script>
+</body>
+</html>
