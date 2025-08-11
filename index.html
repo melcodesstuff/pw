@@ -26,6 +26,8 @@
     function uid() { return Math.random().toString(36).slice(2, 9); }
     function clampInt(n, min, max) { const v = typeof n === "number" ? n : parseInt(String(n || 0), 10); if (Number.isNaN(v)) return min; return Math.max(min, Math.min(max, v)); }
     function formatAvg(n) { if (n == null || Number.isNaN(n)) return "—"; return Number.isInteger(n) ? String(n) : n.toFixed(2); }
+    const dayMs = 24 * 60 * 60 * 1000;
+    function daysInclusive(a, b) { return Math.round((parseISO(b) - parseISO(a)) / dayMs) + 1; }
 
     // ------------- TERM MAP (subset) -------------
     const TERM_MAP = {
@@ -96,6 +98,10 @@
       }
 
       const [characters, setCharacters] = useState([blankChar(), blankChar()]);
+      const [showTerms, setShowTerms] = useState(false);
+      const [sortBy, setSortBy] = useState('term'); // 'term' | 'start' | 'end'
+      const [sortDir, setSortDir] = useState('desc'); // 'asc' | 'desc'
+
       function updateChar(id, patch) { setCharacters(prev => prev.map(c => (c.id === id ? { ...c, ...patch } : c))); }
       function addChar() { if (characters.length >= 10) return; setCharacters(prev => [...prev, blankChar()]); }
       function removeChar(id) { setCharacters(prev => prev.filter(c => c.id !== id)); }
@@ -192,12 +198,36 @@
         return { count, avg, requiredTotal, eligible, allHavePosts, overallOk, perCharOk, belowList, overallNeededPerChar };
       }, [characters, computed]);
 
+      // Terms table data
+      const termRows = useMemo(() => {
+        const rows = Object.entries(TERM_MAP).map(([term, { start, end }]) => ({
+          term: Number(term), start, end, days: daysInclusive(start, end)
+        }));
+        const dir = sortDir === 'asc' ? 1 : -1;
+        return rows.sort((a,b) => {
+          if (sortBy === 'term') return (a.term - b.term) * dir;
+          if (sortBy === 'start') return (parseISO(a.start) - parseISO(b.start)) * dir;
+          if (sortBy === 'end') return (parseISO(a.end) - parseISO(b.end)) * dir;
+          return 0;
+        });
+      }, [sortBy, sortDir]);
+
+      const sortHeader = (key) => {
+        if (sortBy === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortBy(key); setSortDir('asc'); }
+      };
+
       return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
           <div className="max-w-6xl mx-auto px-6 py-10">
-            <header className="mb-6">
-              <h1 className="text-3xl font-semibold leading-tight">PW Post Averages</h1>
-              <p className="mt-2 text-base text-slate-600 dark:text-slate-400">Unofficial calculator for per-term averages.</p>
+            <header className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+              <div>
+                <h1 className="text-3xl font-semibold leading-tight">PW Post Averages</h1>
+                <p className="mt-2 text-base text-slate-600 dark:text-slate-400">Unofficial calculator for per-term averages.</p>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setShowTerms(true)} className="px-3 py-2.5 rounded-xl bg-slate-900 text-white dark:bg-slate-200 dark:text-slate-900">Term dates</button>
+              </div>
             </header>
 
             {/* Context */}
@@ -235,7 +265,7 @@
                         <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><input type="checkbox" className="accent-indigo-600" checked={c.isSpirit} onChange={e => updateChar(c.id, { isSpirit: e.target.checked })}/> Spirit character</label>
                       </div>
 
-                      {/* Hogwarts / AW status (auto) — removed field label box per request, but logic still shows in summary box below */}
+                      {/* Hogwarts / AW status (auto) removed field box per request; logic remains in summary */}
 
                       <div>
                         <label className="text-xs uppercase tracking-wide text-slate-500">Current post count</label>
@@ -309,77 +339,37 @@
               <h2 className="text-xl font-semibold mb-3">Summary</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                 <div className="space-y-2">
+                  {/* Total characters */}
                   <div>Total characters: <span className="font-medium">{characters.length}</span></div>
+
+                  {/* Per-character lines */}
+                  <div className="space-y-1">
+                    {characters.map((c) => {
+                      const pc = computed[c.id];
+                      const label = c.name ? c.name : '(unnamed)';
+                      const avgStr = pc?.perTermAvg != null ? formatAvg(pc.perTermAvg) : '—';
+                      return (
+                        <div key={c.id}>
+                          {label} average: <span className="font-medium">{avgStr}</span> <span className="text-slate-500">posts/term</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Overall average */}
                   <div>Overall average: <span className="font-medium">{formatAvg((() => {
                     const count = characters.length;
                     const avgs = characters.map(c => (computed[c.id]?.perTermAvg ?? 0));
                     return count ? avgs.reduce((a,b)=>a+b,0)/count : 0;
                   })())}</span> <span className="text-slate-500">posts/term</span></div>
-                  {(() => {
-                    const count = characters.length;
-                    const avgs = characters.map(c => (computed[c.id]?.perTermAvg ?? 0));
-                    const avg = count ? avgs.reduce((a,b)=>a+b,0)/count : 0;
-                    const allHavePosts = characters.every(c => c.currentPosts !== "");
-                    const overallOk = avg >= 20;
-                    const pcOk = characters.every(c => {
-                      const pc = computed[c.id];
-                      if (!pc) return true;
-                      if (c.currentPosts === "" || pc.perTermAvg == null) return true;
-                      return pc.meetsMinimum ?? true;
-                    });
-                    const belowList = characters
-                      .map(c => ({ c, pc: computed[c.id] }))
-                      .filter(({ c, pc }) => c.currentPosts !== "" && pc && pc.perTermAvg != null && pc.minRequired > 0 && pc.perTermAvg < pc.minRequired)
-                      .map(({ c, pc }) => ({
-                        id: c.id,
-                        name: c.name || "(unnamed)",
-                        required: pc.minRequired,
-                        shortfall: Math.max(0, pc.minRequired - pc.perTermAvg),
-                        twoPlusAmbiguous: pc.twoPlusAmbiguous
-                      }));
-
-                    return (
-                      <>
-                        <div className="flex items-center gap-2">Overall average status: {allHavePosts ? (
-                          <Badge ok={overallOk}>{overallOk ? 'Met' : 'Unmet'}</Badge>
-                        ) : (
-                          <Badge pending>Pending</Badge>
-                        )}</div>
-                        <div className="flex items-center gap-2">Character average status: {allHavePosts ? (
-                          <Badge ok={pcOk}>{pcOk ? 'Met' : 'Unmet'}</Badge>
-                        ) : (
-                          <Badge pending>Pending</Badge>
-                        )}</div>
-
-                        {allHavePosts && (!overallOk || !pcOk) && (
-                          <div className="mt-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/50 p-3">
-                            {!overallOk && (
-                              <p className="mb-2">Your group average is below 20 posts/term. Add about <span className="font-semibold">{formatAvg(Math.max(0, 20 - avg))}</span> more posts per character on average this term (or increase total posts proportionally) to reach 20.</p>
-                            )}
-                            {!pcOk && (
-                              <div>
-                                <p className="mb-1">The following characters are below their required average:</p>
-                                <ul className="list-disc pl-5 space-y-1">
-                                  {belowList.map(item => (
-                                    <li key={item.id}>
-                                      <span className="font-medium">{item.name}</span> — needs ~<span className="font-semibold">{formatAvg(item.shortfall)}</span> more avg posts/term to meet <span className="font-semibold">{item.required}</span>/term{item.twoPlusAmbiguous ? ' (near 2-year mark, defaulting to 20)' : ''}.
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
                 </div>
 
+                {/* Rules */}
                 <div className="space-y-2">
                   <div className="text-slate-600 dark:text-slate-300">Calculator uses the following rules:</div>
                   <ul className="list-disc pl-5 space-y-1 text-slate-700 dark:text-slate-300">
                     <li>Under 2 RL years: ≥ 20/term.</li>
-                    <li>2+ RL years: ≥ 10/term. <span className="text-amber-700 dark:text-amber-300">If your 2‑year date is close, it will default to 20 and flag it to double‑check.</span></li>
+                    <li>2+ RL years: ≥ 10/term. <em>(If your 2‑year date is close, it will default to 20 and flag it to double‑check.)</em></li>
                     <li>Spirits have no per‑character minimum.</li>
                     <li>Overall average must be ≥ 20.</li>
                   </ul>
@@ -387,6 +377,44 @@
               </div>
             </section>
           </div>
+
+          {/* --- Modal: Term Dates --- */}
+          {showTerms && (
+            <div className="fixed inset-0 z-50">
+              <div className="absolute inset-0 bg-black/40" onClick={() => setShowTerms(false)}></div>
+              <div className="absolute inset-0 flex items-center justify-center p-4">
+                <div className="w-full max-w-3xl rounded-2xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200/60 dark:border-slate-700/50">
+                  <div className="px-5 py-4 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700/50">
+                    <h3 className="text-lg font-semibold">PW term dates</h3>
+                    <button className="px-2 py-1 text-sm rounded-lg bg-slate-100 dark:bg-slate-700" onClick={() => setShowTerms(false)}>Close</button>
+                  </div>
+                  <div className="p-5 overflow-auto max-h-[70vh]">
+                    <div className="mb-3 text-xs text-slate-500">Click a header to sort</div>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-slate-600 dark:text-slate-300">
+                          <th className="py-2 cursor-pointer" onClick={() => sortHeader('term')}>Term {sortBy==='term' ? (sortDir==='asc' ? '↑' : '↓') : ''}</th>
+                          <th className="py-2 cursor-pointer" onClick={() => sortHeader('start')}>Start {sortBy==='start' ? (sortDir==='asc' ? '↑' : '↓') : ''}</th>
+                          <th className="py-2 cursor-pointer" onClick={() => sortHeader('end')}>End {sortBy==='end' ? (sortDir==='asc' ? '↑' : '↓') : ''}</th>
+                          <th className="py-2">Days</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {termRows.map(r => (
+                          <tr key={r.term} className="border-t border-slate-100 dark:border-slate-700/50">
+                            <td className="py-2 font-medium">{r.term}</td>
+                            <td className="py-2">{r.start}</td>
+                            <td className="py-2">{r.end}</td>
+                            <td className="py-2">{r.days}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     }
