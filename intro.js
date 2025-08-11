@@ -5,10 +5,10 @@ function toggleTheme() {
   const button = document.querySelector('.theme-toggle');
   
   if (isDark) {
-    document.documentElement.classList.add('dark');
+    document.body.classList.add('dark');
     button.textContent = '☀️ Light Mode';
   } else {
-    document.documentElement.classList.remove('dark');
+    document.body.classList.remove('dark');
     button.textContent = '🌙 Dark Mode';
   }
 }
