@@ -1,84 +1,38 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PW Resources Index</title>
-  <link rel="icon" type="image/png" href="witch-hat.png">
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-50">
-  <div id="root"></div>
-
-  <!-- React 18 + ReactDOM UMD -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <!-- Babel Standalone -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <script type="text/babel">
-    const { useEffect } = React;
-
-    function App() {
-      // Follow system dark mode
-      useEffect(() => {
-        const mq = window.matchMedia("(prefers-color-scheme: dark)");
-        const apply = () => {
-          if (mq.matches) document.documentElement.classList.add("dark");
-          else document.documentElement.classList.remove("dark");
-        };
-        apply();
-        mq.addEventListener("change", apply);
-        return () => mq.removeEventListener("change", apply);
-      }, []);
-
-      const resources = [
-        {
-          title: "PW Post Averages Calculator",
-          desc: "Check per-term post averages and eligibility for twins, 7th+, and adult-created characters.",
-          link: "calculator.html"
-        },
-        {
-          title: "Term Date Reference",
-          desc: "Quick reference for PW term start/end dates.",
-          link: "terms.html"
-        },
-        {
-          title: "Other Tool Example",
-          desc: "Placeholder for your future resources.",
-          link: "#"
-        }
-      ];
-
-      return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-          <div className="max-w-6xl mx-auto px-6 py-10">
-            <header className="mb-8">
-              <h1 className="text-3xl font-semibold leading-tight">PW Tools & Resources</h1>
-              <p className="mt-2 text-base text-slate-600 dark:text-slate-400">
-                Welcome! This index links to my collection of PW-related tools and reference pages.
-              </p>
-            </header>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {resources.map((res) => (
-                <a
-                  key={res.title}
-                  href={res.link}
-                  className="block rounded-2xl border border-slate-200/60 dark:border-slate-700/50 bg-white dark:bg-slate-800 p-6 shadow-sm hover:shadow-md transition"
-                >
-                  <h2 className="text-lg font-semibold mb-2">{res.title}</h2>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">{res.desc}</p>
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<App />);
-  </script>
-</body>
-</html>
+<div class="container">
+    <header class="header">
+      <div>
+        <h1 class="title">PW Tools & Resources</h1>
+        <p class="subtitle">
+          Your complete toolkit for Potterworld roleplay. Access calculators, references, and planning tools to enhance your magical journey.
+        </p>
+      </div>
+      
+      <button class="theme-toggle" onclick="toggleTheme()">
+        🌙 Dark Mode
+      </button>
+    </header>
+    
+    <div class="grid">
+      <a href="calculator.html" class="card">
+        <h2 class="card-title">PW Post Averages Calculator</h2>
+        <p class="card-desc">Check per-term post averages and eligibility for twins, 7th+, and adult-created characters.</p>
+        <div class="card-link">Open Tool →</div>
+      </a>
+      
+      <a href="terms.html" class="card">
+        <h2 class="card-title">Term Date Reference</h2>
+        <p class="card-desc">Quick reference for PW term start and end dates with academic calendar.</p>
+        <div class="card-link">Open Tool →</div>
+      </a>
+      
+      <div class="card placeholder">
+        <h2 class="card-title">Character Planner</h2>
+        <p class="card-desc">Plan your character's academic journey and track progression through years.</p>
+        <div class="card-link">Coming Soon</div>
+      </div>
+    </div>
+    
+    <footer class="footer">
+      <p>Unofficial Potterworld utilities • Made with ✨ for the community</p>
+    </footer>
+  </div>
