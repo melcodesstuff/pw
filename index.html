@@ -1,21 +1,19 @@
-<!doctype html>
+ <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>PW Post Averages</title>
-  <!-- Tailwind for styling (CDN, fine for prototypes) -->
-  <link rel="icon" type="image/png" href="witch-hat.png">
-
+    <link rel="icon" type="image/png" href="witch-hat.png">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50">
   <div id="root"></div>
 
-  <!-- React 18 + ReactDOM UMD (no build step needed) -->
+  <!-- React 18 + ReactDOM UMD -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <!-- Babel Standalone to transpile JSX in the browser -->
+  <!-- Babel Standalone -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <script type="text/babel">
@@ -131,21 +129,23 @@
           }
         }
 
-        // 2+ RL years conservative rule
-        let twoPlusYears = false, twoPlusAmbiguous = false;
+        // RL years windows
+        let twoPlusYears = false, twoPlusAmbiguous = false, onePlusYears = false;
         if (typeof c.joinedTerm === "number" && TERM_MAP[c.joinedTerm]) {
           const { start, end } = TERM_MAP[c.joinedTerm];
           const start2y = addYears(parseISO(start), 2);
           const end2y = addYears(parseISO(end), 2);
+          const end1y = addYears(parseISO(end), 1);
           const td = parseISO(today);
           if (td >= end2y) twoPlusYears = true;
           else if (td >= start2y && td < end2y) twoPlusAmbiguous = true;
+          if (td >= end1y) onePlusYears = true;
         }
+
         const minRequired = c.isSpirit ? 0 : (twoPlusYears ? 10 : 20);
 
         const posts = c.currentPosts === "" ? null : Number(c.currentPosts);
         const perTermAvg = (posts != null && termsOnBoard && termsOnBoard > 0) ? (posts / termsOnBoard) : null;
-        const meetsMinimum = perTermAvg == null ? null : perTermAvg >= minRequired;
 
         const grad = typeof c.graduationCount === "number" ? Number(c.graduationCount) : null;
         const hogwartsAvgPerTerm = grad != null ? grad / 7 : null;
@@ -159,48 +159,24 @@
           if (termsSince > 0 && delta >= 0) sinceAdultCheckAvg = delta / termsSince;
         }
 
-        return { termsOnBoard, stage, hogwartsYear, awTerms, twoPlusYears, twoPlusAmbiguous, minRequired, perTermAvg, meetsMinimum, hogwartsAvgPerTerm, awAvgPerTerm, sinceAdultCheckAvg };
+        return { termsOnBoard, stage, hogwartsYear, awTerms, twoPlusYears, twoPlusAmbiguous, onePlusYears, minRequired, perTermAvg, hogwartsAvgPerTerm, awAvgPerTerm, sinceAdultCheckAvg };
       }
 
       const computed = useMemo(() => {
         const map = {}; characters.forEach(c => { map[c.id] = computeChar(c); }); return map;
       }, [characters, currentTerm, today]);
 
-      const totals = useMemo(() => {
-        const count = characters.length;
-        const perTermAverages = characters.map(c => computed[c.id]?.perTermAvg ?? 0);
-        const avg = count ? perTermAverages.reduce((a,b)=>a+b,0) / count : 0;
-        const requiredTotal = characters.reduce((s,c)=> s + (computed[c.id]?.minRequired || 0), 0);
-        const allHavePosts = characters.every(c => c.currentPosts !== "");
-        const overallOk = avg >= 20 || !allHavePosts;
-        const perCharOk = characters.every(c => {
-          const pc = computed[c.id];
-          if (!pc) return true;
-          if (c.currentPosts === "" || pc.perTermAvg == null) return true;
-          return pc.meetsMinimum ?? true;
-        });
-        const eligible = perCharOk && overallOk && characters.some(c => c.currentPosts !== "");
+      // Effective average: prefer adult-check avg, then AW avg, else overall
+      function effectiveAvg(c, pc) {
+        if (!pc) return null;
+        if (pc.stage === 'AW') {
+          if (pc.sinceAdultCheckAvg != null) return pc.sinceAdultCheckAvg;
+          if (pc.awAvgPerTerm != null) return pc.awAvgPerTerm;
+        }
+        return pc.perTermAvg;
+      }
 
-        // who is below minimum
-        const belowList = characters
-          .map(c => ({ c, pc: computed[c.id] }))
-          .filter(({ c, pc }) => c.currentPosts !== "" && pc && pc.perTermAvg != null && pc.minRequired > 0 && pc.perTermAvg < pc.minRequired)
-          .map(({ c, pc }) => ({
-            id: c.id,
-            name: c.name || "(unnamed)",
-            required: pc.minRequired,
-            avg: pc.perTermAvg,
-            shortfall: Math.max(0, pc.minRequired - pc.perTermAvg),
-            twoPlusAmbiguous: pc.twoPlusAmbiguous
-          }));
-
-        let overallNeededPerChar = 0;
-        if (allHavePosts) overallNeededPerChar = Math.max(0, 20 - avg);
-
-        return { count, avg, requiredTotal, eligible, allHavePosts, overallOk, perCharOk, belowList, overallNeededPerChar };
-      }, [characters, computed]);
-
-      // Terms table data
+      // Terms data for modal
       const termRows = useMemo(() => {
         const rows = Object.entries(TERM_MAP).map(([term, { start, end }]) => ({
           term: Number(term), start, end, days: daysInclusive(start, end)
@@ -218,6 +194,10 @@
         if (sortBy === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
         else { setSortBy(key); setSortDir('asc'); }
       };
+
+      // dynamic label for 7th+ section
+      const plusLabel = `${Math.max(7, characters.length + (characters.length >= 7 ? 1 : 0))}+ Character Eligibility`;
+      const showPlusIsDynamic = characters.length >= 7;
 
       return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
@@ -245,10 +225,9 @@
                 const pc = computed[c.id];
                 const inAW = pc?.stage === "AW";
                 const showGradField = inAW && !c.isAdultCreated;
-                const below = (c.currentPosts !== "" && pc && pc.meetsMinimum === false);
                 return (
-                  <section key={c.id} className={`relative rounded-2xl border p-6 shadow-sm bg-white dark:bg-slate-800 border-slate-200/60 dark:border-slate-700/50`}>
-                    <div className="absolute right-5 top-5 text-xs text-slate-500">{below ? <span className="text-rose-500 font-medium">Below minimum</span> : <span>Character {idx + 1}</span>}</div>
+                  <section key={c.id} className="relative rounded-2xl border p-6 shadow-sm bg-white dark:bg-slate-800 border-slate-200/60 dark:border-slate-700/50">
+                    <div className="absolute right-5 top-5 text-xs text-slate-500"><span>Character {idx + 1}</span></div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div>
@@ -267,12 +246,15 @@
                         <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><input type="checkbox" className="accent-indigo-600" checked={c.isSpirit} onChange={e => updateChar(c.id, { isSpirit: e.target.checked })}/> Spirit character</label>
                       </div>
 
-                      {/* Hogwarts / AW status (auto) removed field box per request; logic remains in summary */}
-
                       <div>
                         <label className="text-xs uppercase tracking-wide text-slate-500">Current post count</label>
                         <input type="number" value={c.currentPosts} onChange={e => updateChar(c.id, { currentPosts: e.target.value === "" ? "" : clampInt(e.target.value, 0, 1000000) })} className="w-full mt-1 px-3 h-11 rounded-xl bg-slate-100 dark:bg-slate-700 outline-none" />
-                        <div className="text-xs mt-1 text-slate-500">Minimum required: <span className="font-medium">{pc?.minRequired ?? "—"}</span>{pc?.perTermAvg != null && <> • Your avg: <span className="font-medium">{formatAvg(pc.perTermAvg)}</span></>}{pc?.twoPlusAmbiguous && <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-200 text-amber-900">check 2y date</span>}</div>
+                        <div className="text-xs mt-1 text-slate-500">
+                          Minimum required: <span className="font-medium">{pc?.minRequired ?? "—"}</span>
+                          {pc?.sinceAdultCheckAvg != null && <> • Since check avg: <span className="font-medium">{formatAvg(pc.sinceAdultCheckAvg)}</span></>}
+                          {pc?.perTermAvg != null && <> • Overall avg: <span className="font-medium">{formatAvg(pc.perTermAvg)}</span></>}
+                          {pc?.twoPlusAmbiguous && <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-200 text-amber-900">check 2y date</span>}
+                        </div>
                       </div>
 
                       {showGradField && (
@@ -341,15 +323,14 @@
               <h2 className="text-xl font-semibold mb-3">Summary</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                 <div className="space-y-2">
-                  {/* Total characters */}
                   <div>Total characters: <span className="font-medium">{characters.length}</span></div>
 
-                  {/* Per-character lines */}
                   <div className="space-y-1">
                     {characters.map((c) => {
                       const pc = computed[c.id];
                       const label = c.name ? c.name : '(unnamed)';
-                      const avgStr = pc?.perTermAvg != null ? formatAvg(pc.perTermAvg) : '—';
+                      const avgVal = effectiveAvg(c, pc);
+                      const avgStr = avgVal != null ? formatAvg(avgVal) : '—';
                       return (
                         <div key={c.id}>
                           {label} average: <span className="font-medium">{avgStr}</span> <span className="text-slate-500">posts/term</span>
@@ -358,25 +339,206 @@
                     })}
                   </div>
 
-                  {/* Overall average */}
                   <div>Overall average: <span className="font-medium">{formatAvg((() => {
-                    const count = characters.length;
-                    const avgs = characters.map(c => (computed[c.id]?.perTermAvg ?? 0));
-                    return count ? avgs.reduce((a,b)=>a+b,0)/count : 0;
+                    const vals = characters.map(c => effectiveAvg(c, computed[c.id]) ?? 0);
+                    const count = characters.length; return count ? vals.reduce((a,b)=>a+b,0)/count : 0;
                   })())}</span> <span className="text-slate-500">posts/term</span></div>
                 </div>
 
-                {/* Rules */}
                 <div className="space-y-2">
                   <div className="text-slate-600 dark:text-slate-300">Calculator uses the following rules:</div>
                   <ul className="list-disc pl-5 space-y-1 text-slate-700 dark:text-slate-300">
                     <li>Under 2 RL years: ≥ 20/term.</li>
-                    <li>2+ RL years: ≥ 10/term. <em>(If your 2‑year date is close, it will default to 20 and flag it to double‑check.)</em></li>
+                    <li>2+ RL years: ≥ 10/term <em>(If your 2‑year date is close, it will default to 20 and flag it to double‑check.)</em></li>
                     <li>Spirits have no per‑character minimum.</li>
-                    <li>Overall average must be ≥ 20.</li>
+                    <li>Overall average must be ≥ 20 (for twins).</li>
                   </ul>
                 </div>
               </div>
+            </section>
+
+            {/* Eligibility (Twins) */}
+            <section className="mt-6 rounded-2xl border p-6 shadow-sm bg-white dark:bg-slate-800 border-slate-200/60 dark:border-slate-700/50">
+              <h2 className="text-xl font-semibold">Twins Eligibility</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">
+                Baseline is <span className="font-medium">20+ posts/term per character</span>. Characters that are <span className="font-medium">2+ RL years</span> old need <span className="font-medium">10+/term</span>. Spirit characters have no minimum. Group totals can compensate.
+              </p>
+              {(() => {
+                const allHavePosts = characters.every(c => c.currentPosts !== "");
+                const items = characters.map(c => {
+                  const pc = computed[c.id];
+                  const avg = effectiveAvg(c, pc) ?? 0;
+                  const min = c.isSpirit ? 0 : (pc?.twoPlusYears ? 10 : 20);
+                  return { id: c.id, name: c.name || '(unnamed)', avg, min, shortfall: Math.max(0, min - avg) };
+                });
+                const overallAvg = (() => {
+                  const vals = items.map(i => i.avg); const n = items.length; return n ? vals.reduce((a,b)=>a+b,0)/n : 0;
+                })();
+                const overallOk = overallAvg >= 20;
+                const below = items.filter(i => i.shortfall > 0);
+                const perCharOk = below.length === 0;
+                const eligible = allHavePosts && overallOk && perCharOk;
+
+                return (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-slate-600 dark:text-slate-300">Twins Eligible:</span>
+                      {!allHavePosts ? (<Badge pending>Pending</Badge>) : eligible ? (<Badge ok>Met</Badge>) : (<Badge ok={false}>Not met</Badge>)}
+                    </div>
+
+                    {allHavePosts && !eligible && (
+                      <div className="mt-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/50 p-3 text-sm">
+                        {!overallOk && (
+                          <p className="mb-2">Your overall average is below 20 posts/term.
+                            You need about <span className="font-semibold">{formatAvg(Math.max(0, 20 - overallAvg))}</span> more posts per character on average.</p>
+                        )}
+                        {below.length > 0 && (
+                          <div>
+                            <p className="mb-1">These characters are below their personal minimum (20/term; 10/term if 2+ RL yrs; spirits 0):</p>
+                            <ul className="list-disc pl-5 space-y-1">
+                              {below.map(i => (
+                                <li key={i.id}><span className="font-medium">{i.name}</span> — {formatAvg(i.avg)}/term; needs ~<span className="font-semibold">{formatAvg(i.shortfall)}</span> to reach <span className="font-semibold">{i.min}</span>/term.</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </section>
+
+            {/* 7th+ / 8+ / 9+ Character Eligibility */}
+            <section className="mt-6 rounded-2xl border p-6 shadow-sm bg-white dark:bg-slate-800 border-slate-200/60 dark:border-slate-700/50">
+              <h2 className="text-xl font-semibold mb-3">{showPlusIsDynamic ? plusLabel : '7th+ Character Eligibility'}</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">
+                Baseline is <span className="font-medium">20+ posts/term per character</span>. Characters that are <span className="font-medium">2+ RL years</span> old need <span className="font-medium">10+/term</span>. Spirit characters have no minimum. Group totals can compensate.
+              </p>
+              {(() => {
+                const allHavePosts = characters.every(c => c.currentPosts !== "");
+                const items = characters.map(c => {
+                  const pc = computed[c.id];
+                  const avg = effectiveAvg(c, pc) ?? 0;
+                  const min = c.isSpirit ? 0 : (pc?.twoPlusYears ? 10 : 20);
+                  return { id: c.id, name: c.name || '(unnamed)', avg, min, shortfall: Math.max(0, min - avg) };
+                });
+                const totalRequired = items.reduce((s,i)=> s + i.min, 0);
+                const totalActual = items.reduce((s,i)=> s + i.avg, 0);
+                const overallMeets = totalActual >= totalRequired;
+                const below = items.filter(i => i.shortfall > 0);
+                const eligible = allHavePosts && overallMeets;
+
+                return (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-slate-600 dark:text-slate-300">Eligible for {showPlusIsDynamic ? plusLabel.replace(' Character Eligibility','') : '7th+'} application:</span>
+                      {!allHavePosts ? (<Badge pending>Pending</Badge>) : eligible ? (<Badge ok>Met</Badge>) : (<Badge ok={false}>Not met</Badge>)}
+                    </div>
+                    <div className="text-sm text-slate-700 dark:text-slate-300 mb-2">Total avg across characters: <span className="font-medium">{formatAvg(totalActual)}</span> · Required total: <span className="font-medium">{formatAvg(totalRequired)}</span></div>
+                    {allHavePosts && !eligible && (
+                      <div className="mt-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/50 p-3 text-sm">
+                        {!overallMeets && (<p className="mb-2">Your combined per-term average across all characters is below the required total. You need about <span className="font-semibold">{formatAvg(Math.max(0, totalRequired - totalActual))}</span> more posts/term overall.</p>)}
+                        {below.length > 0 && (
+                          <div>
+                            <p className="mb-1">These characters are below their personal minimum:</p>
+                            <ul className="list-disc pl-5 space-y-1">{below.map(i => (<li key={i.id}><span className="font-medium">{i.name}</span> — {formatAvg(i.avg)}/term; needs ~<span className="font-semibold">{formatAvg(i.shortfall)}</span> to reach <span className="font-semibold">{i.min}</span>/term.</li>))}</ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </section>
+
+            {/* Adult-Character Eligibility */}
+            <section className="mt-6 rounded-2xl border p-6 shadow-sm bg-white dark:bg-slate-800 border-slate-200/60 dark:border-slate-700/50">
+              <h2 className="text-xl font-semibold mb-1">Adult‑Character Eligibility</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">
+                First/only adult‑created (≥ 30 avg/character) and (2) second adult‑created (≥ 50 avg/character and an existing adult‑created ≥ 1 RL year old).
+                Characters 2+ RL years old use 10/term personal minimum; spirits 0.
+              </p>
+              {(() => {
+                const allHavePosts = characters.every(c => c.currentPosts !== "");
+
+                const items = characters.map(c => {
+                  const pc = computed[c.id];
+                  const avg = effectiveAvg(c, pc) ?? 0;
+                  return { id: c.id, name: c.name || '(unnamed)', avg, pc, isSpirit: c.isSpirit };
+                });
+
+                const anyAdultCreated = characters.some(c => c.isAdultCreated);
+                const anyAdultCreatedOneYear = characters.some(c => c.isAdultCreated && (computed[c.id]?.onePlusYears));
+
+                function checkBaseline(baseline) {
+                  const perCharMins = items.map(it => {
+                    const floor = it.isSpirit ? 0 : (it.pc?.twoPlusYears ? 10 : baseline);
+                    return { ...it, min: floor, shortfall: Math.max(0, floor - it.avg) };
+                  });
+                  const overallAvg = (() => { const n = perCharMins.length; return n ? perCharMins.reduce((s,i)=> s + i.avg, 0)/n : 0; })();
+                  const overallOk = overallAvg >= baseline;
+                  const below = perCharMins.filter(i => i.shortfall > 0);
+                  const perCharOk = below.length === 0;
+                  return { overallAvg, overallOk, perCharMins, below, perCharOk };
+                }
+
+                const first = checkBaseline(30);
+                const second = checkBaseline(50);
+
+                const firstEligible = allHavePosts && first.overallOk && first.perCharOk;
+                const secondEligible = allHavePosts && second.overallOk && second.perCharOk && anyAdultCreated && anyAdultCreatedOneYear;
+
+                return (
+                  <div className="space-y-6">
+                    {/* First/Only Adult */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-slate-600 dark:text-slate-300">First/Only Adult‑Created:</span>
+                        {!allHavePosts ? (<Badge pending>Pending</Badge>) : firstEligible ? (<Badge ok>Met</Badge>) : (<Badge ok={false}>Not met</Badge>)}
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-400 mb-2">Overall average: <span className="font-medium">{formatAvg(first.overallAvg)}</span> (needs ≥ 30)</div>
+                      {allHavePosts && !firstEligible && (
+                        <div className="rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/50 p-3 text-sm">
+                          {!first.overallOk && <p className="mb-2">Your overall average is below 30 posts/term. Add about <span className="font-semibold">{formatAvg(Math.max(0, 30 - first.overallAvg))}</span> more posts/term per character on average.</p>}
+                          {first.below.length > 0 && (
+                            <div>
+                              <p className="mb-1">These characters are below their personal minimum (baseline 30; 10 if 2+ RL yrs; spirits 0):</p>
+                              <ul className="list-disc pl-5 space-y-1">{first.below.map(i => (<li key={i.id}><span className="font-medium">{i.name}</span> — {formatAvg(i.avg)}/term; needs ~<span className="font-semibold">{formatAvg(i.shortfall)}</span> to reach <span className="font-semibold">{i.min}</span>/term.</li>))}</ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Second Adult */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-slate-600 dark:text-slate-300">Second Adult‑Created:</span>
+                        {!allHavePosts ? (<Badge pending>Pending</Badge>) : secondEligible ? (<Badge ok>Met</Badge>) : (<Badge ok={false}>Not met</Badge>)}
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+                        Overall average: <span className="font-medium">{formatAvg(second.overallAvg)}</span> (needs ≥ 50)
+                        {anyAdultCreated ? (anyAdultCreatedOneYear ? ' • existing adult ≥ 1y ✔' : ' • existing adult ≥ 1y ✖') : ' • no existing adult account'}
+                      </div>
+                      {allHavePosts && !secondEligible && (
+                        <div className="rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/50 p-3 text-sm">
+                          {(!anyAdultCreated || !anyAdultCreatedOneYear) && (
+                            <p className="mb-2">Requirement: you must already have an adult‑created character that is at least one real‑life year old.</p>
+                          )}
+                          {!second.overallOk && <p className="mb-2">Your overall average is below 50 posts/term. Add about <span className="font-semibold">{formatAvg(Math.max(0, 50 - second.overallAvg))}</span> more posts/term per character on average.</p>}
+                          {second.below.length > 0 && (
+                            <div>
+                              <p className="mb-1">These characters are below their personal minimum (baseline 50; 10 if 2+ RL yrs; spirits 0):</p>
+                              <ul className="list-disc pl-5 space-y-1">{second.below.map(i => (<li key={i.id}><span className="font-medium">{i.name}</span> — {formatAvg(i.avg)}/term; needs ~<span className="font-semibold">{formatAvg(i.shortfall)}</span> to reach <span className="font-semibold">{i.min}</span>/term.</li>))}</ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </section>
           </div>
 
@@ -395,9 +557,9 @@
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-left text-slate-600 dark:text-slate-300">
-                          <th className="py-2 cursor-pointer" onClick={() => sortHeader('term')}>Term {sortBy==='term' ? (sortDir==='asc' ? '↑' : '↓') : ''}</th>
-                          <th className="py-2 cursor-pointer" onClick={() => sortHeader('start')}>Start {sortBy==='start' ? (sortDir==='asc' ? '↑' : '↓') : ''}</th>
-                          <th className="py-2 cursor-pointer" onClick={() => sortHeader('end')}>End {sortBy==='end' ? (sortDir==='asc' ? '↑' : '↓') : ''}</th>
+                          <th className="py-2 cursor-pointer" onClick={() => sortHeader('term')}>Term</th>
+                          <th className="py-2 cursor-pointer" onClick={() => sortHeader('start')}>Start</th>
+                          <th className="py-2 cursor-pointer" onClick={() => sortHeader('end')}>End</th>
                           <th className="py-2">Days</th>
                         </tr>
                       </thead>
