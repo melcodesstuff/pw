@@ -1,10 +1,6 @@
-/* terms.js
-   Builds the Term Date Reference table from the PW Timeline text.
-   Data copied from the PW forum timeline to avoid cross‑site fetch/CORS issues.
-   You can update this block whenever the forum post updates.
-*/
+/* Term Date Reference — descending view with current callout, search, month filter, and copy tool. */
 
-// Raw timeline text copied from: https://forums.pottersworld.org/topic/102052-7-pw-timeline/
+/* Full list through Year 178 from the forum thread (minor spacing preserved). */
 const RAW_TIMELINE = `
 Year 1 -- February 14 - March 24 (2007)
 Year 2 -- March 25 - April 14 (2007)
@@ -149,13 +145,13 @@ Year 140 -- October 3 - November 13 (2020)
 Year 141 -- November 14 - December 26 (2020)
 Year 142 -- January 2 - February 12 (2021)
 Year 143 -- February 13 - March 27 (2021)
-Year 144 -- April 3 - May 13 (2021)
+Year 144 --  April 3 - May 13 (2021)
 Year 145 -- May 14 - June 26 (2021)
 Year 146 -- July 3 - August 13 (2021)
 Year 147 -- August 14 - September 25 (2021)
 Year 148 -- October 2 - November 13 (2021)
 Year 149 -- November 20 - December 25 (2021)
-Year 150 -- January 1 - February 11 (2022)
+Year 150 -- January 1 - February 11 (2022) 
 Year 151 -- February 12 - March 26 (2022)
 Year 152 -- April 2 - May 13 (2022)
 Year 153 -- May 14 - June 25 (2022)
@@ -163,7 +159,7 @@ Year 154 -- July 3 - August 12 (2022)
 Year 155 -- August 13 - September 24 (2022)
 Year 156 -- October 1 - November 11 (2022)
 Year 157 -- November 12 - December 24 (2022)
-Year 158 -- January 7 - February 17 (2023)
+Year 158 -- January 7 -  February 17 (2023)
 Year 159 -- February 18 - April 1 (2023)
 Year 160 -- April 8 - May 19 (2023)
 Year 161 -- May 20 - July 1 (2023)
@@ -174,81 +170,192 @@ Year 165 -- November 18 - December 30 (2023)
 Year 166 -- January 6 - February 23 (2024)
 Year 167 -- February 24 - April 5 (2024)
 Year 168 -- April 6 - May 17 (2024)
+Year 169 -- May 18 - June 29 (2024)
+Year 170 -- July 6 - August 16 (2024)  
+Year 171 -- August 17 - September 28 (2024)
+Year 172 -- October 5 - November 15 (2024)
+Year 173 -- November 16 - December 28 (2024)
+Year 174 -- January 4 - February 14 (2025)
+Year 175 -- February 15 - March 28 (2025)
+Year 176 -- April 5 - May 16 (2025)
+Year 177 -- May 17 - June 28 (2025)
+Year 178 -- July 5 - August 15 (2025)
 `;
 
-// Parse "Year N -- Month D - Month D (YYYY[/YYYY])"
+/* --- Parsing helpers --- */
+const MONTHS = {
+  january:0,february:1,march:2,april:3,may:4,june:5,
+  july:6,august:7,september:8,sept:8,septmeber:8, // forum typo
+  october:9,november:10,december:11
+};
 const LINE_RE = /^Year\s+(\d+)\s+--\s+([A-Za-z]+\s+\d{1,2})\s*[-–—]\s*([A-Za-z]+\s+\d{1,2})\s*\(([^)]+)\)\s*$/;
 
-function parseTimeline(raw) {
-  return raw
-    .split('\n')
-    .map(l => l.trim())
-    .filter(Boolean)
-    .map(line => {
-      const m = line.match(LINE_RE);
-      if (!m) return null;
-      const [, yearStr, start, end, years] = m;
-      const year = parseInt(yearStr, 10);
-      // Notes: carry over any typos as-is. You can normalize months if desired.
-      return { year, start, end, years };
+function parseMonthDay(s){
+  const [m,d]=s.trim().split(/\s+/);
+  return { m: MONTHS[m.toLowerCase()], d: parseInt(d,10), name: m };
+}
+function spanYears(label){
+  const parts = label.split('/').map(x=>parseInt(x,10));
+  return parts.length===1 ? {start:parts[0],end:parts[0]} : {start:parts[0],end:parts[1]};
+}
+function dt(y,md){ return new Date(y, md.m, md.d, 12); }
+
+function parse(raw){
+  return raw.split('\n')
+    .map(l=>l.trim()).filter(Boolean)
+    .map(line=>{
+      const m=line.match(LINE_RE);
+      if(!m) return null;
+      const [,termStr,startTxt,endTxt,yearsLabel]=m;
+      const term=parseInt(termStr,10);
+      const sMD=parseMonthDay(startTxt);
+      const eMD=parseMonthDay(endTxt);
+      const {start,end}=spanYears(yearsLabel);
+      const startDate=dt(start,sMD);
+      const endDate=dt(end,eMD);
+      const months = sMD.name===eMD.name ? sMD.name : `${sMD.name}–${eMD.name}`;
+      return {
+        term,
+        startLabel:startTxt,
+        endLabel:endTxt,
+        yearsLabel,
+        startDate,
+        endDate,
+        months,
+        startMonthKey:sMD.name.toLowerCase(),
+        endMonthKey:eMD.name.toLowerCase()
+      };
     })
     .filter(Boolean)
-    .sort((a, b) => a.year - b.year);
+    .sort((a,b)=>b.term-a.term); // DESC
 }
 
-function renderRows(list) {
-  const tbody = document.getElementById('termBody');
-  tbody.innerHTML = '';
-  const frag = document.createDocumentFragment();
-  list.forEach(row => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td style="padding:10px; border-bottom:1px solid var(--border);">Year ${row.year}</td>
-      <td style="padding:10px; border-bottom:1px solid var(--border);">${row.start}</td>
-      <td style="padding:10px; border-bottom:1px solid var(--border);">${row.end}</td>
-      <td style="padding:10px; border-bottom:1px solid var(--border);">${row.years}</td>
-    `;
-    frag.appendChild(tr);
-  });
-  tbody.appendChild(frag);
-}
+const ALL_TERMS = parse(RAW_TIMELINE);
 
-const ALL_TERMS = parseTimeline(RAW_TIMELINE);
-
-// Controls
+/* --- DOM --- */
+const tbody = document.getElementById('termBody');
+const currentCard = document.getElementById('currentCard');
 const searchInput = document.getElementById('searchInput');
-const rangeSelect = document.getElementById('rangeSelect');
-const clearBtn = document.getElementById('clearBtn');
+const monthSelect = document.getElementById('monthSelect');
+const lastSelect = document.getElementById('lastSelect');
+const resetBtn = document.getElementById('resetBtn');
+const jumpBtn = document.getElementById('jumpBtn');
 
-function inRange(year, range) {
-  if (range === 'all') return true;
-  const [lo, hi] = range.split('-').map(n => parseInt(n, 10));
-  return year >= lo && year <= hi;
+function findCurrent(list, now=new Date()){
+  return list.find(t => now >= t.startDate && now <= t.endDate) || null;
+}
+const CURRENT = findCurrent(ALL_TERMS);
+
+function renderCurrentCard(term){
+  if(!term){ currentCard.style.display='none'; return; }
+  currentCard.style.display='block';
+  currentCard.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+      <div>
+        <div class="current-badge">Current</div>
+        <h2 class="card-title" style="margin:8px 0 4px;">Year ${term.term}</h2>
+        <p class="card-desc">Active ${term.startLabel} – ${term.endLabel} (${term.yearsLabel})</p>
+      </div>
+      <button id="jumpBtnTop" class="btn" type="button">Jump to row</button>
+    </div>`;
+  document.getElementById('jumpBtnTop')?.addEventListener('click',()=>jumpTo(term.term));
+}
+renderCurrentCard(CURRENT);
+
+function monthOK(t){
+  const m = monthSelect.value;
+  if(m==='any') return true;
+  return t.startMonthKey===m || t.endMonthKey===m;
 }
 
-function applyFilters() {
-  const q = (searchInput.value || '').trim().toLowerCase();
-  const range = rangeSelect.value;
+function apply(){
+  const q=(searchInput.value||'').toLowerCase().trim();
 
-  const filtered = ALL_TERMS.filter(t => {
-    const matchesRange = inRange(t.year, range);
-    if (!matchesRange) return false;
-    if (!q) return true;
-
-    const hay = `year ${t.year} ${t.start} ${t.end} ${t.years}`.toLowerCase();
+  let list = ALL_TERMS.filter(t=>{
+    if(!monthOK(t)) return false;
+    if(!q) return true;
+    const hay = `year ${t.term} ${t.startLabel} ${t.endLabel} ${t.yearsLabel} ${t.months}`.toLowerCase();
     return hay.includes(q);
   });
 
-  renderRows(filtered);
+  // last N terms
+  const last=lastSelect.value;
+  if(last!=='all'){
+    list=list.slice(0, parseInt(last,10));
+  }
+
+  render(list, CURRENT);
 }
 
-searchInput.addEventListener('input', applyFilters);
-rangeSelect.addEventListener('change', applyFilters);
-clearBtn.addEventListener('click', () => {
-  searchInput.value = '';
-  rangeSelect.value = 'all';
-  applyFilters();
-});
+function render(list, current){
+  tbody.innerHTML='';
+  const frag=document.createDocumentFragment();
+  let lastGroup=null;
 
-// Initial render
-renderRows(ALL_TERMS);
+  list.forEach(t=>{
+    if(t.yearsLabel!==lastGroup){
+      lastGroup=t.yearsLabel;
+      const g=document.createElement('tr');
+      g.className='group-row';
+      g.innerHTML=`<td class="mono" colspan="6" style="padding:8px 12px;">${t.yearsLabel}</td>`;
+      frag.appendChild(g);
+    }
+    const tr=document.createElement('tr');
+    tr.dataset.term=t.term;
+    if(current && current.term===t.term) tr.classList.add('is-current');
+
+    const copyTxt = `Year ${t.term} — ${t.startLabel} – ${t.endLabel} (${t.yearsLabel})`;
+
+    tr.innerHTML=`
+      <td style="padding:10px; border-bottom:1px solid var(--border);">Year ${t.term} ${current && current.term===t.term ? '<span class="current-badge">Current</span>' : ''}</td>
+      <td style="padding:10px; border-bottom:1px solid var(--border);">${t.startLabel}</td>
+      <td style="padding:10px; border-bottom:1px solid var(--border);">${t.endLabel}</td>
+      <td style="padding:10px; border-bottom:1px solid var(--border);" class="mono">${t.yearsLabel}</td>
+      <td style="padding:10px; border-bottom:1px solid var(--border);">${t.months}</td>
+      <td style="padding:10px; border-bottom:1px solid var(--border);">
+        <div class="tools">
+          <button class="btn" data-copy='${copyTxt.replace(/'/g,"&#39;")}'>Copy</button>
+        </div>
+      </td>
+    `;
+    frag.appendChild(tr);
+  });
+
+  tbody.appendChild(frag);
+
+  // Copy buttons
+  tbody.querySelectorAll('button[data-copy]').forEach(btn=>{
+    btn.addEventListener('click', async e=>{
+      const txt=e.currentTarget.getAttribute('data-copy').replace(/&#39;/g,"'");
+      try {
+        await navigator.clipboard.writeText(txt);
+        e.currentTarget.textContent='Copied!';
+        setTimeout(()=>e.currentTarget.textContent='Copy',900);
+      } catch {
+        const ta=document.createElement('textarea');
+        ta.value=txt; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+      }
+    });
+  });
+}
+
+function jumpTo(termNum){
+  const row=tbody.querySelector(`tr[data-term="${termNum}"]`);
+  if(!row) return;
+  row.scrollIntoView({behavior:'smooth', block:'center'});
+  row.classList.add('pulse');
+  setTimeout(()=>row.classList.remove('pulse'),900);
+}
+
+/* events */
+searchInput.addEventListener('input', apply);
+monthSelect.addEventListener('change', apply);
+lastSelect.addEventListener('change', apply);
+resetBtn.addEventListener('click', ()=>{
+  searchInput.value=''; monthSelect.value='any'; lastSelect.value='20'; apply();
+});
+jumpBtn.addEventListener('click', ()=> CURRENT && jumpTo(CURRENT.term));
+
+/* initial render */
+apply();
