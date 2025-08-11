@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PW Post Averages</title>
+  <link rel="icon" type="image/png" href="witch-hat.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div>
+        <h1 class="title">PW Post Averages</h1>
+        <p class="subtitle">
+          Unofficial calculator for per term post averages and eligibility checks.
+          Uses the same style and theme as your index page.
+        </p>
+      </div>
+
+      <button class="theme-toggle" onclick="toggleTheme()">
+        🌙 Dark Mode
+      </button>
+    </header>
+
+    <!-- Actions -->
+    <div class="grid">
+      <a href="index.html" class="card">
+        <h2 class="card-title">Back to Tools & Resources</h2>
+        <p class="card-desc">Return to the main hub for calculators and references.</p>
+        <div class="card-link">Go to Index →</div>
+      </a>
+
+      <a href="terms.html" class="card">
+        <h2 class="card-title">Term Date Reference</h2>
+        <p class="card-desc">Quick reference for PW term start and end dates with academic calendar.</p>
+        <div class="card-link">Open Reference →</div>
+      </a>
+
+      <div class="card placeholder">
+        <h2 class="card-title">Post Averages Calculator</h2>
+        <p class="card-desc">
+          Paste or mount your new calculator here. This page is HTML only and uses your shared CSS and JS.
+        </p>
+        <div class="card-link">Calculator Area</div>
+      </div>
+    </div>
+
+    <!-- Calculator Mount -->
+    <section class="card" id="calculator">
+      <h2 class="card-title">Calculator</h2>
+      <p class="card-desc">
+        Drop your new calculator markup or script below. If it is a plain JS widget,
+        include its script tag here and target this section by id.
+      </p>
+
+      <!-- Example: where your new tool goes -->
+      <!--
+      <script src="postavg-tool.js"></script>
+      <div id="postavg-root"></div>
+      <script>
+        // initPostAvg('#postavg-root'); // whatever your initializer is
+      </script>
+      -->
+    </section>
+
+    <footer class="footer">
+      <p>Unofficial Potterworld utilities • Made with ✨ mel for the community</p>
+    </footer>
+  </div>
+
+  <script src="intro.js"></script>
+</body>
+</html>
