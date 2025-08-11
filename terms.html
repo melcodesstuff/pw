@@ -7,8 +7,8 @@
   <link rel="icon" type="image/png" href="witch-hat.png">
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Page-local polish */
-    .controls { margin: 8px 0 12px; }
+    /* page-local polish for this view */
+    .controls { margin: 8px 0 10px; }
     .input, .btn, .select {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -16,32 +16,50 @@
       padding: 10px 12px;
     }
     .btn { cursor: pointer; }
-    .star-badge {
-      display:inline-flex; align-items:center; gap:6px;
-      font-size:.8rem; padding:4px 10px; border-radius:999px;
-      background: rgba(58,99,255,.15); color: var(--ink);
-    }
-    .card-tight {
-      padding:14px 16px; border:1px solid var(--border);
-      border-radius:16px; background:var(--panel);
-      box-shadow: 0 2px 10px rgba(10,18,38,.04);
-      margin-bottom:12px;
-    }
-    .card-tight h2 { margin:6px 0 2px; }
-    .card-tight p { margin:0; color: var(--muted); }
 
+    /* centered hero summary */
+    .hero {
+      margin: 6px auto 12px;
+      max-width: 760px;
+      text-align: center;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background:
+        radial-gradient(1200px 1200px at 50% -200px, rgba(58,99,255,.10), transparent 55%),
+        var(--panel);
+      box-shadow: 0 2px 12px rgba(10,18,38,.06);
+    }
+    .hero h2 {
+      margin: 4px 0 4px;
+      font-size: 1.35rem;
+    }
+    .hero p { margin: 0; color: var(--muted); }
+
+    /* table */
     .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:12px; }
     .term-table { width:100%; border-collapse:separate; border-spacing:0; }
     .term-table thead th { position:sticky; top:0; z-index:1; background: var(--bg); }
     .term-table tbody tr:nth-child(odd) td { background: rgba(10,18,38,.02); }
     tr.is-current td { background: rgba(58,99,255,.10); }
+
+    /* year group headers that stick beneath table header */
     tr.group-row td {
-      position: sticky; top: 44px; /* just under header */
+      position: sticky; top: 44px;
       background: var(--panel); color: var(--muted);
-      font-weight: 600; letter-spacing: .2px;
-      border-top: 1px solid var(--border);
+      font-weight: 600; border-top: 1px solid var(--border);
     }
+
     .mono { font-feature-settings:"tnum" 1; font-variant-numeric: tabular-nums; }
+
+    /* subtle star badge for current row */
+    .term-star {
+      display:inline-flex; align-items:center; justify-content:center;
+      width: 22px; height: 22px; margin-left: 6px;
+      border-radius: 999px;
+      background: rgba(58,99,255,.18);
+      font-size: .9rem; line-height: 1;
+    }
 
     @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(58,99,255,.35);} 100%{box-shadow:0 0 0 12px rgba(58,99,255,0);} }
     tr.pulse td { animation:pulse .9s ease-out 1; }
@@ -49,7 +67,7 @@
 </head>
 <body>
   <div class="container">
-    <header class="header" style="margin-bottom:10px;">
+    <header class="header" style="margin-bottom:8px;">
       <div>
         <h1 class="title">Term Date Reference</h1>
         <p class="subtitle">Quick reference for Potterworld term start and end dates, sourced from the official PW Timeline.</p>
@@ -57,8 +75,8 @@
       <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
     </header>
 
-    <!-- Current term callout (tighter) -->
-    <section id="currentCard" class="card-tight" style="display:none;"></section>
+    <!-- Centered summary -->
+    <section id="currentCard" class="hero" style="display:none;"></section>
 
     <!-- Controls -->
     <section class="controls">
