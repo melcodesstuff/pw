@@ -7,14 +7,9 @@
   <link rel="icon" type="image/png" href="witch-hat.png">
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Page-local polish */
+    /* page-local bits so you don’t have to touch styles.css */
     .controls { margin: 8px 0 18px; }
-    .input, .btn, .select {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 12px;
-    }
+    .input, .btn, .select { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; }
     .btn { cursor: pointer; }
     .current-badge { font-size:.75rem; padding:4px 8px; border-radius:999px; background:var(--accent); color:#fff; }
     .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:12px; }
@@ -22,12 +17,7 @@
     .term-table thead th { position:sticky; top:0; z-index:1; background:var(--bg); }
     .term-table tbody tr:nth-child(odd) td { background: rgba(10,18,38,.02); }
     tr.is-current td { background: rgba(58,99,255,.10); }
-    tr.group-row td {
-      position: sticky; top: 48px; /* below the header row height */
-      background: var(--panel); color: var(--muted);
-      font-weight: 600; letter-spacing: .2px;
-      border-top: 1px solid var(--border);
-    }
+    tr.group-row td { position: sticky; top:48px; background: var(--panel); color: var(--muted); font-weight:600; border-top:1px solid var(--border); }
     .tools { display:flex; gap:6px; }
     .mono { font-feature-settings:"tnum" 1; font-variant-numeric: tabular-nums; }
     @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(58,99,255,.35);} 100%{box-shadow:0 0 0 12px rgba(58,99,255,0);} }
@@ -44,10 +34,8 @@
       <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
     </header>
 
-    <!-- Current term callout -->
     <section id="currentCard" class="card" style="margin-bottom:16px; display:none;"></section>
 
-    <!-- Controls -->
     <section class="controls">
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
         <div class="input" style="display:flex; align-items:center; gap:8px;">
@@ -77,7 +65,6 @@
       </div>
     </section>
 
-    <!-- Table -->
     <div class="content">
       <div class="table-wrap">
         <table class="term-table">
@@ -94,7 +81,7 @@
           <tbody id="termBody"></tbody>
         </table>
       </div>
-      <p style="margin-top:10px; font-size:.9rem; color:var(--muted);">Source: PW forum timeline. Paste new lines as they’re posted to keep this page current.</p>
+      <p style="margin-top:10px; font-size:.9rem; color:var(--muted);">Source: PW forum timeline. Update <code>terms-data.js</code> when a new term is posted.</p>
     </div>
 
     <footer class="footer">
@@ -103,6 +90,8 @@
   </div>
 
   <script src="intro.js"></script>
+  <!-- shared data must come BEFORE page logic -->
+  <script src="terms-data.js"></script>
   <script src="terms.js"></script>
 </body>
 </html>
