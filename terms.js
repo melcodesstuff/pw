@@ -31,8 +31,7 @@ function initTermsPage(ALL_TERMS){
     currentCard.innerHTML = `
       <div>
         <p>It is currently <strong>year ${term.term}</strong></p>
-        <h2>This term started <strong>${term.startLabel}</strong></h2>
-        <p>and will end <strong>${term.endLabel}</strong> <span class="mono">(${term.yearsLabel})</span></p>
+        <h2>This term started <strong>${term.startLabel}</strong> and will end <strong>${term.endLabel} <span class="mono">(${term.yearsLabel})</strong></span></p>
       </div>
       <div style="margin-left:auto;">
         <button id="jumpBtnTop" class="btn" type="button">Jump to row</button>
