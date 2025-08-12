@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PW Term Date Reference</title>
+  <title>Term Date Reference</title>
   <link rel="icon" type="image/png" href="witch-hat.png">
   <link rel="stylesheet" href="styles.css">
   <style>
@@ -77,14 +77,19 @@
 </head>
 <body>
   <div class="container">
-    <header class="header" style="margin-bottom:8px;">
-      <div>
-        <h1 class="title">Term Date Reference</h1>
-        <p class="subtitle">Quick reference for Potterworld term start and end dates, sourced from the official PW Timeline.</p>
-      </div>
-      <!-- replaced dark mode with Home -->
-      <a class="home-btn" href="index.html" aria-label="Go to home">🏠 Home</a>
-    </header>
+   <header class="header">
+  <div>
+    <h1 class="title">Term Date Reference</h1>
+    <p class="subtitle">Quick reference for Potterworld term start and end dates, sourced from the official PW Timeline.</p>
+  </div>
+
+  <!-- was: <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button> -->
+  <a href="index.html" class="theme-toggle home-link" aria-label="Go to home">
+    <span class="icon" aria-hidden="true">🏡</span>
+    Home
+  </a>
+</header>
+
 
     <!-- Summary -->
     <section id="currentCard" class="callout" style="display:none;"></section>
