@@ -308,6 +308,114 @@ tr.is-current td{ background: rgba(79,70,229,.10); }
   background: rgba(79,70,229,.18); font-size:.9rem; line-height:1;
 }
 
+/* ===== Term Date Reference — match index card aesthetic ===== */
+
+:root{
+  /* tokens the page uses */
+  --bg: #f8fafc;
+  --ink: #0f172a;
+  --panel: #ffffff;
+  --border: rgba(226,232,240,0.7);
+  --muted: #64748b;
+  --accent: #4f46e5;
+}
+
+/* same pill look as your Dark Mode button, now for Home */
+.theme-toggle.home-link{
+  display:inline-flex; align-items:center; gap:8px;
+  text-decoration:none; color:inherit; font-weight:500;
+}
+.theme-toggle.home-link .icon{ font-size:1.05em; line-height:1; transform:translateY(1px); }
+
+/* unified “card” surface like index tiles */
+.surface{
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 1rem;           /* same as index */
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+/* summary card */
+.summary-card{
+  padding: 1.25rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.summary-card h2{
+  margin: .25rem 0 .25rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.summary-card p{
+  margin: 0;
+  color: var(--muted);
+}
+.summary-actions{ margin-left:auto; }
+
+/* controls card */
+.controls-card{
+  padding: .75rem .9rem;
+  margin-bottom: 1rem;
+}
+.controls .input,
+.controls .select,
+.controls .btn{
+  background:#fff;             /* match index cards */
+  border:1px solid var(--border);
+}
+
+/* table card */
+.table-card{ padding: 0; }
+.table-wrap{
+  border: none;                /* border lives on the card now */
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.term-table{ width:100%; border-collapse: separate; border-spacing: 0; }
+.term-table thead th{
+  position: sticky; top: 0; z-index: 1;
+  background: var(--bg);
+  padding: 12px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+}
+.term-table tbody td{
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.term-table tbody tr:nth-child(odd) td{ background: rgba(10,18,38,.02); }
+tr.is-current td{ background: rgba(79,70,229,.10); }
+
+/* year divider rows – clean bar + collapse toggle */
+.year-divider td{
+  position: sticky; top: 44px;           /* sits right beneath thead */
+  background: #f1f5f9;                   /* clearer, cleaner bar */
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  color: #334155;
+  padding: 0 12px;
+}
+.year-toggle{
+  display:inline-flex; align-items:center; gap:8px;
+  border:none; background:transparent; padding:10px 4px; cursor:pointer; font: inherit;
+}
+.year-toggle .chev{ width:1.1em; text-align:center; transition: transform .15s ease; }
+.year-toggle[aria-expanded="false"] .chev{ transform: rotate(-90deg); }
+
+.mono{ font-feature-settings:"tnum" 1; font-variant-numeric: tabular-nums; }
+
+/* current term star — subtle */
+.term-star{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; margin-left:6px; border-radius:999px;
+  background: rgba(79,70,229,.18); font-size:.9rem; line-height:1;
+}
+
+/* little pulse when jumping */
+@keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(79,70,229,.35);} 100%{box-shadow:0 0 0 12px rgba(79,70,229,0);} }
+tr.pulse td{ animation:pulse .9s ease-out 1; }
+
+
 /* tiny jump pulse */
 @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(79,70,229,.35);} 100%{box-shadow:0 0 0 12px rgba(79,70,229,0);} }
 tr.pulse td{ animation:pulse .9s ease-out 1; }
