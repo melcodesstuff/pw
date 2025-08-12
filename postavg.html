@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>PW Post Averages</title>
   <link rel="icon" type="image/png" href="witch-hat.png">
-
-  <!-- Site styles (matches index/terms aesthetic) -->
+  <!-- Site styles to match index/terms aesthetic -->
   <link rel="stylesheet" href="styles.css">
-  <!-- Tailwind for the calculator UI -->
+  <!-- Tailwind for form/layout utilities used in the calculator -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
@@ -25,7 +24,7 @@
       </a>
     </header>
 
-    <!-- React app -->
+    <!-- React app mounts here -->
     <div id="root"></div>
 
     <footer class="footer" style="margin-top:2rem;">
@@ -39,10 +38,13 @@
   <!-- Babel Standalone -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+  <!-- Load shared timeline so 2+ year logic works across all terms -->
+  <script src="terms-data.js"></script>
+
   <script type="text/babel">
     const { useMemo, useState } = React;
 
-    // ---------------- Utilities ----------------
+    // ---------- Utilities ----------
     const todayISO = () => new Date().toISOString().slice(0, 10);
     function parseISO(s) { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
     function addYears(d, n) { const x = new Date(d); x.setFullYear(x.getFullYear() + n); return x; }
@@ -50,23 +52,39 @@
     function clampInt(n, min, max) { const v = typeof n === "number" ? n : parseInt(String(n || 0), 10); if (Number.isNaN(v)) return min; return Math.max(min, Math.min(max, v)); }
     function formatAvg(n) { if (n == null || Number.isNaN(n)) return "—"; return Number.isInteger(n) ? String(n) : n.toFixed(2); }
 
-    // ------------- TERM MAP (subset) -------------
-    const TERM_MAP = {
-      167: { start: "2024-02-24", end: "2024-04-05" },
-      168: { start: "2024-04-06", end: "2024-05-17" },
-      169: { start: "2024-05-18", end: "2024-06-29" },
-      170: { start: "2024-07-06", end: "2024-08-16" },
-      171: { start: "2024-08-17", end: "2024-09-28" },
-      172: { start: "2024-10-05", end: "2024-11-15" },
-      173: { start: "2024-11-16", end: "2024-12-28" },
-      174: { start: "2025-01-04", end: "2025-02-14" },
-      175: { start: "2025-02-15", end: "2025-03-28" },
-      176: { start: "2025-04-05", end: "2025-05-16" },
-      177: { start: "2025-05-17", end: "2025-06-28" },
-      178: { start: "2025-07-05", end: "2025-08-15" },
-    };
+    // ---------- Build TERM_MAP from shared PW_TERMS (fallback if missing) ----------
+    const TERM_MAP = (() => {
+      const list = Array.isArray(window.PW_TERMS) ? window.PW_TERMS : [];
+      if (list.length) {
+        const toISO = d => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          return `${y}-${m}-${day}`;
+        };
+        return list.reduce((acc, t) => {
+          acc[t.term] = { start: toISO(t.startDate), end: toISO(t.endDate) };
+          return acc;
+        }, {});
+      }
+      // Minimal fallback so the page still works without terms-data.js
+      return {
+        167: { start: "2024-02-24", end: "2024-04-05" },
+        168: { start: "2024-04-06", end: "2024-05-17" },
+        169: { start: "2024-05-18", end: "2024-06-29" },
+        170: { start: "2024-07-06", end: "2024-08-16" },
+        171: { start: "2024-08-17", end: "2024-09-28" },
+        172: { start: "2024-10-05", end: "2024-11-15" },
+        173: { start: "2024-11-16", end: "2024-12-28" },
+        174: { start: "2025-01-04", end: "2025-02-14" },
+        175: { start: "2025-02-15", end: "2025-03-28" },
+        176: { start: "2025-04-05", end: "2025-05-16" },
+        177: { start: "2025-05-17", end: "2025-06-28" },
+        178: { start: "2025-07-05", end: "2025-08-15" },
+      };
+    })();
 
-    // tiny badge helper
+    // ---------- UI helpers ----------
     function Badge({ ok, pending=false, children }) {
       const base = 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border';
       const cls = pending
@@ -77,18 +95,19 @@
       return <span className={`${base} ${cls}`}>{children}</span>;
     }
 
-    // ---------------- App ----------------
+    // ---------- App ----------
     function App() {
       const today = todayISO();
 
       const currentTerm = useMemo(() => {
         const td = parseISO(today);
+        // try to find by date
         for (const [tStr, range] of Object.entries(TERM_MAP)) {
-          const t = Number(tStr);
           const s = parseISO(range.start);
           const e = parseISO(range.end);
-          if (td >= s && td <= e) return t;
+          if (td >= s && td <= e) return Number(tStr);
         }
+        // else pick the highest term we know about
         return Math.max(...Object.keys(TERM_MAP).map(Number));
       }, [today]);
 
@@ -136,13 +155,13 @@
           }
         }
 
-        // RL years windows
+        // RL years windows (needs TERM_MAP range)
         let twoPlusYears = false, twoPlusAmbiguous = false, onePlusYears = false;
         if (typeof c.joinedTerm === "number" && TERM_MAP[c.joinedTerm]) {
           const { start, end } = TERM_MAP[c.joinedTerm];
           const start2y = addYears(parseISO(start), 2);
-          const end2y = addYears(parseISO(end), 2);
-          const end1y = addYears(parseISO(end), 1);
+          const end2y   = addYears(parseISO(end), 2);
+          const end1y   = addYears(parseISO(end), 1);
           const td = parseISO(today);
           if (td >= end2y) twoPlusYears = true;
           else if (td >= start2y && td < end2y) twoPlusAmbiguous = true;
@@ -173,7 +192,6 @@
         const map = {}; characters.forEach(c => { map[c.id] = computeChar(c); }); return map;
       }, [characters, currentTerm, today]);
 
-      // Effective average: prefer adult-check avg, then AW avg, else overall
       function effectiveAvg(c, pc) {
         if (!pc) return null;
         if (pc.stage === 'AW') {
@@ -185,7 +203,7 @@
 
       return (
         <div>
-          {/* Context (tightened padding) */}
+          {/* Context (tight padding) */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white rounded-2xl p-4 shadow-sm border border-slate-200/60 mb-6">
             <div>
               <div className="text-xs uppercase tracking-wide text-slate-500">Today</div>
@@ -206,7 +224,7 @@
               const showGradField = inAW && !c.isAdultCreated;
               return (
                 <section key={c.id} className="relative rounded-2xl border p-4 shadow-sm bg-white border-slate-200/60">
-                  <div className="absolute right-5 top-4 text-xs text-slate-500"><span>Character {idx + 1}</span></div>
+                  <div className="absolute right-5 top-4 text-xs text-slate-500">Character {idx + 1}</div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-x-5 gap-y-2">
                     <div>
@@ -297,7 +315,7 @@
             </div>
           </div>
 
-          {/* Summary */}
+          {/* Summary (no rules block) */}
           <section className="mt-6 rounded-2xl border p-4 shadow-sm bg-white border-slate-200/60">
             <h2 className="text-lg font-semibold mb-2">Summary</h2>
             <Summary characters={characters} computed={computed} effectiveAvg={effectiveAvg} />
@@ -315,40 +333,33 @@
       );
     }
 
-    /* ---- Subcomponents (logic unchanged) ---- */
-   function Summary({ characters, computed, effectiveAvg }) {
-  const overall = (() => {
-    const vals = characters.map(c => effectiveAvg(c, computed[c.id]) ?? 0);
-    const count = characters.length; return count ? vals.reduce((a,b)=>a+b,0)/count : 0;
-  })();
+    // ---------- Subcomponents ----------
+    function Summary({ characters, computed, effectiveAvg }) {
+      const overall = (() => {
+        const vals = characters.map(c => effectiveAvg(c, computed[c.id]) ?? 0);
+        const count = characters.length; return count ? vals.reduce((a,b)=>a+b,0)/count : 0;
+      })();
 
-  return (
-    <div className="grid grid-cols-1 gap-4 text-sm">
-      <div className="space-y-2">
-        <div>Total characters: <span className="font-medium">{characters.length}</span></div>
-        <div className="space-y-1">
-          {characters.map((c) => {
-            const pc = computed[c.id];
-            const label = c.name ? c.name : '(unnamed)';
-            const avgVal = effectiveAvg(c, pc);
-            const avgStr = avgVal != null ? (Number.isInteger(avgVal) ? String(avgVal) : avgVal.toFixed(2)) : '—';
-            return (
-              <div key={c.id}>
-                {label} average: <span className="font-medium">{avgStr}</span> <span className="text-slate-500">posts/term</span>
-              </div>
-            );
-          })}
+      return (
+        <div className="grid grid-cols-1 gap-4 text-sm">
+          <div className="space-y-2">
+            <div>Total characters: <span className="font-medium">{characters.length}</span></div>
+            <div className="space-y-1">
+              {characters.map((c) => {
+                const pc = computed[c.id];
+                const label = c.name ? c.name : '(unnamed)';
+                const avgVal = effectiveAvg(c, pc);
+                const avgStr = avgVal != null ? formatAvg(avgVal) : '—';
+                return (
+                  <div key={c.id}>{label} average: <span className="font-medium">{avgStr}</span> <span className="text-slate-500">posts/term</span></div>
+                );
+              })}
+            </div>
+            <div>Overall average: <span className="font-medium">{formatAvg(overall)}</span> <span className="text-slate-500">posts/term</span></div>
+          </div>
         </div>
-        <div>
-          Overall average: <span className="font-medium">
-            {Number.isInteger(overall) ? String(overall) : overall.toFixed(2)}
-          </span> <span className="text-slate-500">posts/term</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
+      );
+    }
 
     function Twins({ characters, computed, effectiveAvg }) {
       const allHavePosts = characters.every(c => c.currentPosts !== "");
@@ -485,7 +496,6 @@
           </p>
 
           <div className="space-y-4">
-            {/* First/Only Adult */}
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-slate-600">First/Only Adult-Created:</span>
@@ -505,7 +515,6 @@
               )}
             </div>
 
-            {/* Second Adult */}
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-slate-600">Second Adult-Created:</span>
