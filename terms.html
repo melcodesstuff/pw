@@ -17,33 +17,21 @@
     }
     .btn { cursor: pointer; }
 
-    /* summary callout (left aligned, accent stripe) */
+    /* Summary callout (left-aligned with accent rail) */
     .callout {
-      display:flex; align-items:flex-start; gap:12px;
-      padding: 14px 16px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: var(--panel);
-      box-shadow: 0 2px 10px rgba(10,18,38,.04);
-      margin-bottom: 12px;
-      position: relative;
+      display:flex; gap:14px; align-items:flex-start;
+      padding:14px 16px; border:1px solid var(--border);
+      border-radius:14px; background:var(--panel);
+      box-shadow: 0 2px 10px rgba(10,18,38,.04); margin-bottom:12px;
+      position:relative;
     }
     .callout::before{
-      content:"";
-      position:absolute; inset:0 0 0 auto; /* default no effect */
+      content:""; position:absolute; left:-6px; top:0; bottom:0; width:6px; border-radius:14px 0 0 14px;
+      background: linear-gradient(180deg, rgba(58,99,255,.40), rgba(58,99,255,.12));
     }
-    .callout-accent{
-      position: relative;
-    }
-    .callout-accent::after{
-      content:"";
-      position:absolute; left:-0px; top:0; bottom:0;
-      width:6px; border-radius:14px 0 0 14px;
-      background: linear-gradient(180deg, rgba(58,99,255,.28), rgba(58,99,255,.12));
-      transform: translateX(-6px);
-    }
-    .callout h2{ margin:2px 0 2px; font-size:1.2rem; }
+    .callout h2{ margin:2px 0 2px; font-size:1.06rem; font-weight:600; }
     .callout p{ margin:0; color:var(--muted); }
+    .callout strong{ font-weight:700; }
 
     /* table */
     .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:12px; }
@@ -52,44 +40,33 @@
     .term-table tbody tr:nth-child(odd) td { background: rgba(10,18,38,.02); }
     tr.is-current td { background: rgba(58,99,255,.10); }
 
-    /* year divider row */
+    /* year divider row (toggleable) */
     .year-divider td{
-      position: sticky; top:44px; /* sits under header */
-      background: linear-gradient(0deg, rgba(58,99,255,.08), rgba(58,99,255,.08));
-      color: #0f1b37;
-      font-weight: 700;
-      letter-spacing: .2px;
-      border-top: 1px solid var(--border);
+      position: sticky; top:44px;
+      background: rgba(58,99,255,.08);
+      border-top:1px solid var(--border);
+      font-weight:700;
     }
-    [data-theme="dark"] .year-divider td{
-      background: rgba(58,99,255,.12);
-      color: #dfe7ff;
+    [data-theme="dark"] .year-divider td{ background: rgba(58,99,255,.12); }
+    .year-toggle{
+      display:inline-flex; align-items:center; gap:8px;
+      border:none; background:transparent; padding:10px 4px; cursor:pointer;
+      font: inherit;
     }
-    .year-chip{
-      display:inline-block; padding:6px 10px; border-radius:999px;
-      background: rgba(255,255,255,.65);
-    }
-    [data-theme="dark"] .year-chip{ background: rgba(255,255,255,.12); }
+    .year-toggle .chev{ width:1.1em; text-align:center; }
 
     .mono { font-feature-settings:"tnum" 1; font-variant-numeric: tabular-nums; }
 
     /* star for current row */
-    .term-star {
+    .term-star{
       display:inline-flex; align-items:center; justify-content:center;
-      width: 22px; height: 22px; margin-left: 6px;
-      border-radius: 999px;
-      background: rgba(58,99,255,.18);
-      font-size: .9rem; line-height: 1;
+      width:22px; height:22px; margin-left:6px; border-radius:999px;
+      background: rgba(58,99,255,.18); font-size:.9rem; line-height:1;
     }
 
     @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(58,99,255,.35);} 100%{box-shadow:0 0 0 12px rgba(58,99,255,0);} }
     tr.pulse td { animation:pulse .9s ease-out 1; }
   </style>
-
-  <script src="intro.js" defer></script>
-  <script src="terms-data.js" defer></script>
-  <script src="terms.js" defer></script> 
-  
 </head>
 <body>
   <div class="container">
@@ -101,8 +78,8 @@
       <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
     </header>
 
-    <!-- Summary (left-aligned, only the lines requested) -->
-    <section id="currentCard" class="callout callout-accent" style="display:none;"></section>
+    <!-- Summary (exact text you wanted) -->
+    <section id="currentCard" class="callout" style="display:none;"></section>
 
     <!-- Controls -->
     <section class="controls">
@@ -155,6 +132,9 @@
       <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
     </footer>
   </div>
-  
+
+  <script src="intro.js" defer></script>
+  <script src="terms-data.js" defer></script>
+  <script src="terms.js" defer></script>
 </body>
 </html>
