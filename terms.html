@@ -3,101 +3,30 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Term Date Reference</title>
+  <title>PW Term Date Reference</title>
   <link rel="icon" type="image/png" href="witch-hat.png">
   <link rel="stylesheet" href="styles.css">
-  <style>
-    /* header home button */
-    .home-btn{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:10px 14px; border-radius:999px;
-      border:1px solid var(--border); background:var(--panel);
-      text-decoration:none; color:inherit; font-weight:600;
-      box-shadow: 0 1px 4px rgba(10,18,38,.04);
-    }
-    .home-btn:hover{ transform: translateY(-1px); }
-    .home-btn:active{ transform: translateY(0); }
-
-    /* controls */
-    .controls { margin: 8px 0 10px; }
-    .input, .btn, .select {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 12px;
-    }
-    .btn { cursor: pointer; }
-
-    /* Summary callout (left-aligned with accent rail) */
-    .callout {
-      display:flex; gap:14px; align-items:flex-start;
-      padding:14px 16px; border:1px solid var(--border);
-      border-radius:14px; background:var(--panel);
-      box-shadow: 0 2px 10px rgba(10,18,38,.04); margin-bottom:12px;
-      position:relative;
-    }
-    .callout::before{
-      content:""; position:absolute; left:-6px; top:0; bottom:0; width:6px; border-radius:14px 0 0 14px;
-      background: linear-gradient(180deg, rgba(58,99,255,.40), rgba(58,99,255,.12));
-    }
-    .callout h2{ margin:2px 0 2px; font-size:1.06rem; font-weight:600; }
-    .callout p{ margin:0; color:var(--muted); }
-    .callout strong{ font-weight:700; }
-
-    /* table */
-    .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:12px; }
-    .term-table { width:100%; border-collapse:separate; border-spacing:0; }
-    .term-table thead th { position:sticky; top:0; z-index:1; background: var(--bg); }
-    .term-table tbody tr:nth-child(odd) td { background: rgba(10,18,38,.02); }
-    tr.is-current td { background: rgba(58,99,255,.10); }
-
-    /* collapsible year divider */
-    .year-divider td{
-      position: sticky; top:44px;
-      background: rgba(58,99,255,.08);
-      border-top:1px solid var(--border);
-      font-weight:700;
-    }
-    .year-toggle{
-      display:inline-flex; align-items:center; gap:8px;
-      border:none; background:transparent; padding:10px 4px; cursor:pointer;
-      font: inherit;
-    }
-    .year-toggle .chev{ width:1.1em; text-align:center; }
-
-    .mono { font-feature-settings:"tnum" 1; font-variant-numeric: tabular-nums; }
-    .term-star{
-      display:inline-flex; align-items:center; justify-content:center;
-      width:22px; height:22px; margin-left:6px; border-radius:999px;
-      background: rgba(58,99,255,.18); font-size:.9rem; line-height:1;
-    }
-    @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(58,99,255,.35);} 100%{box-shadow:0 0 0 12px rgba(58,99,255,0);} }
-    tr.pulse td { animation:pulse .9s ease-out 1; }
-  </style>
 </head>
 <body>
   <div class="container">
-   <header class="header">
-  <div>
-    <h1 class="title">Term Date Reference</h1>
-    <p class="subtitle">Quick reference for Potterworld term start and end dates, sourced from the official PW Timeline.</p>
-  </div>
+    <!-- Header with Home pill (same look as your Dark Mode pill) -->
+    <header class="header" style="margin-bottom:1rem;">
+      <div>
+        <h1 class="title">Term Date Reference</h1>
+        <p class="subtitle">Quick reference for Potterworld term start and end dates, sourced from the official PW Timeline.</p>
+      </div>
+      <a class="theme-toggle home-link" href="index.html" aria-label="Go to home">
+        <span class="icon" aria-hidden="true">🏰</span>
+        Home
+      </a>
+    </header>
 
-  <!-- Same color/shape/padding as your old Dark Mode pill -->
-  <a href="index.html" class="theme-toggle home-link" aria-label="Go to home">
-    <span class="icon" aria-hidden="true">🏰</span>
-    Home
-  </a>
-</header>
+    <!-- Summary card (filled by terms.js) -->
+    <section id="currentCard" class="surface summary-card" style="display:none;"></section>
 
-
-
-    <!-- Summary -->
-    <section id="currentCard" class="callout" style="display:none;"></section>
-
-    <!-- Controls -->
-    <section class="controls">
-      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+    <!-- Controls card -->
+    <section class="surface controls-card">
+      <div class="controls" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
         <div class="input" style="display:flex; align-items:center; gap:8px;">
           <span aria-hidden="true">🔎</span>
           <input id="searchInput" type="text" placeholder="Search by term, date, month, or year…" style="border:none; outline:none; background:transparent; width:260px;">
@@ -125,16 +54,16 @@
       </div>
     </section>
 
-    <!-- Table -->
-    <div class="content">
+    <!-- Table card -->
+    <div class="surface table-card">
       <div class="table-wrap">
         <table class="term-table">
           <thead>
             <tr>
-              <th style="text-align:left; padding:12px;">Term</th>
-              <th style="text-align:left; padding:12px;">Start</th>
-              <th style="text-align:left; padding:12px;">End</th>
-              <th style="text-align:left; padding:12px;">Year</th>
+              <th style="text-align:left;">Term</th>
+              <th style="text-align:left;">Start</th>
+              <th style="text-align:left;">End</th>
+              <th style="text-align:left;">Year</th>
             </tr>
           </thead>
           <tbody id="termBody"></tbody>
@@ -147,7 +76,7 @@
     </footer>
   </div>
 
-  <!-- No intro.js; just the data and page logic -->
+  <!-- Scripts: data first, then page logic -->
   <script src="terms-data.js"></script>
   <script src="terms.js"></script>
 </body>
