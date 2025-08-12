@@ -1,158 +1,110 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PW Term Date Reference</title>
-  <link rel="icon" type="image/png" href="witch-hat.png">
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    /* controls */
-    .controls { margin: 8px 0 10px; }
-    .input, .btn, .select {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 12px;
-    }
-    .btn { cursor: pointer; }
+// Uses shared data from terms-data.js
+const ALL_TERMS = window.PW_TERMS; // descending 178 → 1
 
-    /* summary callout (left aligned, accent stripe) */
-    .callout {
-      display:flex; align-items:flex-start; gap:12px;
-      padding: 14px 16px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: var(--panel);
-      box-shadow: 0 2px 10px rgba(10,18,38,.04);
-      margin-bottom: 12px;
-      position: relative;
-    }
-    .callout::before{
-      content:"";
-      position:absolute; inset:0 0 0 auto; /* default no effect */
-    }
-    .callout-accent{
-      position: relative;
-    }
-    .callout-accent::after{
-      content:"";
-      position:absolute; left:-0px; top:0; bottom:0;
-      width:6px; border-radius:14px 0 0 14px;
-      background: linear-gradient(180deg, rgba(58,99,255,.28), rgba(58,99,255,.12));
-      transform: translateX(-6px);
-    }
-    .callout h2{ margin:2px 0 2px; font-size:1.2rem; }
-    .callout p{ margin:0; color:var(--muted); }
+/* DOM refs */
+const tbody = document.getElementById('termBody');
+const currentCard = document.getElementById('currentCard');
+const searchInput = document.getElementById('searchInput');
+const monthSelect = document.getElementById('monthSelect');
+const lastSelect = document.getElementById('lastSelect');
+const resetBtn = document.getElementById('resetBtn');
+const jumpBtn = document.getElementById('jumpBtn');
 
-    /* table */
-    .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:12px; }
-    .term-table { width:100%; border-collapse:separate; border-spacing:0; }
-    .term-table thead th { position:sticky; top:0; z-index:1; background: var(--bg); }
-    .term-table tbody tr:nth-child(odd) td { background: rgba(10,18,38,.02); }
-    tr.is-current td { background: rgba(58,99,255,.10); }
+/* helpers */
+function findCurrent(list, now=new Date()){
+  return list.find(t => now >= t.startDate && now <= t.endDate) || null;
+}
+const CURRENT = findCurrent(ALL_TERMS);
 
-    /* year divider row */
-    .year-divider td{
-      position: sticky; top:44px; /* sits under header */
-      background: linear-gradient(0deg, rgba(58,99,255,.08), rgba(58,99,255,.08));
-      color: #0f1b37;
-      font-weight: 700;
-      letter-spacing: .2px;
-      border-top: 1px solid var(--border);
-    }
-    [data-theme="dark"] .year-divider td{
-      background: rgba(58,99,255,.12);
-      color: #dfe7ff;
-    }
-    .year-chip{
-      display:inline-block; padding:6px 10px; border-radius:999px;
-      background: rgba(255,255,255,.65);
-    }
-    [data-theme="dark"] .year-chip{ background: rgba(255,255,255,.12); }
-
-    .mono { font-feature-settings:"tnum" 1; font-variant-numeric: tabular-nums; }
-
-    /* star for current row */
-    .term-star {
-      display:inline-flex; align-items:center; justify-content:center;
-      width: 22px; height: 22px; margin-left: 6px;
-      border-radius: 999px;
-      background: rgba(58,99,255,.18);
-      font-size: .9rem; line-height: 1;
-    }
-
-    @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(58,99,255,.35);} 100%{box-shadow:0 0 0 12px rgba(58,99,255,0);} }
-    tr.pulse td { animation:pulse .9s ease-out 1; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header class="header" style="margin-bottom:8px;">
-      <div>
-        <h1 class="title">Term Date Reference</h1>
-        <p class="subtitle">Quick reference for Potterworld term start and end dates, sourced from the official PW Timeline.</p>
-      </div>
-      <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
-    </header>
-
-    <!-- Summary (left-aligned, only the lines requested) -->
-    <section id="currentCard" class="callout callout-accent" style="display:none;"></section>
-
-    <!-- Controls -->
-    <section class="controls">
-      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
-        <div class="input" style="display:flex; align-items:center; gap:8px;">
-          <span aria-hidden="true">🔎</span>
-          <input id="searchInput" type="text" placeholder="Search by term, date, month, or year…" style="border:none; outline:none; background:transparent; width:260px;">
-        </div>
-
-        <select id="monthSelect" class="select">
-          <option value="any">Any month</option>
-          <option value="january">January</option><option value="february">February</option>
-          <option value="march">March</option><option value="april">April</option>
-          <option value="may">May</option><option value="june">June</option>
-          <option value="july">July</option><option value="august">August</option>
-          <option value="september">September</option><option value="october">October</option>
-          <option value="november">November</option><option value="december">December</option>
-        </select>
-
-        <select id="lastSelect" class="select">
-          <option value="20" selected>Show last 20</option>
-          <option value="50">Show last 50</option>
-          <option value="all">Show all</option>
-        </select>
-
-        <div style="flex:1"></div>
-        <button id="jumpBtn" class="btn" type="button">Jump to Current</button>
-        <button id="resetBtn" class="btn" type="button">Reset</button>
-      </div>
-    </section>
-
-    <!-- Table -->
-    <div class="content">
-      <div class="table-wrap">
-        <table class="term-table">
-          <thead>
-            <tr>
-              <th style="text-align:left; padding:12px;">Term</th>
-              <th style="text-align:left; padding:12px;">Start</th>
-              <th style="text-align:left; padding:12px;">End</th>
-              <th style="text-align:left; padding:12px;">Year</th>
-            </tr>
-          </thead>
-          <tbody id="termBody"></tbody>
-        </table>
-      </div>
+/* Summary callout (exact wording requested) */
+function renderCurrentCard(term){
+  if(!term){ currentCard.style.display='none'; return; }
+  currentCard.style.display='flex';
+  currentCard.innerHTML = `
+    <div>
+      <p style="margin:0 0 4px;">It is currently <strong>year ${term.term}</strong></p>
+      <h2 style="margin:0 0 2px;">This term started <strong>${term.startLabel}</strong></h2>
+      <p style="margin:0; color:var(--muted);">and will end <strong>${term.endLabel}</strong> <span class="mono">(${term.yearsLabel})</span></p>
     </div>
+    <div style="margin-left:auto;">
+      <button id="jumpBtnTop" class="btn" type="button">Jump to row</button>
+    </div>
+  `;
+  document.getElementById('jumpBtnTop')?.addEventListener('click',()=>jumpTo(term.term));
+}
+renderCurrentCard(CURRENT);
 
-    <footer class="footer">
-      <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
-    </footer>
-  </div>
+/* filtering */
+function monthOK(t){
+  const m = monthSelect.value;
+  if(m==='any') return true;
+  return t.startMonthKey===m || t.endMonthKey===m;
+}
 
-  <script src="intro.js"></script>
-  <script src="terms-data.js"></script>
-  <script src="terms.js"></script>
-</body>
-</html>
+function apply(){
+  const q=(searchInput.value||'').toLowerCase().trim();
+
+  let list = ALL_TERMS.filter(t=>{
+    if(!monthOK(t)) return false;
+    if(!q) return true;
+    const hay = `year ${t.term} ${t.startLabel} ${t.endLabel} ${t.yearsLabel} ${t.months}`.toLowerCase();
+    return hay.includes(q);
+  });
+
+  const last=lastSelect.value;
+  if(last!=='all'){ list=list.slice(0, parseInt(last,10)); }
+
+  render(list, CURRENT);
+}
+
+/* render */
+function render(list, current){
+  tbody.innerHTML='';
+  const frag=document.createDocumentFragment();
+  let lastGroup=null;
+
+  list.forEach(t=>{
+    if(t.yearsLabel!==lastGroup){
+      lastGroup=t.yearsLabel;
+      const g=document.createElement('tr');
+      g.className='year-divider';
+      g.innerHTML=`<td colspan="4" style="padding:8px 12px;">
+        <span class="year-chip mono">${t.yearsLabel}</span>
+      </td>`;
+      frag.appendChild(g);
+    }
+    const tr=document.createElement('tr');
+    tr.dataset.term=t.term;
+    if(current && current.term===t.term) tr.classList.add('is-current');
+
+    tr.innerHTML=`
+      <td style="padding:10px; border-bottom:1px solid var(--border);">
+        Year ${t.term} ${current && current.term===t.term ? '<span class="term-star" title="Current term">⭐</span>' : ''}
+      </td>
+      <td style="padding:10px; border-bottom:1px solid var(--border);">${t.startLabel}</td>
+      <td style="padding:10px; border-bottom:1px solid var(--border);">${t.endLabel}</td>
+      <td style="padding:10px; border-bottom:1px solid var(--border);" class="mono">${t.yearsLabel}</td>
+    `;
+    frag.appendChild(tr);
+  });
+
+  tbody.appendChild(frag);
+}
+
+function jumpTo(termNum){
+  const row=tbody.querySelector(`tr[data-term="${termNum}"]`);
+  if(!row) return;
+  row.scrollIntoView({behavior:'smooth', block:'center'});
+  row.classList.add('pulse');
+  setTimeout(()=>row.classList.remove('pulse'),900);
+}
+
+/* events */
+searchInput.addEventListener('input', apply);
+monthSelect.addEventListener('change', apply);
+lastSelect.addEventListener('change', apply);
+resetBtn.addEventListener('click', ()=>{ searchInput.value=''; monthSelect.value='any'; lastSelect.value='20'; apply(); });
+jumpBtn.addEventListener('click', ()=> CURRENT && jumpTo(CURRENT.term));
+
+/* initial render */
+apply();
