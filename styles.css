@@ -225,3 +225,90 @@ body.dark .footer {
   color: #64748b;
   border-color: rgba(71, 85, 105, 0.6);
 }
+
+/* ========== Term page additions (no dark mode) ========== */
+
+/* Map a few CSS vars to your current palette so the terms styles are easy to reuse */
+:root{
+  --bg: #f8fafc;
+  --ink: #0f172a;
+  --panel: #ffffff;
+  --border: rgba(226,232,240,0.7);
+  --muted: #64748b;
+  --accent: #4f46e5;
+}
+
+/* Reuse the same pill styling for the Home button */
+.theme-toggle.home-link{
+  display:inline-flex; align-items:center; gap:8px;
+  text-decoration:none; color:inherit; font-weight:500;
+  /* .theme-toggle already sets bg/border/radius/padding/hover – we just add layout */
+}
+.theme-toggle.home-link .icon{ font-size:1.05em; line-height:1; transform:translateY(1px); }
+
+/* --- Summary callout (left aligned, accent rail) --- */
+.callout{
+  display:flex; gap:14px; align-items:flex-start;
+  padding:14px 16px; border:1px solid var(--border);
+  border-radius:14px; background:var(--panel);
+  box-shadow: 0 2px 10px rgba(10,18,38,.04); margin-bottom:12px;
+  position:relative;
+}
+.callout::before{
+  content:""; position:absolute; left:-6px; top:0; bottom:0; width:6px;
+  border-radius:14px 0 0 14px;
+  background: linear-gradient(180deg, rgba(79,70,229,.40), rgba(79,70,229,.12));
+}
+.callout h2{ margin:2px 0 2px; font-size:1.06rem; font-weight:600; }
+.callout p{ margin:0; color:var(--muted); }
+.callout strong{ font-weight:700; }
+
+/* --- Controls --- */
+.controls { margin: 8px 0 10px; }
+.input, .btn, .select{
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.btn{ cursor:pointer; }
+
+/* --- Table & headers --- */
+.table-wrap{ overflow:auto; border:1px solid var(--border); border-radius:12px; }
+.term-table{ width:100%; border-collapse:separate; border-spacing:0; }
+.term-table thead th{
+  position:sticky; top:0; z-index:1;
+  background: var(--bg);
+  font-weight:700;
+  padding:12px;
+}
+.term-table tbody tr:nth-child(odd) td{ background: rgba(10,18,38,.02); }
+tr.is-current td{ background: rgba(79,70,229,.10); }
+
+/* Year divider rows that act as section headers (with collapse toggle) */
+.year-divider td{
+  position: sticky; top:44px; /* sits just below thead */
+  background: rgba(79,70,229,.08);
+  border-top:1px solid var(--border);
+  font-weight:700; padding:0 12px;
+}
+.year-toggle{
+  display:inline-flex; align-items:center; gap:8px;
+  border:none; background:transparent; padding:10px 4px; cursor:pointer; font: inherit;
+}
+.year-toggle .chev{ width:1.1em; text-align:center; }
+
+/* Monospace digits for aligned years */
+.mono{ font-feature-settings:"tnum" 1; font-variant-numeric: tabular-nums; }
+
+/* Subtle star for current term row */
+.term-star{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; margin-left:6px; border-radius:999px;
+  background: rgba(79,70,229,.18); font-size:.9rem; line-height:1;
+}
+
+/* tiny jump pulse */
+@keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(79,70,229,.35);} 100%{box-shadow:0 0 0 12px rgba(79,70,229,0);} }
+tr.pulse td{ animation:pulse .9s ease-out 1; }
+
