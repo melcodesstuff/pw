@@ -84,11 +84,16 @@ body{
 }
 
 /* Summary card */
-.summary-card{padding:1.25rem 1.25rem;margin-bottom:1rem}
-.summary-card p{margin:0}
-.summary-card .lead,.summary-card .sub{font-size:1rem;font-weight:600;color:var(--ink)}
-.summary-card .sub{margin-top:4px}
-.summary-card strong{font-weight:700}
+.summary-card { padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.summary-card p { margin: 0; }
+.summary-card .lead,
+.summary-card .sub {
+  font-size: 0.975rem;
+  font-weight: 500;    /* lighter, calmer */
+  color: var(--ink);
+}
+.summary-card .sub { margin-top: 4px; }
+.summary-card strong { font-weight: 700; }  /* only values pop */
 
 /* Controls card */
 .controls-card{padding:.75rem .9rem;margin-bottom:1rem}
