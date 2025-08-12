@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Line Fetcher · Poetry + Filters</title>
+<style>
+  :root{--bg:#faf7f1;--panel:#fff;--ink:#1a1a1a;--muted:#5b657a;--accent:#6a5acd;--border:#e6dfd3}
+  body{margin:0;font:16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:1000px;margin:32px auto;padding:0 16px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px}
+  h1{margin:0 0 8px;font-size:22px}
+  .small{color:var(--muted);font-size:13px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{appearance:none;border:0;background:var(--accent);color:#fff;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer}
+  .btn.ghost{background:transparent;color:#111;border:1px solid var(--border)}
+  input[type="search"],input[type="number"]{padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff}
+  /* authors: 3-column grid + shorter height */
+  .authors{max-height:180px;overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff;padding:10px;
+           display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  @media (max-width:860px){.authors{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:560px){.authors{grid-template-columns:1fr}}
+  .author-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px}
+  .author-item:hover{background:#fafafa}
+  .filters{display:grid;gap:10px;grid-template-columns:2fr 1fr 1fr 1fr}
+  @media (max-width:860px){.filters{grid-template-columns:1fr 1fr}}
+  .tagbox{display:flex;flex-wrap:wrap;gap:8px}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:999px;background:#fff}
+  .list{max-height:420px;overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff}
+  .item{padding:10px 12px;border-bottom:1px solid #efeadf}
+  .item:last-child{border-bottom:0}
+  .meta{font-size:12px;color:#6b7280;margin-top:6px;display:flex;gap:10px;flex-wrap:wrap}
+  .chip{display:inline-block;padding:2px 8px;border:1px solid #e6dfd3;border-radius:999px;font-size:12px;background:#fff}
+</style>
+<body>
+<div class="wrap">
+  <h1>Public-Domain Line Fetcher</h1>
+  <p class="small">Pick poets → fetch → filter by search, length, punctuation, perspective, and auto-tags.</p>
+
+  <!-- Authors -->
+  <div class="card">
+    <!-- Search row -->
+    <div class="row" style="justify-content:space-between;gap:12px">
+      <input id="authorSearch" type="search" placeholder="Search authors…" />
+      <span class="small" id="authorsStatus">Loading authors…</span>
+    </div>
+    <!-- Controls row -->
+    <div class="row" style="margin-top:10px;justify-content:flex-start">
+      <button class="btn ghost" id="selectAll" type="button">Select all (filtered)</button>
+      <button class="btn ghost" id="clearAll" type="button">Clear</button>
+    </div>
+    <!-- 3-column, short author list -->
+    <div class="authors" id="authorsBox" style="margin-top:10px"></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card">
+    <div class="filters">
+      <div>
+        <div class="small" style="margin-bottom:6px">Search</div>
+        <input id="q" type="search" placeholder="word or phrase (case-insensitive)" />
+        <label class="pill" style="margin-top:8px"><input type="checkbox" id="wholeWord"> whole word only</label>
+      </div>
+      <div>
+        <div class="small" style="margin-bottom:6px">Length (characters)</div>
+        <div class="row">
+          <label>min <input type="number" id="minLen" value="6" min="0" style="width:90px"></label>
+          <label>max <input type="number" id="maxLen" value="90" min="1" style="width:90px"></label>
+        </div>
+      </div>
+      <div>
+        <div class="small" style="margin-bottom:6px">Punctuation</div>
+        <div class="tagbox">
+          <label class="pill"><input type="checkbox" id="fQuestion"> question ?</label>
+          <label class="pill"><input type="checkbox" id="fExclaim"> exclamation !</label>
+          <label class="pill"><input type="checkbox" id="fQuote"> has quotes “ ”</label>
+        </div>
+      </div>
+      <div>
+        <div class="small" style="margin-bottom:6px">Perspective</div>
+        <div class="tagbox">
+          <label class="pill"><input type="checkbox" id="fFirst"> first person (I/me)</label>
+          <label class="pill"><input type="checkbox" id="fSecond"> second person (you)</label>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="small" style="margin-bottom:6px">Themes (auto-tags — any match)</div>
+      <div class="tagbox" id="themeBox"></div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="card">
+    <div class="row" style="margin-bottom:8px;justify-content:flex-start">
+      <button class="btn" id="fetchBtn" type="button">Fetch lines from selected</button>
+      <button class="btn" id="copyFiltered" type="button">Copy filtered</button>
+      <button class="btn ghost" id="downloadFiltered" type="button">Download filtered .txt</button>
+      <span class="small" id="countBadge"></span>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+</div>
+
+<script>
+/* ---------------- PoetryDB basics ---------------- */
+const api = (path) => `https://poetrydb.org/${path}`;
+const authorsBox = document.getElementById('authorsBox');
+const authorsStatus = document.getElementById('authorsStatus');
+const authorSearch = document.getElementById('authorSearch');
+let allAuthors = [];
+let filteredAuthors = [];
+
+async function loadAuthors(){
+  try{
+    const r = await fetch(api('author'));
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    allAuthors = (data.authors||[]).sort((a,b)=>a.localeCompare(b));
+    filteredAuthors = allAuthors.slice();
+    renderAuthors();
+    authorsStatus.textContent = `${allAuthors.length} authors`;
+  }catch(e){
+    console.error(e);
+    authorsStatus.textContent = 'Failed to load authors.';
+  }
+}
+function renderAuthors(){
+  authorsBox.innerHTML = '';
+  if(!filteredAuthors.length){ authorsBox.innerHTML = '<div class="small">No authors match.</div>'; return; }
+  const frag = document.createDocumentFragment();
+  filteredAuthors.forEach(name=>{
+    const id = 'auth_'+name.replace(/\W+/g,'_');
+    const label = document.createElement('label');
+    label.className = 'author-item';
+    label.innerHTML = `<input type="checkbox" class="poet" id="${id}" value="${name}"> <span>${name}</span>`;
+    frag.appendChild(label);
+  });
+  authorsBox.appendChild(frag);
+}
+authorSearch.addEventListener('input', ()=>{
+  const q = authorSearch.value.trim().toLowerCase();
+  filteredAuthors = !q ? allAuthors.slice() : allAuthors.filter(a=>a.toLowerCase().includes(q));
+  renderAuthors();
+});
+document.getElementById('selectAll').onclick = ()=>{ authorsBox.querySelectorAll('input.poet').forEach(cb=>cb.checked=true); };
+
+/* FULL RESET: clears literally everything */
+document.getElementById('clearAll').onclick = resetAll;
+function resetAll(){
+  // Uncheck authors & clear search
+  authorSearch.value = '';
+  filteredAuthors = allAuthors.slice();
+  renderAuthors();
+  authorsBox.querySelectorAll('input.poet').forEach(cb=>cb.checked=false);
+
+  // Reset filters
+  document.getElementById('q').value = '';
+  document.getElementById('wholeWord').checked = false;
+  document.getElementById('minLen').value = 6;
+  document.getElementById('maxLen').value = 90;
+  document.getElementById('fQuestion').checked = false;
+  document.getElementById('fExclaim').checked = false;
+  document.getElementById('fQuote').checked = false;
+  document.getElementById('fFirst').checked = false;
+  document.getElementById('fSecond').checked = false;
+  document.querySelectorAll('.themeChk').forEach(cb=>cb.checked=false);
+
+  // Clear data + UI
+  state.items = [];
+  state.filtered = [];
+  renderList();
+  authorsStatus.textContent = 'Cleared.';
+}
+
+/* ---------------- Fetch lines ---------------- */
+async function fetchAuthorLines(author){
+  const url = api(`author/${encodeURIComponent(author)}/lines.json`);
+  const r = await fetch(url, {cache:'no-store'});
+  if(!r.ok) throw new Error(author + ' HTTP ' + r.status);
+  const data = await r.json(); // [{title, author, lines}, ...]
+  return data.flatMap(p => (p.lines||[]).map(line => ({ author: p.author, title: p.title, line: line })));
+}
+
+/* ---------------- Tagging & features ---------------- */
+const THEMES = {
+  whimsical: ["cupcake","balloon","goose","bubbles","teacup","giggle","twirl","play","toy","laugh"],
+  dramatic: ["death","blood","grave","ashes","fire","dark","sorrow","fate","doom","tragic"],
+  emotional: ["love","heart","lonely","alone","tears","kiss","longing","yearn","remember","forget","miss"],
+  mystery: ["secret","shadow","night","riddle","mask","crypt","clue","veil","whisper","key","door"],
+  adventure: ["journey","road","path","quest","sail","ship","sea","forest","mountain","trail","map"],
+  humor: ["joke","laugh","smile","fool","trick","merry","jest"],
+  fantasy: ["dragon","phoenix","spell","wand","king","queen","castle","sword","rune","crown"],
+  magic: ["magic","enchanted","bewitched","charm","potion","cauldron","charmed","sorcery"]
+};
+const THEME_KEYS = Object.keys(THEMES);
+
+function sliceShortLines(lines){
+  return lines
+    .map(s => s.replace(/\s+/g,' ').trim())
+    .filter(Boolean)
+    .flatMap(line => line.split(/[.;:—–-]+/).map(s=>s.trim()))
+    .map(s => s.replace(/^["'“”‘’]+|["'“”‘’]+$/g,''))
+    .filter(s => s.length >= 6 && s.length <= 90 && !/^\d+\s*$/.test(s));
+}
+function tagThemes(text){
+  const t = text.toLowerCase();
+  const tags = [];
+  for(const k of THEME_KEYS){ if(THEMES[k].some(w => t.includes(w))) tags.push(k); }
+  return tags;
+}
+function perspective(text){
+  const t = text.replace(/[^\w\s']/g,' ').toLowerCase();
+  if(/\b(i|i'm|i’ve|i’d|me|my|mine)\b/.test(t)) return 'first';
+  if(/\b(you|you’re|you’ve|your|yours)\b/.test(t)) return 'second';
+  return 'other';
+}
+
+/* NEW: meta limited to words · author · title · kind */
+function withMeta(obj){
+  const s = (obj.line || '').trim();
+  return {
+    author: obj.author || '',
+    title: obj.title || '',
+    line: s,
+    kind: 'poem',
+    chars: s.length,
+    words: s.split(/\s+/).filter(Boolean).length,
+    // keep these so existing filters still work
+    isQuestion: /\?\s*$/.test(s),
+    isExclaim: /!\s*$/.test(s),
+    hasQuote: /["“”'’]/.test(s),
+    perspective: perspective(s),
+    themes: tagThemes(s)
+  };
+}
+function dedupe(items){
+  const seen = new Set();
+  return items.filter(it=>{
+    const k = (it.line + '|' + it.author + '|' + it.title).toLowerCase();
+    if(seen.has(k)) return false; seen.add(k); return true;
+  });
+}
+
+/* ---------------- Filter & render ---------------- */
+const state = { items: [], filtered: [] };
+
+function applyFilters(){
+  const q = document.getElementById('q').value.trim();
+  const wholeWord = document.getElementById('wholeWord').checked;
+  const minLen = +document.getElementById('minLen').value || 0;
+  const maxLen = +document.getElementById('maxLen').value || 9999;
+  const fQ = document.getElementById('fQuestion').checked;
+  const fE = document.getElementById('fExclaim').checked;
+  const fQuo = document.getElementById('fQuote').checked;
+  const fFirst = document.getElementById('fFirst').checked;
+  const fSecond = document.getElementById('fSecond').checked;
+  const selectedThemes = [...document.querySelectorAll('.themeChk:checked')].map(i=>i.value);
+
+  const matchesQuery = (s)=>{
+    if(!q) return true;
+    const t = s.toLowerCase();
+    const needle = q.toLowerCase();
+    if(!wholeWord) return t.includes(needle);
+    const re = new RegExp(`\\b${needle.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&')}\\b`,'i');
+    return re.test(s);
+  };
+
+  state.filtered = state.items.filter(it=>{
+    if(it.chars < minLen || it.chars > maxLen) return false;
+    if(q && !matchesQuery(it.line)) return false;
+    if(fQ && !it.isQuestion) return false;
+    if(fE && !it.isExclaim) return false;
+    if(fQuo && !it.hasQuote) return false;
+    if(fFirst && it.perspective!=='first') return false;
+    if(fSecond && it.perspective!=='second') return false;
+    if(selectedThemes.length && !it.themes.some(t => selectedThemes.includes(t))) return false;
+    return true;
+  });
+  renderList();
+}
+
+function renderList(){
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  const badge = document.getElementById('countBadge');
+  badge.textContent = `${state.filtered.length} lines`;
+  const frag = document.createDocumentFragment();
+  state.filtered.forEach(it=>{
+    const wordLabel = it.words === 1 ? 'word' : 'words';
+    const chips = [
+      `<span class="chip">${it.words} ${wordLabel}</span>`,
+      it.author ? `<span class="chip">${it.author}</span>` : '',
+      it.title  ? `<span class="chip">${it.title}</span>`  : '',
+      `<span class="chip">${it.kind}</span>`
+    ].filter(Boolean).join('');
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div>${it.line}</div>
+      <div class="meta">${chips}</div>
+    `;
+    frag.appendChild(div);
+  });
+  list.appendChild(frag);
+}
+
+/* theme checkboxes */
+(function mountThemes(){
+  const box = document.getElementById('themeBox');
+  Object.keys(THEMES).forEach(k=>{
+    const id = 'theme_'+k;
+    const label = document.createElement('label');
+    label.className = 'pill';
+    label.innerHTML = `<input type="checkbox" class="themeChk" id="${id}" value="${k}"> ${k}`;
+    box.appendChild(label);
+  });
+})();
+
+/* filter listeners */
+['q','wholeWord','minLen','maxLen','fQuestion','fExclaim','fQuote','fFirst','fSecond'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', applyFilters);
+});
+document.getElementById('themeBox').addEventListener('change', applyFilters);
+
+/* results actions */
+document.getElementById('fetchBtn').onclick = async ()=>{
+  const chosen = [...authorsBox.querySelectorAll('input.poet:checked')].map(i=>i.value);
+  if(!chosen.length){ authorsStatus.textContent = 'Pick at least one author.'; return; }
+  authorsStatus.textContent = `Fetching ${chosen.length} author(s)…`;
+  try{
+    let all = [];
+    for(const a of chosen){
+      authorsStatus.textContent = `Fetching: ${a}…`;
+      const raw = await fetchAuthorLines(a);
+      all = all.concat(raw);
+    }
+    const withMetaItems = dedupe(all.map(x=>({...x, line: x.line})))
+      .map(withMeta)
+      .filter(it => it.line && it.line.length>=6 && it.line.length<=90);
+    state.items = state.items.concat(withMetaItems);
+    applyFilters();
+    authorsStatus.textContent = `Added ${withMetaItems.length} lines. Total: ${state.items.length}`;
+  }catch(e){
+    console.error(e);
+    authorsStatus.textContent = 'Fetch failed.';
+  }
+};
+
+document.getElementById('copyFiltered').onclick = async ()=>{
+  try{
+    const text = state.filtered.map(x=>x.line).join('\n');
+    await navigator.clipboard.writeText(text);
+  }catch(e){}
+};
+document.getElementById('downloadFiltered').onclick = ()=>{
+  const text = state.filtered.map(x=>x.line).join('\n');
+  const blob = new Blob([text], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'filtered_poetry_lines.txt';
+  a.click(); URL.revokeObjectURL(a.href);
+};
+
+/* init */
+loadAuthors();
+</script>
+</body>
+</html>
