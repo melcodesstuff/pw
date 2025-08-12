@@ -316,42 +316,39 @@
     }
 
     /* ---- Subcomponents (logic unchanged) ---- */
-    function Summary({ characters, computed, effectiveAvg }) {
-      const overall = (() => {
-        const vals = characters.map(c => effectiveAvg(c, computed[c.id]) ?? 0);
-        const count = characters.length; return count ? vals.reduce((a,b)=>a+b,0)/count : 0;
-      })();
+   function Summary({ characters, computed, effectiveAvg }) {
+  const overall = (() => {
+    const vals = characters.map(c => effectiveAvg(c, computed[c.id]) ?? 0);
+    const count = characters.length; return count ? vals.reduce((a,b)=>a+b,0)/count : 0;
+  })();
 
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="space-y-2">
-            <div>Total characters: <span className="font-medium">{characters.length}</span></div>
-            <div className="space-y-1">
-              {characters.map((c) => {
-                const pc = computed[c.id];
-                const label = c.name ? c.name : '(unnamed)';
-                const avgVal = effectiveAvg(c, pc);
-                const avgStr = avgVal != null ? formatAvg(avgVal) : '—';
-                return (
-                  <div key={c.id}>{label} average: <span className="font-medium">{avgStr}</span> <span className="text-slate-500">posts/term</span></div>
-                );
-              })}
-            </div>
-            <div>Overall average: <span className="font-medium">{formatAvg(overall)}</span> <span className="text-slate-500">posts/term</span></div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="text-slate-600">Calculator uses the following rules:</div>
-            <ul className="list-disc pl-5 space-y-1 text-slate-700">
-              <li>Under 2 RL years: ≥ 20/term.</li>
-              <li>2+ RL years: ≥ 10/term <em>(If your 2-year date is close, it will default to 20 and flag it to double-check.)</em></li>
-              <li>Spirits have no per-character minimum.</li>
-              <li>Overall average must be ≥ 20 (for twins).</li>
-            </ul>
-          </div>
+  return (
+    <div className="grid grid-cols-1 gap-4 text-sm">
+      <div className="space-y-2">
+        <div>Total characters: <span className="font-medium">{characters.length}</span></div>
+        <div className="space-y-1">
+          {characters.map((c) => {
+            const pc = computed[c.id];
+            const label = c.name ? c.name : '(unnamed)';
+            const avgVal = effectiveAvg(c, pc);
+            const avgStr = avgVal != null ? (Number.isInteger(avgVal) ? String(avgVal) : avgVal.toFixed(2)) : '—';
+            return (
+              <div key={c.id}>
+                {label} average: <span className="font-medium">{avgStr}</span> <span className="text-slate-500">posts/term</span>
+              </div>
+            );
+          })}
         </div>
-      );
-    }
+        <div>
+          Overall average: <span className="font-medium">
+            {Number.isInteger(overall) ? String(overall) : overall.toFixed(2)}
+          </span> <span className="text-slate-500">posts/term</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
     function Twins({ characters, computed, effectiveAvg }) {
       const allHavePosts = characters.every(c => c.currentPosts !== "");
