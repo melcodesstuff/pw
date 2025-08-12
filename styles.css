@@ -420,3 +420,15 @@ tr.pulse td{ animation:pulse .9s ease-out 1; }
 @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(79,70,229,.35);} 100%{box-shadow:0 0 0 12px rgba(79,70,229,0);} }
 tr.pulse td{ animation:pulse .9s ease-out 1; }
 
+/* Summary typography tweaks */
+.summary-card p{ margin:0; }
+.summary-card .lead,
+.summary-card .sub {
+  font-size:1rem;
+  font-weight:600;           /* same weight on both lines */
+  color: var(--ink);
+}
+.summary-card .sub { margin-top:4px; }
+.summary-card strong{ font-weight:700; } /* only values pop */
+
+
