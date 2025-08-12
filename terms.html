@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="witch-hat.png">
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* page-local polish for this view */
+    /* controls */
     .controls { margin: 8px 0 10px; }
     .input, .btn, .select {
       background: var(--panel);
@@ -17,24 +17,33 @@
     }
     .btn { cursor: pointer; }
 
-    /* centered hero summary */
-    .hero {
-      margin: 6px auto 12px;
-      max-width: 760px;
-      text-align: center;
-      padding: 16px 18px;
-      border-radius: 18px;
+    /* summary callout (left aligned, accent stripe) */
+    .callout {
+      display:flex; align-items:flex-start; gap:12px;
+      padding: 14px 16px;
       border: 1px solid var(--border);
-      background:
-        radial-gradient(1200px 1200px at 50% -200px, rgba(58,99,255,.10), transparent 55%),
-        var(--panel);
-      box-shadow: 0 2px 12px rgba(10,18,38,.06);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: 0 2px 10px rgba(10,18,38,.04);
+      margin-bottom: 12px;
+      position: relative;
     }
-    .hero h2 {
-      margin: 4px 0 4px;
-      font-size: 1.35rem;
+    .callout::before{
+      content:"";
+      position:absolute; inset:0 0 0 auto; /* default no effect */
     }
-    .hero p { margin: 0; color: var(--muted); }
+    .callout-accent{
+      position: relative;
+    }
+    .callout-accent::after{
+      content:"";
+      position:absolute; left:-0px; top:0; bottom:0;
+      width:6px; border-radius:14px 0 0 14px;
+      background: linear-gradient(180deg, rgba(58,99,255,.28), rgba(58,99,255,.12));
+      transform: translateX(-6px);
+    }
+    .callout h2{ margin:2px 0 2px; font-size:1.2rem; }
+    .callout p{ margin:0; color:var(--muted); }
 
     /* table */
     .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:12px; }
@@ -43,16 +52,28 @@
     .term-table tbody tr:nth-child(odd) td { background: rgba(10,18,38,.02); }
     tr.is-current td { background: rgba(58,99,255,.10); }
 
-    /* year group headers that stick beneath table header */
-    tr.group-row td {
-      position: sticky; top: 44px;
-      background: var(--panel); color: var(--muted);
-      font-weight: 600; border-top: 1px solid var(--border);
+    /* year divider row */
+    .year-divider td{
+      position: sticky; top:44px; /* sits under header */
+      background: linear-gradient(0deg, rgba(58,99,255,.08), rgba(58,99,255,.08));
+      color: #0f1b37;
+      font-weight: 700;
+      letter-spacing: .2px;
+      border-top: 1px solid var(--border);
     }
+    [data-theme="dark"] .year-divider td{
+      background: rgba(58,99,255,.12);
+      color: #dfe7ff;
+    }
+    .year-chip{
+      display:inline-block; padding:6px 10px; border-radius:999px;
+      background: rgba(255,255,255,.65);
+    }
+    [data-theme="dark"] .year-chip{ background: rgba(255,255,255,.12); }
 
     .mono { font-feature-settings:"tnum" 1; font-variant-numeric: tabular-nums; }
 
-    /* subtle star badge for current row */
+    /* star for current row */
     .term-star {
       display:inline-flex; align-items:center; justify-content:center;
       width: 22px; height: 22px; margin-left: 6px;
@@ -75,8 +96,8 @@
       <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
     </header>
 
-    <!-- Centered summary -->
-    <section id="currentCard" class="hero" style="display:none;"></section>
+    <!-- Summary (left-aligned, only the lines requested) -->
+    <section id="currentCard" class="callout callout-accent" style="display:none;"></section>
 
     <!-- Controls -->
     <section class="controls">
@@ -131,7 +152,6 @@
   </div>
 
   <script src="intro.js"></script>
-  <!-- shared data must come BEFORE page logic -->
   <script src="terms-data.js"></script>
   <script src="terms.js"></script>
 </body>
