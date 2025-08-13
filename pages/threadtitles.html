@@ -1,393 +1,353 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Thread Title Generator · PW Tools</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thread Title Generator - PW Tools</title>
+    <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
+    <style>
+        /* ---------- Base reset ---------- */
+        *{margin:0;padding:0;box-sizing:border-box}
 
-  <!-- Site assets (same as homepage/other tools) -->
-  <link rel="icon" href="../assets/img/witch-hat.png">
-  <link rel="stylesheet" href="../assets/css/styles.css">
-  <script src="../assets/js/main.js" defer></script>
+        /* ---------- Base layout/typography ---------- */
+        body{
+          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+          background:#f8fafc;
+          color:#0f172a;
+          line-height:1.6;
+          transition:all .3s ease;
+        }
+        .container{max-width:1200px;margin:0 auto;padding:2.5rem 1.5rem;min-height:100vh}
 
-  <!-- Page-specific minimal styles (just the layout for this tool) -->
-  <style>
-    .ttg-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
-    .ttg-muted{color:#5b657a;font-size:.9rem}
-    .ttg-authors{
-      max-height:180px; overflow:auto; border:1px solid rgba(10,18,38,.12);
-      border-radius:12px; background:#fff; padding:10px;
-      display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;
-    }
-    @media (max-width:860px){.ttg-authors{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media (max-width:560px){.ttg-authors{grid-template-columns:1fr}}
-    .ttg-author{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px}
-    .ttg-author:hover{background:#fafafa}
-    .ttg-filters{display:grid;gap:10px;grid-template-columns:2fr 1fr 1fr 1fr}
-    @media (max-width:860px){.ttg-filters{grid-template-columns:1fr 1fr}}
-    .ttg-tagbox{display:flex;flex-wrap:wrap;gap:8px}
-    .ttg-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(10,18,38,.12);border-radius:999px;background:#fff}
-    .ttg-list{max-height:420px;overflow:auto;border:1px solid rgba(10,18,38,.12);border-radius:12px;background:#fff}
-    .ttg-item{padding:10px 12px;border-bottom:1px solid #eef0f4}
-    .ttg-item:last-child{border-bottom:0}
-    .ttg-meta{font-size:.8rem;color:#6b7280;margin-top:6px;display:flex;gap:10px;flex-wrap:wrap}
-    .ttg-chip{display:inline-block;padding:2px 8px;border:1px solid rgba(10,18,38,.12);border-radius:999px;font-size:.8rem;background:#fff}
-    .ttg-input{padding:10px 12px;border:1px solid rgba(10,18,38,.12);border-radius:10px;background:#fff}
-    .btn{appearance:none;border:0;background:#3a63ff;color:#fff;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer}
-    .btn.ghost{background:#fff;color:#0a1226;border:1px solid rgba(10,18,38,.12)}
-  </style>
+        .header{margin-bottom:2rem;display:flex;flex-direction:column;gap:1rem}
+
+        .title{
+          font-size:2rem;font-weight:700;
+          background:linear-gradient(135deg,#4f46e5,#7c3aed);
+          -webkit-background-clip:text;background-clip:text;color:transparent;
+          margin-bottom:.5rem;
+        }
+        .subtitle{color:#64748b;font-size:1rem;max-width:600px}
+
+        /* ---------- Tokens ---------- */
+        :root{
+          --bg:#f8fafc;
+          --ink:#0f172a;
+          --panel:#ffffff;
+          --border:rgba(226,232,240,.7);
+          --muted:#64748b;
+          --accent:#4f46e5;
+        }
+
+        /* ---------- Cards ---------- */
+        .surface{
+          background:#fff;border:1px solid var(--border);border-radius:1rem;box-shadow:0 1px 3px rgba(0,0,0,.08);
+        }
+
+        .card{
+          background:#fff;border:1px solid rgba(226,232,240,.7);border-radius:1rem;padding:1.5rem;
+          text-decoration:none;color:inherit;box-shadow:0 1px 3px rgba(0,0,0,.1);transition:all .3s ease;display:block;
+          margin-bottom:1.5rem;
+        }
+        .card:hover{box-shadow:0 10px 25px rgba(0,0,0,.1);transform:translateY(-2px);border-color:rgba(148,163,184,.5)}
+        .card-title{font-size:1.125rem;font-weight:600;margin-bottom:.5rem;color:#0f172a}
+        .card-desc{font-size:.875rem;color:#64748b;margin-bottom:1rem}
+
+        /* ---------- Form Elements ---------- */
+        .form-group{margin-bottom:1rem}
+        .form-label{
+          display:block;font-weight:500;color:var(--ink);margin-bottom:.5rem;font-size:.9rem;
+        }
+        .form-select, .btn{
+          background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 12px;
+          font-family:inherit;font-size:.9rem;transition:all .2s ease;
+        }
+        .form-select{width:100%;color:var(--ink)}
+        .form-select:focus{outline:2px solid rgba(79,70,229,.5);outline-offset:2px;border-color:var(--accent)}
+
+        .form-grid{
+          display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1rem;
+        }
+        @media (min-width:768px){
+          .form-grid{grid-template-columns:repeat(2,1fr)}
+        }
+
+        .btn{
+          background:var(--accent);color:#fff;border-color:var(--accent);
+          font-weight:500;cursor:pointer;padding:.75rem 1.5rem;border-radius:12px;
+          width:100%;
+        }
+        .btn:hover{background:#3730a3;border-color:#3730a3;transform:translateY(-1px)}
+        .btn:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+
+        /* ---------- Result Area ---------- */
+        .result-card{
+          background:rgba(79,70,229,.05);border:1px solid rgba(79,70,229,.2);
+          border-radius:12px;padding:1.5rem;min-height:100px;
+          display:flex;align-items:center;justify-content:center;text-align:center;
+        }
+
+        .generated-title{
+          font-size:1.2rem;font-weight:600;color:var(--accent);
+          font-style:italic;line-height:1.4;
+        }
+
+        .placeholder-text{
+          color:var(--muted);font-style:italic;
+        }
+
+        /* ---------- Footer ---------- */
+        .footer{
+          font-size:.875rem;color:#94a3b8;border-top:1px solid rgba(226,232,240,.6);
+          padding-top:2rem;margin-top:2rem;
+        }
+
+        /* ---------- Home Link ---------- */
+        .theme-toggle{
+          background:#e2e8f0;border:none;padding:.75rem 1.5rem;border-radius:2rem;
+          font-weight:500;cursor:pointer;transition:all .2s ease;align-self:flex-start;
+        }
+        .theme-toggle:hover{background:#cbd5e1;transform:translateY(-1px)}
+
+        .theme-toggle.home-link{
+          display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;font-weight:500;
+        }
+        .theme-toggle.home-link .icon{font-size:1.05em;line-height:1;transform:translateY(1px)}
+        .theme-toggle.home-link:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px;border-radius:12px}
+
+        @media (min-width:768px){
+          .header{flex-direction:row;align-items:center;justify-content:space-between}
+        }
+    </style>
 </head>
-<body class="bg-slate-50">
-  <div class="container">
-    <header class="header">
-      <div>
-        <h1 class="title">Thread Title Generator</h1>
-        <p class="subtitle">Hate coming up with themes and titles? Me too! Hopefully this will help.</p>
-      </div>
-      <a class="home-link" href="../" aria-label="Go to home">← Home</a>
-    </header>
-
-    <div class="panel">
-
-      <!-- Authors -->
-      <section class="card">
-        <!-- Search row -->
-        <div class="ttg-row" style="justify-content:space-between">
-          <input id="authorSearch" class="ttg-input" type="search" placeholder="Search authors…">
-          <span class="ttg-muted" id="authorsStatus">Loading authors…</span>
-        </div>
-
-        <!-- Controls row -->
-        <div class="ttg-row" style="margin-top:10px">
-          <button class="btn ghost" id="selectAll" type="button">Select all (filtered)</button>
-          <button class="btn ghost" id="clearAll" type="button">Clear everything</button>
-        </div>
-
-        <!-- Author list -->
-        <div class="ttg-authors" id="authorsBox" style="margin-top:10px"></div>
-      </section>
-
-      <!-- Filters -->
-      <section class="card">
-        <div class="ttg-filters">
-          <div>
-            <div class="ttg-muted" style="margin-bottom:6px">Search</div>
-            <input id="q" class="ttg-input" type="search" placeholder="word or phrase (case-insensitive)">
-            <label class="ttg-pill" style="margin-top:8px"><input type="checkbox" id="wholeWord"> whole word only</label>
-          </div>
-
-          <div>
-            <div class="ttg-muted" style="margin-bottom:6px">Length (characters)</div>
-            <div class="ttg-row">
-              <label>min <input class="ttg-input" type="number" id="minLen" value="6" min="0" style="width:90px"></label>
-              <label>max <input class="ttg-input" type="number" id="maxLen" value="90" min="1" style="width:90px"></label>
+<body>
+    <div class="container">
+        <header class="header">
+            <div>
+                <h1 class="title">Thread Title Generator</h1>
+                <p class="subtitle">
+                    Hate coming up with themes and titles? Me too! Hopefully this will help.
+                </p>
             </div>
-          </div>
-
-          <div>
-            <div class="ttg-muted" style="margin-bottom:6px">Punctuation</div>
-            <div class="ttg-tagbox">
-              <label class="ttg-pill"><input type="checkbox" id="fQuestion"> question ?</label>
-              <label class="ttg-pill"><input type="checkbox" id="fExclaim"> exclamation !</label>
-              <label class="ttg-pill"><input type="checkbox" id="fQuote"> has quotes “ ”</label>
+            <a href="../index.html" class="theme-toggle home-link">
+                <span class="icon">🏠</span>
+                Back to Home
+            </a>
+        </header>
+        
+        <div class="card">
+            <h2 class="card-title">Generate Your Thread Title</h2>
+            <p class="card-desc">Select your preferences and let the generator create the perfect title for your roleplay thread.</p>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="threadType">Thread Type</label>
+                    <select class="form-select" id="threadType">
+                        <option value="">Select Type...</option>
+                        <option value="social">Social</option>
+                        <option value="academic">Academic</option>
+                        <option value="adventure">Adventure</option>
+                        <option value="mystery">Mystery</option>
+                        <option value="romance">Romance</option>
+                        <option value="conflict">Conflict</option>
+                        <option value="event">Event</option>
+                        <option value="study">Study Group</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="setting">Setting</label>
+                    <select class="form-select" id="setting">
+                        <option value="">Select Setting...</option>
+                        <option value="common-room">Common Room</option>
+                        <option value="great-hall">Great Hall</option>
+                        <option value="library">Library</option>
+                        <option value="grounds">School Grounds</option>
+                        <option value="dormitory">Dormitory</option>
+                        <option value="classroom">Classroom</option>
+                        <option value="hogsmeade">Hogsmeade</option>
+                        <option value="corridor">Corridor</option>
+                        <option value="courtyard">Courtyard</option>
+                    </select>
+                </div>
             </div>
-          </div>
-
-          <div>
-            <div class="ttg-muted" style="margin-bottom:6px">Perspective</div>
-            <div class="ttg-tagbox">
-              <label class="ttg-pill"><input type="checkbox" id="fFirst"> first person (I/me)</label>
-              <label class="ttg-pill"><input type="checkbox" id="fSecond"> second person (you)</label>
+            
+            <div class="form-group">
+                <label class="form-label" for="mood">Mood/Tone</label>
+                <select class="form-select" id="mood">
+                    <option value="">Select Mood...</option>
+                    <option value="lighthearted">Lighthearted</option>
+                    <option value="serious">Serious</option>
+                    <option value="mysterious">Mysterious</option>
+                    <option value="romantic">Romantic</option>
+                    <option value="tense">Tense</option>
+                    <option value="nostalgic">Nostalgic</option>
+                    <option value="celebratory">Celebratory</option>
+                    <option value="dramatic">Dramatic</option>
+                </select>
             </div>
-          </div>
+            
+            <button class="btn" onclick="generateTitle()">Generate Title</button>
         </div>
-
-        <div style="margin-top:12px">
-          <div class="ttg-muted" style="margin-bottom:6px">Themes (auto‑tags — any match)</div>
-          <div class="ttg-tagbox" id="themeBox"></div>
+        
+        <div class="card">
+            <h2 class="card-title">Your Generated Title</h2>
+            <div class="result-card">
+                <div id="titleResult" class="placeholder-text">
+                    Your generated title will appear here...
+                </div>
+            </div>
         </div>
-      </section>
-
-      <!-- Results -->
-      <section class="card">
-        <div class="ttg-row" style="margin-bottom:8px">
-          <button class="btn" id="fetchBtn" type="button">Fetch lines from selected</button>
-          <button class="btn" id="copyFiltered" type="button">Copy filtered</button>
-          <button class="btn ghost" id="downloadFiltered" type="button">Download filtered .txt</button>
-          <span class="ttg-muted" id="countBadge" style="margin-left:auto"></span>
-        </div>
-        <div class="ttg-list" id="list"></div>
-      </section>
-
+        
+        <footer class="footer">
+            <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
+        </footer>
     </div>
-  </div>
 
-  <script>
-  /* ---------------- PoetryDB basics ---------------- */
-  const api = (path) => `https://poetrydb.org/${path}`;
-  const authorsBox   = document.getElementById('authorsBox');
-  const authorsStatus= document.getElementById('authorsStatus');
-  const authorSearch = document.getElementById('authorSearch');
-  let allAuthors = [], filteredAuthors = [];
+    <script>
+        const titleTemplates = {
+            social: [
+                "{mood} {setting} Encounters",
+                "A {mood} Evening in the {setting}",
+                "{setting} Shenanigans",
+                "Gathering in the {setting}",
+                "{mood} Conversations",
+                "Friends in the {setting}",
+                "{mood} Get-Together"
+            ],
+            academic: [
+                "{mood} Studies in {setting}",
+                "Lessons in the {setting}",
+                "{mood} Academic Pursuits",
+                "Learning and {mood} Moments",
+                "{setting} Study Session",
+                "{mood} Scholarly Affairs",
+                "Education in the {setting}"
+            ],
+            adventure: [
+                "{mood} {setting} Adventure",
+                "Exploring the {setting}",
+                "{mood} Quest Through {setting}",
+                "Journey to {setting}",
+                "{setting} Expedition",
+                "{mood} Discovery",
+                "Adventures in {setting}"
+            ],
+            mystery: [
+                "The {mood} {setting} Mystery",
+                "Secrets of the {setting}",
+                "{mood} Investigations",
+                "The {setting} Enigma",
+                "{mood} Clues and Whispers",
+                "Mysteries in {setting}",
+                "{mood} Puzzle"
+            ],
+            romance: [
+                "{mood} Hearts in {setting}",
+                "Love in the {setting}",
+                "{mood} Romantic Encounters",
+                "{setting} Romance",
+                "A {mood} Love Story",
+                "{mood} Affections",
+                "Romance in the {setting}"
+            ],
+            conflict: [
+                "{mood} {setting} Confrontation",
+                "Tensions in {setting}",
+                "{mood} Disagreements",
+                "The {setting} Dispute",
+                "{mood} Clash",
+                "Conflict in the {setting}",
+                "{mood} Arguments"
+            ],
+            event: [
+                "{mood} {setting} Celebration",
+                "The {setting} Event",
+                "{mood} Festivities",
+                "Gathering at the {setting}",
+                "{mood} Party",
+                "{setting} Occasion",
+                "{mood} Ceremony"
+            ],
+            study: [
+                "{mood} Study Group in {setting}",
+                "{setting} Study Session",
+                "{mood} Academic Collaboration",
+                "Studying in the {setting}",
+                "{mood} Group Work",
+                "{setting} Study Circle",
+                "{mood} Learning Together"
+            ]
+        };
 
-  async function loadAuthors(){
-    try{
-      const r = await fetch(api('author'));
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      const data = await r.json();
-      allAuthors = (data.authors||[]).sort((a,b)=>a.localeCompare(b));
-      filteredAuthors = allAuthors.slice();
-      renderAuthors();
-      authorsStatus.textContent = `${allAuthors.length} authors`;
-    }catch(e){
-      console.error(e);
-      authorsStatus.textContent = 'Failed to load authors.';
-    }
-  }
+        const moodAdjectives = {
+            lighthearted: ["Cheerful", "Playful", "Whimsical", "Jovial", "Merry", "Carefree"],
+            serious: ["Solemn", "Grave", "Intense", "Earnest", "Profound", "Focused"],
+            mysterious: ["Enigmatic", "Cryptic", "Shadowy", "Puzzling", "Secretive", "Hidden"],
+            romantic: ["Tender", "Passionate", "Sweet", "Enchanting", "Dreamy", "Intimate"],
+            tense: ["Fraught", "Strained", "Edgy", "Charged", "Volatile", "Anxious"],
+            nostalgic: ["Wistful", "Bittersweet", "Melancholic", "Reflective", "Sentimental", "Yearning"],
+            celebratory: ["Festive", "Jubilant", "Triumphant", "Joyous", "Exuberant", "Victorious"],
+            dramatic: ["Theatrical", "Intense", "Emotional", "Powerful", "Striking", "Bold"]
+        };
 
-  function renderAuthors(){
-    authorsBox.innerHTML = '';
-    if(!filteredAuthors.length){
-      authorsBox.innerHTML = '<div class="ttg-muted">No authors match.</div>'; return;
-    }
-    const frag = document.createDocumentFragment();
-    filteredAuthors.forEach(name=>{
-      const id = 'auth_'+name.replace(/\W+/g,'_');
-      const label = document.createElement('label');
-      label.className = 'ttg-author';
-      label.innerHTML = \`<input type="checkbox" class="poet" id="\${id}" value="\${name}"> <span>\${name}</span>\`;
-      frag.appendChild(label);
-    });
-    authorsBox.appendChild(frag);
-  }
+        const settingNames = {
+            "common-room": ["Common Room", "House Lounge", "Cozy Quarters", "Living Area"],
+            "great-hall": ["Great Hall", "Grand Dining Hall", "Main Hall", "Feast Hall"],
+            "library": ["Library", "Archive", "Reading Room", "Study Hall"],
+            "grounds": ["School Grounds", "Castle Grounds", "Outdoor Courtyard", "Campus"],
+            "dormitory": ["Dormitory", "Dorm Room", "Sleeping Quarters", "Bedroom"],
+            "classroom": ["Classroom", "Study Hall", "Academic Wing", "Learning Space"],
+            "hogsmeade": ["Hogsmeade", "Village Square", "Local Tavern", "Town Center"],
+            "corridor": ["Corridor", "Hallway", "Passage", "School Hall"],
+            "courtyard": ["Courtyard", "Outdoor Plaza", "Garden Area", "Open Space"]
+        };
 
-  authorSearch.addEventListener('input', ()=>{
-    const q = authorSearch.value.trim().toLowerCase();
-    filteredAuthors = !q ? allAuthors.slice()
-                         : allAuthors.filter(a=>a.toLowerCase().includes(q));
-    renderAuthors();
-  });
+        function generateTitle() {
+            const threadType = document.getElementById('threadType').value;
+            const setting = document.getElementById('setting').value;
+            const mood = document.getElementById('mood').value;
+            const resultDiv = document.getElementById('titleResult');
 
-  document.getElementById('selectAll').onclick = ()=>{
-    authorsBox.querySelectorAll('input.poet').forEach(cb=>cb.checked=true);
-  };
+            if (!threadType) {
+                resultDiv.innerHTML = '<span class="placeholder-text">Please select a thread type first!</span>';
+                return;
+            }
 
-  /* FULL RESET: clears literally everything */
-  document.getElementById('clearAll').onclick = resetAll;
-  function resetAll(){
-    authorSearch.value = '';
-    filteredAuthors = allAuthors.slice();
-    renderAuthors();
-    authorsBox.querySelectorAll('input.poet').forEach(cb=>cb.checked=false);
+            const templates = titleTemplates[threadType];
+            const template = templates[Math.floor(Math.random() * templates.length)];
+            
+            let title = template;
+            
+            // Replace mood placeholder
+            if (mood && title.includes('{mood}')) {
+                const moodOptions = moodAdjectives[mood];
+                const selectedMood = moodOptions[Math.floor(Math.random() * moodOptions.length)];
+                title = title.replace('{mood}', selectedMood);
+            } else if (title.includes('{mood}')) {
+                // Remove {mood} if no mood selected
+                title = title.replace('{mood} ', '').replace(' {mood}', '');
+            }
+            
+            // Replace setting placeholder
+            if (setting && title.includes('{setting}')) {
+                const settingOptions = settingNames[setting];
+                const selectedSetting = settingOptions[Math.floor(Math.random() * settingOptions.length)];
+                title = title.replace('{setting}', selectedSetting);
+            } else if (title.includes('{setting}')) {
+                // Use generic setting if none selected
+                title = title.replace('{setting}', 'Castle');
+            }
 
-    // Reset filters
-    document.getElementById('q').value = '';
-    document.getElementById('wholeWord').checked = false;
-    document.getElementById('minLen').value = 6;
-    document.getElementById('maxLen').value = 90;
-    document.getElementById('fQuestion').checked = false;
-    document.getElementById('fExclaim').checked = false;
-    document.getElementById('fQuote').checked = false;
-    document.getElementById('fFirst').checked = false;
-    document.getElementById('fSecond').checked = false;
-    document.querySelectorAll('.themeChk').forEach(cb=>cb.checked=false);
+            resultDiv.innerHTML = `<div class="generated-title">"${title}"</div>`;
+        }
 
-    // Clear data + UI
-    state.items = [];
-    state.filtered = [];
-    renderList();
-    authorsStatus.textContent = 'Cleared.';
-  }
-
-  /* ---------------- Fetch lines ---------------- */
-  async function fetchAuthorLines(author){
-    const url = api(\`author/\${encodeURIComponent(author)}/lines.json\`);
-    const r = await fetch(url, {cache:'no-store'});
-    if(!r.ok) throw new Error(author + ' HTTP ' + r.status);
-    const data = await r.json(); // [{title, author, lines}, ...]
-    return data.flatMap(p => (p.lines||[]).map(line => ({ author: p.author, title: p.title, line })));
-  }
-
-  /* ---------------- Tagging & features ---------------- */
-  const THEMES = {
-    whimsical: ["cupcake","balloon","goose","bubbles","teacup","giggle","twirl","play","toy","laugh"],
-    dramatic: ["death","blood","grave","ashes","fire","dark","sorrow","fate","doom","tragic"],
-    emotional:["love","heart","lonely","alone","tears","kiss","longing","yearn","remember","forget","miss"],
-    mystery:  ["secret","shadow","night","riddle","mask","crypt","clue","veil","whisper","key","door"],
-    adventure:["journey","road","path","quest","sail","ship","sea","forest","mountain","trail","map"],
-    humor:    ["joke","laugh","smile","fool","trick","merry","jest"],
-    fantasy:  ["dragon","phoenix","spell","wand","king","queen","castle","sword","rune","crown"],
-    magic:    ["magic","enchanted","bewitched","charm","potion","cauldron","charmed","sorcery"]
-  };
-  const THEME_KEYS = Object.keys(THEMES);
-
-  function sliceShortLines(lines){
-    return lines
-      .map(s => s.replace(/\s+/g,' ').trim())
-      .filter(Boolean)
-      .flatMap(line => line.split(/[.;:—–-]+/).map(s=>s.trim()))
-      .map(s => s.replace(/^["'“”‘’]+|["'“”‘’]+$/g,''))
-      .filter(s => s.length >= 6 && s.length <= 90 && !/^\d+\s*$/.test(s));
-  }
-  function tagThemes(text){
-    const t = text.toLowerCase(); const tags = [];
-    for(const k of THEME_KEYS){ if(THEMES[k].some(w => t.includes(w))) tags.push(k); }
-    return tags;
-  }
-  function perspective(text){
-    const t = text.replace(/[^\w\s']/g,' ').toLowerCase();
-    if(/\b(i|i'm|i’ve|i’d|me|my|mine)\b/.test(t)) return 'first';
-    if(/\b(you|you’re|you’ve|your|yours)\b/.test(t)) return 'second';
-    return 'other';
-  }
-
-  function withMeta(obj){
-    const s = (obj.line || '').trim();
-    return {
-      author: obj.author || '',
-      title:  obj.title  || '',
-      line:   s,
-      kind:   'poem',
-      chars:  s.length,
-      words:  s.split(/\s+/).filter(Boolean).length,
-      isQuestion:/\?\s*$/.test(s),
-      isExclaim:/!\s*$/.test(s),
-      hasQuote:/["“”'’]/.test(s),
-      perspective: perspective(s),
-      themes: tagThemes(s)
-    };
-  }
-  function dedupe(items){
-    const seen = new Set();
-    return items.filter(it=>{
-      const k = (it.line + '|' + it.author + '|' + it.title).toLowerCase();
-      if(seen.has(k)) return false; seen.add(k); return true;
-    });
-  }
-
-  /* ---------------- Filter & render ---------------- */
-  const state = { items: [], filtered: [] };
-
-  function applyFilters(){
-    const q = document.getElementById('q').value.trim();
-    const wholeWord = document.getElementById('wholeWord').checked;
-    const minLen = +document.getElementById('minLen').value || 0;
-    const maxLen = +document.getElementById('maxLen').value || 9999;
-    const fQ = document.getElementById('fQuestion').checked;
-    const fE = document.getElementById('fExclaim').checked;
-    const fQuo = document.getElementById('fQuote').checked;
-    const fFirst = document.getElementById('fFirst').checked;
-    const fSecond = document.getElementById('fSecond').checked;
-    const selectedThemes = [...document.querySelectorAll('.themeChk:checked')].map(i=>i.value);
-
-    const matchesQuery = (s)=>{
-      if(!q) return true;
-      const t = s.toLowerCase();
-      const needle = q.toLowerCase();
-      if(!wholeWord) return t.includes(needle);
-      const re = new RegExp(`\\b${needle.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&')}\\b`,'i');
-      return re.test(s);
-    };
-
-    state.filtered = state.items.filter(it=>{
-      if(it.chars < minLen || it.chars > maxLen) return false;
-      if(q && !matchesQuery(it.line)) return false;
-      if(fQ && !it.isQuestion) return false;
-      if(fE && !it.isExclaim) return false;
-      if(fQuo && !it.hasQuote) return false;
-      if(fFirst && it.perspective!=='first') return false;
-      if(fSecond && it.perspective!=='second') return false;
-      if(selectedThemes.length && !it.themes.some(t => selectedThemes.includes(t))) return false;
-      return true;
-    });
-    renderList();
-  }
-
-  function renderList(){
-    const list = document.getElementById('list');
-    list.innerHTML = '';
-    const badge = document.getElementById('countBadge');
-    badge.textContent = `${state.filtered.length} lines`;
-    const frag = document.createDocumentFragment();
-    state.filtered.forEach(it=>{
-      const wordLabel = it.words === 1 ? 'word' : 'words';
-      const chips = [
-        `<span class="ttg-chip">${it.words} ${wordLabel}</span>`,
-        it.author ? `<span class="ttg-chip">${it.author}</span>` : '',
-        it.title  ? `<span class="ttg-chip">${it.title}</span>`  : '',
-        `<span class="ttg-chip">${it.kind}</span>`
-      ].filter(Boolean).join('');
-      const div = document.createElement('div');
-      div.className = 'ttg-item';
-      div.innerHTML = `
-        <div>${it.line}</div>
-        <div class="ttg-meta">${chips}</div>
-      `;
-      frag.appendChild(div);
-    });
-    list.appendChild(frag);
-  }
-
-  /* theme checkboxes */
-  (function mountThemes(){
-    const box = document.getElementById('themeBox');
-    Object.keys(THEMES).forEach(k=>{
-      const id = 'theme_'+k;
-      const label = document.createElement('label');
-      label.className = 'ttg-pill';
-      label.innerHTML = `<input type="checkbox" class="themeChk" id="${id}" value="${k}"> ${k}`;
-      box.appendChild(label);
-    });
-  })();
-
-  /* filter listeners */
-  ['q','wholeWord','minLen','maxLen','fQuestion','fExclaim','fQuote','fFirst','fSecond'].forEach(id=>{
-    document.getElementById(id).addEventListener('input', applyFilters);
-  });
-  document.getElementById('themeBox').addEventListener('change', applyFilters);
-
-  /* results actions */
-  document.getElementById('fetchBtn').onclick = async ()=>{
-    const chosen = [...authorsBox.querySelectorAll('input.poet:checked')].map(i=>i.value);
-    if(!chosen.length){ authorsStatus.textContent = 'Pick at least one author.'; return; }
-    authorsStatus.textContent = `Fetching ${chosen.length} author(s)…`;
-    try{
-      let all = [];
-      for(const a of chosen){
-        authorsStatus.textContent = `Fetching: ${a}…`;
-        const raw = await fetchAuthorLines(a);
-        all = all.concat(raw);
-      }
-      const withMetaItems = dedupe(all.map(x=>({...x, line: x.line})))
-        .map(withMeta)
-        .filter(it => it.line && it.line.length>=6 && it.line.length<=90);
-      state.items = state.items.concat(withMetaItems);
-      applyFilters();
-      authorsStatus.textContent = `Added ${withMetaItems.length} lines. Total: ${state.items.length}`;
-    }catch(e){
-      console.error(e);
-      authorsStatus.textContent = 'Fetch failed.';
-    }
-  };
-
-  document.getElementById('copyFiltered').onclick = async ()=>{
-    try{
-      const text = state.filtered.map(x=>x.line).join('\n');
-      await navigator.clipboard.writeText(text);
-    }catch(e){}
-  };
-
-  document.getElementById('downloadFiltered').onclick = ()=>{
-    const text = state.filtered.map(x=>x.line).join('\n');
-    const blob = new Blob([text], {type:'text/plain'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'filtered_poetry_lines.txt';
-    a.click(); URL.revokeObjectURL(a.href);
-  };
-
-  /* init */
-  loadAuthors();
-  </script>
+        // Allow Enter key to generate title
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                generateTitle();
+            }
+        });
+    </script>
 </body>
 </html>
