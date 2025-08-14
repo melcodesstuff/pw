@@ -43,7 +43,7 @@
 
         /* ---------- Cards ---------- */
         .card{
-          background:#fff;border:1px solid rgba(226,232,240,.7);border-radius:1rem;padding:2rem;
+          background:#fff;border:1px solid rgba(226,232,240,.7);border-radius:1rem;padding:1.5rem;
           box-shadow:0 1px 3px rgba(0,0,0,.1);transition:all .3s ease;
           margin-bottom:1.5rem;text-align:center;
         }
@@ -148,12 +148,13 @@
 
         /* ---------- Home Link ---------- */
         .home-link{
-          background:#e2e8f0;border:none;padding:.75rem 1.5rem;border-radius:2rem;
+          background:#e2e8f0;border:none;padding:.5rem 1rem;border-radius:1.5rem;
           font-weight:500;cursor:pointer;transition:all .2s ease;
-          display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;
+          display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:inherit;
+          font-size:0.9rem;
         }
         .home-link:hover{background:#cbd5e1;transform:translateY(-1px)}
-        .home-link .icon{font-size:1.05em;line-height:1;transform:translateY(1px)}
+        .home-link .icon{font-size:1em;line-height:1;}
         .home-link:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
 
         @media (min-width:768px){
@@ -173,12 +174,11 @@
             </div>
             <a href="../index.html" class="home-link">
                 <span class="icon">🏠</span>
-                Back to Home
+                Home
             </a>
         </header>
         
         <div class="card">
-            <h2 class="card-title">Literary Quote Generator</h2>
             <p class="card-desc">Choose to hide the author for a fun guessing game, or see the source right away!</p>
             
             <div style="margin-bottom: 1.5rem;">
@@ -192,7 +192,6 @@
         </div>
         
         <div class="card">
-            <h2 class="card-title">Your Literary Quote</h2>
             <div class="result-card" id="resultCard">
                 <div id="titleResult" class="placeholder-text">
                     Click the button above to reveal your literary inspiration...
@@ -202,7 +201,6 @@
         
         <footer class="footer">
             <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
-            <p style="margin-top:0.5rem;font-size:0.8rem;">Shakespeare quotes are public domain • Swift-inspired phrases are original creations</p>
         </footer>
     </div>
 
