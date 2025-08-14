@@ -1,1 +1,275 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Formatter - PW Tools</title>
+    <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
+    <style>
+        /* ---------- Base reset ---------- */
+        *{margin:0;padding:0;box-sizing:border-box}
+
+        /* ---------- Base layout/typography ---------- */
+        body{
+          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+          background:#f8fafc;
+          color:#0f172a;
+          line-height:1.6;
+          transition:all .3s ease;
+        }
+        .container{max-width:800px;margin:0 auto;padding:2.5rem 1.5rem;min-height:100vh}
+
+        .header{margin-bottom:2rem;display:flex;flex-direction:column;gap:1rem;text-align:center}
+
+        .title{
+          font-size:2.5rem;font-weight:700;
+          background:linear-gradient(135deg,#4f46e5,#7c3aed);
+          -webkit-background-clip:text;background-clip:text;color:transparent;
+          margin-bottom:.5rem;
+        }
+        .subtitle{color:#64748b;font-size:1.1rem;max-width:600px;margin:0 auto}
+
+        /* ---------- Tokens ---------- */
+        :root{
+          --bg:#f8fafc;
+          --ink:#0f172a;
+          --panel:#ffffff;
+          --border:rgba(226,232,240,.7);
+          --muted:#64748b;
+          --accent:#4f46e5;
+        }
+
+        /* ---------- Cards ---------- */
+        .card{
+          background:#fff;border:1px solid rgba(226,232,240,.7);border-radius:1rem;padding:1.5rem;
+          box-shadow:0 1px 3px rgba(0,0,0,.1);transition:all .3s ease;
+          margin-bottom:1.5rem;text-align:center;
+        }
+        .card:hover{box-shadow:0 10px 25px rgba(0,0,0,.1)}
+        .card-desc{font-size:.95rem;color:#64748b;margin-bottom:1.5rem}
+
+        /* ---------- Form Elements ---------- */
+        .form-group{margin-bottom:1rem;text-align:left}
+        .form-label{
+          display:block;font-weight:500;color:var(--ink);margin-bottom:.5rem;font-size:.9rem;
+        }
+        .form-input, .form-textarea{
+          background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 16px;
+          font-family:inherit;font-size:.9rem;transition:all .2s ease;width:100%;
+          color:var(--ink);
+        }
+        .form-textarea{
+          min-height:120px;resize:vertical;
+        }
+        .form-input:focus, .form-textarea:focus{
+          outline:2px solid rgba(79,70,229,.5);outline-offset:2px;border-color:var(--accent);
+        }
+
+        /* ---------- Button ---------- */
+        .btn{
+          background:var(--accent);color:#fff;border:none;font-weight:600;cursor:pointer;
+          padding:1rem 2rem;border-radius:12px;font-size:1rem;
+          transition:all .3s ease;box-shadow:0 4px 15px rgba(79,70,229,.3);
+        }
+        .btn:hover{
+          background:#3730a3;transform:translateY(-2px);
+          box-shadow:0 8px 25px rgba(79,70,229,.4);
+        }
+        .btn:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+
+        /* ---------- Result Area ---------- */
+        .result-card{
+          background:rgba(79,70,229,.05);border:1px solid rgba(79,70,229,.2);
+          border-radius:12px;padding:1.5rem;min-height:150px;
+          text-align:left;
+        }
+
+        .formatted-output{
+          font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;
+          border-radius:8px;padding:1rem;white-space:pre-wrap;word-wrap:break-word;
+          font-size:0.9rem;line-height:1.5;
+        }
+
+        .copy-btn{
+          background:rgba(79,70,229,.1);border:1px solid rgba(79,70,229,.3);
+          color:var(--accent);padding:0.5rem 1rem;border-radius:8px;
+          font-size:0.85rem;cursor:pointer;margin-top:1rem;
+          transition:all 0.2s ease;
+        }
+        .copy-btn:hover{
+          background:rgba(79,70,229,.2);transform:translateY(-1px);
+        }
+
+        /* ---------- Footer ---------- */
+        .footer{
+          font-size:.875rem;color:#94a3b8;border-top:1px solid rgba(226,232,240,.6);
+          padding-top:2rem;margin-top:2rem;text-align:center;
+        }
+
+        /* ---------- Home Link ---------- */
+        .home-link{
+          background:#e2e8f0;border:none;padding:.5rem 1rem;border-radius:1.5rem;
+          font-weight:500;cursor:pointer;transition:all .2s ease;
+          display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:inherit;
+          font-size:0.9rem;
+        }
+        .home-link:hover{background:#cbd5e1;transform:translateY(-1px)}
+        .home-link .icon{font-size:1em;line-height:1;}
+        .home-link:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+
+        @media (min-width:768px){
+          .header{flex-direction:row;align-items:center;justify-content:space-between;text-align:left}
+          .subtitle{margin:0}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div>
+                <h1 class="title">PM Formatter</h1>
+                <p class="subtitle">
+                    Format your private messages with proper structure and styling!
+                </p>
+            </div>
+            <a href="../index.html" class="home-link">
+                <span class="icon">🏠</span>
+                Home
+            </a>
+        </header>
+        
+        <div class="card">
+            <p class="card-desc">Enter your message content and choose formatting options to create well-structured PMs.</p>
+            
+            <div class="form-group">
+                <label class="form-label" for="messageTitle">Message Title/Subject</label>
+                <input type="text" class="form-input" id="messageTitle" placeholder="Enter your message title...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="messageContent">Message Content</label>
+                <textarea class="form-textarea" id="messageContent" placeholder="Write your message here..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; color: var(--muted);">
+                    <input type="checkbox" id="addGreeting" style="cursor: pointer;" checked>
+                    Add polite greeting
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; color: var(--muted);">
+                    <input type="checkbox" id="addClosing" style="cursor: pointer;" checked>
+                    Add polite closing
+                </label>
+            </div>
+            
+            <button class="btn" onclick="formatMessage()">✨ Format Message ✨</button>
+        </div>
+        
+        <div class="card">
+            <div class="result-card" id="resultCard" style="display: none;">
+                <div class="formatted-output" id="formattedOutput"></div>
+                <button class="copy-btn" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+            </div>
+            <div id="placeholder" class="result-card">
+                <div style="text-align: center; color: var(--muted); font-style: italic;">
+                    Your formatted message will appear here...
+                </div>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
+        </footer>
+    </div>
+
+    <script>
+        const greetings = [
+            "Hello!",
+            "Hi there!",
+            "Greetings!",
+            "Hope you're doing well!",
+            "Hey!",
+        ];
+
+        const closings = [
+            "Best regards,",
+            "Thanks!",
+            "Have a great day!",
+            "Cheers,",
+            "Thank you for your time!",
+        ];
+
+        function formatMessage() {
+            const title = document.getElementById('messageTitle').value.trim();
+            const content = document.getElementById('messageContent').value.trim();
+            const addGreeting = document.getElementById('addGreeting').checked;
+            const addClosing = document.getElementById('addClosing').checked;
+
+            if (!content) {
+                alert('Please enter some message content!');
+                return;
+            }
+
+            let formattedMessage = '';
+
+            // Add title if provided
+            if (title) {
+                formattedMessage += `Subject: ${title}\n\n`;
+            }
+
+            // Add greeting
+            if (addGreeting) {
+                const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+                formattedMessage += `${greeting}\n\n`;
+            }
+
+            // Add main content
+            formattedMessage += content;
+
+            // Add closing
+            if (addClosing) {
+                const closing = closings[Math.floor(Math.random() * closings.length)];
+                formattedMessage += `\n\n${closing}`;
+            }
+
+            // Display result
+            document.getElementById('formattedOutput').textContent = formattedMessage;
+            document.getElementById('resultCard').style.display = 'block';
+            document.getElementById('placeholder').style.display = 'none';
+        }
+
+        async function copyToClipboard() {
+            const output = document.getElementById('formattedOutput').textContent;
+            try {
+                await navigator.clipboard.writeText(output);
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = output;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Copied to clipboard!');
+            }
+        }
+
+        // Allow Enter key to format (when not in textarea)
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.id !== 'messageContent') {
+                formatMessage();
+            }
+        });
+    </script>
+</body>
+</html>
