@@ -17,6 +17,14 @@
           line-height:1.6;
           transition:all .3s ease;
         }
+
+        // Allow Enter key in image URL input
+        document.getElementById('imageUrl').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                insertImage();
+            }
+        });
         .container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;min-height:100vh}
 
         .header{margin-bottom:2rem;display:flex;flex-direction:column;gap:1rem;text-align:center}
@@ -138,6 +146,7 @@
         .hex-input{
           border:1px solid var(--border);border-radius:6px;padding:0.6rem;
           background:#fff;font-size:0.8rem;width:90px;text-transform:uppercase;
+          font-family:monospace;
         }
 
         .url-input{
@@ -158,6 +167,35 @@
         .color-controls{
           display:flex;align-items:center;gap:0.75rem;
         }
+        
+        .recent-colors{
+          display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.5rem;
+        }
+        
+        .recent-color{
+          display:flex;flex-direction:column;align-items:center;gap:0.25rem;
+          cursor:pointer;transition:all 0.2s ease;
+        }
+        
+        .recent-color:hover{
+          transform:scale(1.1);
+        }
+        
+        .recent-color-swatch{
+          width:25px;height:25px;border:2px solid var(--border);border-radius:4px;
+        }
+        
+        .recent-color-hex{
+          font-size:0.65rem;color:var(--muted);font-family:monospace;
+        }
+
+        .swap-btn{
+          background:#f8fafc;border:1px solid var(--border);border-radius:4px;
+          padding:0.3rem;cursor:pointer;transition:all 0.2s ease;
+          font-size:0.75rem;display:flex;align-items:center;justify-content:center;
+          width:30px;height:30px;
+        }
+        .swap-btn:hover{background:#f1f5f9;border-color:var(--accent)}
 
         /* ---------- BBCode Output ---------- */
         .bbcode-output-section{
@@ -288,27 +326,60 @@
                     <div class="toolbar-group full-width">
                         <div class="color-controls">
                             <span class="group-label">Text Color:</span>
-                            <input type="color" id="colorPicker" class="color-input" value="#000000">
-                            <input type="text" id="hexInput" class="hex-input" placeholder="#000000" maxlength="7">
+                            <input type="text" id="hexInput" class="hex-input" placeholder="#000000" maxlength="7" oninput="updateColorFromHex()" style="width:100px;">
+                            <input type="color" id="colorPicker" class="color-input" value="#000000" onchange="updateHexFromColor()" style="margin-left:0.5rem;">
                             <button class="toolbar-btn" onclick="applyTextColor()" title="Apply Color">🎨 Apply</button>
                         </div>
                         
                         <div class="color-controls">
                             <span class="group-label">Gradient:</span>
-                            <input type="color" id="gradientStart" class="color-input" value="#ff0000" title="Start Color">
-                            <span style="font-size:0.8rem;color:var(--muted)">→</span>
-                            <input type="color" id="gradientEnd" class="color-input" value="#0000ff" title="End Color">
+                            <input type="text" id="gradientStartHex" class="hex-input" placeholder="#ff0000" maxlength="7" oninput="updateGradientStartFromHex()" style="width:80px;">
+                            <input type="color" id="gradientStart" class="color-input" value="#ff0000" onchange="updateGradientStartHex()" title="Start Color">
+                            <button class="swap-btn" onclick="swapGradientColors()" title="Swap gradient colors">⇄</button>
+                            <input type="text" id="gradientEndHex" class="hex-input" placeholder="#0000ff" maxlength="7" oninput="updateGradientEndFromHex()" style="width:80px;">
+                            <input type="color" id="gradientEnd" class="color-input" value="#0000ff" onchange="updateGradientEndHex()" title="End Color">
                             <button class="toolbar-btn" onclick="applyGradient()" title="Apply Gradient">🌈 Apply</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Row 3: Image and Clear -->
+                <!-- Row 4: Recent Colors -->
+                <div class="toolbar-row">
+                    <div class="toolbar-group full-width">
+                        <div style="display:flex;flex-direction:column;gap:0.5rem;width:100%;">
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <span class="group-label">Recent Colors:</span>
+                                <span style="font-size:0.75rem;color:var(--muted);font-style:italic;">Click to reuse as text color</span>
+                            </div>
+                            <div class="recent-colors" id="recentColors">
+                                <!-- Recent colors will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 5: Image Colors -->
+                <div class="toolbar-row" id="imageColorsRow" style="display:none;">
+                    <div class="toolbar-group full-width">
+                        <div style="display:flex;flex-direction:column;gap:0.5rem;width:100%;">
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <span class="group-label">Colors from Image:</span>
+                                <span style="font-size:0.75rem;color:var(--muted);font-style:italic;">Click to use color from your image</span>
+                            </div>
+                            <div class="recent-colors" id="imageColors">
+                                <!-- Image colors will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 6: Image and Clear -->
                 <div class="toolbar-row">
                     <div class="toolbar-group">
                         <span class="group-label">Image:</span>
                         <input type="text" id="imageUrl" class="url-input" placeholder="Enter image URL...">
                         <button class="toolbar-btn" onclick="insertImage()" title="Insert Image">🖼️ Insert</button>
+                        <button class="toolbar-btn" onclick="insertPlaceholderImage()" title="Insert Placeholder Image">📷 Placeholder</button>
                     </div>
                     
                     <div class="toolbar-group">
@@ -335,6 +406,7 @@
         let currentMode = 'visual';
         let visualEditor = document.getElementById('visualEditor');
         let bbcodeInput = document.getElementById('bbcodeInput');
+        let recentColors = []; // Store recent colors
         
         function setMode(mode) {
             currentMode = mode;
@@ -397,14 +469,17 @@
         }
 
         function applyTextColor() {
-            const colorValue = document.getElementById('colorPicker').value;
             const hexValue = document.getElementById('hexInput').value;
+            const colorValue = document.getElementById('colorPicker').value;
             
             // Use hex input if it's valid, otherwise use color picker
             let color = colorValue;
             if (hexValue && /^#[0-9A-F]{6}$/i.test(hexValue)) {
                 color = hexValue;
             }
+            
+            // Add to recent colors
+            addToRecentColors(color);
             
             // Apply color using execCommand which works better for continuing formatting
             document.execCommand('foreColor', false, color);
@@ -444,6 +519,10 @@
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
                 if (!range.collapsed) {
+                    // Add gradient colors to recent colors
+                    addToRecentColors(startColor);
+                    addToRecentColors(endColor);
+                    
                     // Check if selection spans multiple block elements
                     const contents = range.cloneContents();
                     const hasBlockElements = contents.querySelector('div, p, br') !== null;
@@ -724,31 +803,179 @@
             }
         }
 
-        // Update hex input when color picker changes
-        document.getElementById('colorPicker').addEventListener('input', function() {
-            document.getElementById('hexInput').value = this.value.toUpperCase();
-        });
-
-        // Update color picker when hex input changes
-        document.getElementById('hexInput').addEventListener('input', function() {
-            let hex = this.value;
-            if (!hex.startsWith('#')) hex = '#' + hex;
+        // Color picker sync functions
+        function updateColorFromHex() {
+            const hex = document.getElementById('hexInput').value;
             if (/^#[0-9A-F]{6}$/i.test(hex)) {
                 document.getElementById('colorPicker').value = hex.toLowerCase();
             }
-        });
+        }
 
-        // Allow Enter key in image URL input
-        document.getElementById('imageUrl').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                insertImage();
+        function updateHexFromColor() {
+            const color = document.getElementById('colorPicker').value;
+            document.getElementById('hexInput').value = color.toUpperCase();
+        }
+
+        function updateGradientStartFromHex() {
+            const hex = document.getElementById('gradientStartHex').value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                document.getElementById('gradientStart').value = hex.toLowerCase();
             }
-        });
+        }
+
+        function updateGradientStartHex() {
+            const color = document.getElementById('gradientStart').value;
+            document.getElementById('gradientStartHex').value = color.toUpperCase();
+        }
+
+        function updateGradientEndFromHex() {
+            const hex = document.getElementById('gradientEndHex').value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                document.getElementById('gradientEnd').value = hex.toLowerCase();
+            }
+        }
+
+        function updateGradientEndHex() {
+            const color = document.getElementById('gradientEnd').value;
+            document.getElementById('gradientEndHex').value = color.toUpperCase();
+        }
+
+        function swapGradientColors() {
+            // Get current values
+            const startHex = document.getElementById('gradientStartHex').value;
+            const startColor = document.getElementById('gradientStart').value;
+            const endHex = document.getElementById('gradientEndHex').value;
+            const endColor = document.getElementById('gradientEnd').value;
+            
+            // Swap them
+            document.getElementById('gradientStartHex').value = endHex;
+            document.getElementById('gradientStart').value = endColor;
+            document.getElementById('gradientEndHex').value = startHex;
+            document.getElementById('gradientEnd').value = startColor;
+        }
+
+        function addToRecentColors(color) {
+            // Normalize color to uppercase hex
+            if (!color.startsWith('#')) color = '#' + color;
+            color = color.toUpperCase();
+            
+            // Remove if already exists
+            recentColors = recentColors.filter(c => c !== color);
+            
+            // Add to beginning
+            recentColors.unshift(color);
+            
+            // Keep only last 8 colors
+            if (recentColors.length > 8) {
+                recentColors = recentColors.slice(0, 8);
+            }
+            
+            updateRecentColorsDisplay();
+        }
+
+        function updateRecentColorsDisplay() {
+            const container = document.getElementById('recentColors');
+            container.innerHTML = '';
+            
+            recentColors.forEach(color => {
+                const recentColor = document.createElement('div');
+                recentColor.className = 'recent-color';
+                recentColor.onclick = () => applyRecentColor(color);
+                
+                const swatch = document.createElement('div');
+                swatch.className = 'recent-color-swatch';
+                swatch.style.backgroundColor = color;
+                
+                const hex = document.createElement('div');
+                hex.className = 'recent-color-hex';
+                hex.textContent = color;
+                
+                recentColor.appendChild(swatch);
+                recentColor.appendChild(hex);
+                container.appendChild(recentColor);
+            });
+        }
+
+        function applyRecentColor(color) {
+            // Set the color picker and hex input
+            document.getElementById('hexInput').value = color;
+            document.getElementById('colorPicker').value = color.toLowerCase();
+            
+            // Apply the color immediately
+            applyTextColor();
+        }
+
+        function insertPlaceholderImage() {
+            // Set the placeholder URL
+            const placeholderUrl = 'https://placehold.co/500x200';
+            
+            // Create image element
+            const img = document.createElement('img');
+            img.src = placeholderUrl;
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            img.style.margin = '10px 0';
+            img.style.border = '1px solid #e2e8f0';
+            img.style.borderRadius = '8px';
+            
+            img.onerror = function() {
+                alert('Failed to load placeholder image.');
+                this.remove();
+                updateBBCodeOutput();
+            };
+
+            img.onload = function() {
+                updateBBCodeOutput();
+            };
+
+            // Focus the visual editor first
+            visualEditor.focus();
+            
+            // Get current selection or create one at the end
+            const selection = window.getSelection();
+            let range;
+            
+            if (selection.rangeCount > 0 && selection.getRangeAt(0).commonAncestorContainer.closest && 
+                selection.getRangeAt(0).commonAncestorContainer.closest('.visual-editor')) {
+                range = selection.getRangeAt(0);
+            } else {
+                range = document.createRange();
+                range.selectNodeContents(visualEditor);
+                range.collapse(false);
+            }
+            
+            range.deleteContents();
+            
+            // Create wrapper and insert
+            const wrapper = document.createElement('div');
+            wrapper.appendChild(img);
+            range.insertNode(wrapper);
+            
+            // Create new line after image
+            const newLine = document.createElement('div');
+            newLine.innerHTML = '<br>';
+            range.setStartAfter(wrapper);
+            range.insertNode(newLine);
+            
+            // Position cursor
+            range.setStart(newLine, 0);
+            range.setEnd(newLine, 0);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            updateBBCodeOutput();
+            visualEditor.focus();
+        }
 
         // Initialize
         visualEditor.focus();
         updateBBCodeOutput();
+        
+        // Initialize hex inputs with default colors
+        document.getElementById('hexInput').value = '#000000';
+        document.getElementById('gradientStartHex').value = '#FF0000';
+        document.getElementById('gradientEndHex').value = '#0000FF';
     </script>
 </body>
 </html>
