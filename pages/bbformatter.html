@@ -27,7 +27,22 @@
         });
         .container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;min-height:100vh}
 
-        .header{margin-bottom:2rem;display:flex;flex-direction:column;gap:1rem;text-align:center;padding:0 1rem;}
+        .header{margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;width:100%;}
+
+        /* ---------- Home Link ---------- */
+        .home-link{
+          background:#e2e8f0;border:none;padding:.5rem 1rem;border-radius:1.5rem;
+          font-weight:500;cursor:pointer;transition:all .2s ease;
+          display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:inherit;
+          font-size:0.9rem;
+        }
+
+        @media (min-width:768px){
+          .header{flex-direction:row;align-items:center;text-align:left}
+          .subtitle{margin:0}
+          .header > div{flex:1;}
+          .home-link{margin-left:auto;}
+        }
 
         .title{
           font-size:2.5rem;font-weight:700;
@@ -35,7 +50,15 @@
           -webkit-background-clip:text;background-clip:text;color:transparent;
           margin-bottom:.5rem;line-height:1.2;
         }
-        .subtitle{color:#64748b;font-size:1.1rem;max-width:600px;margin:0 auto;line-height:1.4}
+        .subtitle{color:#64748b;font-size:1.1rem;max-width:600px;margin:0 auto 1.5rem auto;line-height:1.4}
+
+        /* ---------- Home Link ---------- */
+        .home-link{
+          background:#e2e8f0;border:none;padding:.75rem 1.25rem;border-radius:1.5rem;
+          font-weight:500;cursor:pointer;transition:all .2s ease;
+          display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;
+          font-size:0.9rem;margin:0 auto;
+        }
 
         /* ---------- Tokens ---------- */
         :root{
@@ -382,6 +405,13 @@
                         <button class="toolbar-btn" onclick="insertImage()" title="Insert Image">🖼️ Insert</button>
                         <button class="toolbar-btn" onclick="insertPlaceholderImage()" title="Insert Placeholder Image">📷 Placeholder</button>
                     </div>
+
+                    <div class="toolbar-group">
+                        <span class="group-label">Image Align:</span>
+                        <button class="toolbar-btn" onclick="setImageAlignment('left')" id="imageLeftBtn" title="Align Image Left">⬅️</button>
+                        <button class="toolbar-btn" onclick="setImageAlignment('center')" id="imageCenterBtn" title="Center Image" style="background:var(--accent);color:#fff;">⬆️</button>
+                        <button class="toolbar-btn" onclick="setImageAlignment('right')" id="imageRightBtn" title="Align Image Right">➡️</button>
+                    </div>
                     
                     <div class="toolbar-group">
                         <span class="group-label">Clear:</span>
@@ -408,6 +438,7 @@
         let visualEditor = document.getElementById('visualEditor');
         let bbcodeInput = document.getElementById('bbcodeInput');
         let recentColors = []; // Store recent colors
+        let imageAlignment = 'center'; // Default image alignment
         
         function setMode(mode) {
             currentMode = mode;
@@ -645,8 +676,15 @@
             // Clear any existing selection
             range.deleteContents();
             
-            // Create a div wrapper for the image
+            // Create a div wrapper for the image with alignment
             const wrapper = document.createElement('div');
+            if (imageAlignment === 'center') {
+                wrapper.style.textAlign = 'center';
+            } else if (imageAlignment === 'left') {
+                wrapper.style.textAlign = 'left';
+            } else if (imageAlignment === 'right') {
+                wrapper.style.textAlign = 'right';
+            }
             wrapper.appendChild(img);
             
             // Insert the image wrapper
@@ -693,6 +731,14 @@
                 visualEditor.innerHTML = allText.replace(/\n/g, '<br>');
             } else {
                 visualEditor.innerHTML = '<br>';
+            }
+            
+            // Also clear the image colors section
+            const imageColorsRow = document.getElementById('imageColorsRow');
+            const imageColorsContainer = document.getElementById('imageColors');
+            if (imageColorsRow && imageColorsContainer) {
+                imageColorsRow.style.display = 'none';
+                imageColorsContainer.innerHTML = '';
             }
             
             updateBBCodeOutput();
@@ -757,6 +803,9 @@
 
         function bbcodeToHtml(bbcode) {
             return bbcode
+                .replace(/\[center\]\[img\](.*?)\[\/img\]\[\/center\]/gi, '<div style="text-align:center"><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px auto;border:1px solid #e2e8f0;border-radius:8px;"></div>')
+                .replace(/\[left\]\[img\](.*?)\[\/img\]\[\/left\]/gi, '<div style="text-align:left"><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px 0;border:1px solid #e2e8f0;border-radius:8px;"></div>')
+                .replace(/\[right\]\[img\](.*?)\[\/img\]\[\/right\]/gi, '<div style="text-align:right"><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px 0;border:1px solid #e2e8f0;border-radius:8px;"></div>')
                 .replace(/\[img\](.*?)\[\/img\]/gi, '<div><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px 0;border:1px solid #e2e8f0;border-radius:8px;"></div>')
                 .replace(/\[gradient=([^,]+),([^\]]+)\](.*?)\[\/gradient\]/gi, '<span style="background:linear-gradient(90deg,$1,$2);-webkit-background-clip:text;background-clip:text;color:transparent" data-gradient="$1,$2">$3</span>')
                 .replace(/\[b\](.*?)\[\/b\]/gi, '<strong>$1</strong>')
@@ -1067,6 +1116,29 @@
             console.log('Image colors section should now be visible');
         }
 
+        function setImageAlignment(align) {
+            imageAlignment = align;
+            
+            // Update button states
+            document.getElementById('imageLeftBtn').classList.remove('active');
+            document.getElementById('imageCenterBtn').classList.remove('active');
+            document.getElementById('imageRightBtn').classList.remove('active');
+            
+            // Set active state and update styles
+            const activeBtn = document.getElementById('image' + align.charAt(0).toUpperCase() + align.slice(1) + 'Btn');
+            activeBtn.classList.add('active');
+            
+            // Update all buttons to default style first
+            document.querySelectorAll('#imageLeftBtn, #imageCenterBtn, #imageRightBtn').forEach(btn => {
+                btn.style.background = '';
+                btn.style.color = '';
+            });
+            
+            // Apply active styling
+            activeBtn.style.background = 'var(--accent)';
+            activeBtn.style.color = '#fff';
+        }
+
         function applyImageColor(color) {
             // Set the color picker and hex input
             document.getElementById('hexInput').value = color;
@@ -1124,8 +1196,15 @@
             
             range.deleteContents();
             
-            // Create wrapper and insert
+            // Create wrapper and insert with alignment
             const wrapper = document.createElement('div');
+            if (imageAlignment === 'center') {
+                wrapper.style.textAlign = 'center';
+            } else if (imageAlignment === 'left') {
+                wrapper.style.textAlign = 'left';
+            } else if (imageAlignment === 'right') {
+                wrapper.style.textAlign = 'right';
+            }
             wrapper.appendChild(img);
             range.insertNode(wrapper);
             
