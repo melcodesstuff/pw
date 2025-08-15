@@ -18,30 +18,18 @@
           transition:all .3s ease;
         }
 
-        // Allow Enter key in image URL input
-        document.getElementById('imageUrl').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                insertImage();
-            }
-        });
         .container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;min-height:100vh}
 
-        .header{margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;width:100%;}
-
-        /* ---------- Home Link ---------- */
-        .home-link{
-          background:#e2e8f0;border:none;padding:.5rem 1rem;border-radius:1.5rem;
-          font-weight:500;cursor:pointer;transition:all .2s ease;
-          display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:inherit;
-          font-size:0.9rem;
+        .header{
+          margin-bottom:2rem;
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:2rem;
         }
-
-        @media (min-width:768px){
-          .header{flex-direction:row;align-items:center;text-align:left}
-          .subtitle{margin:0}
-          .header > div{flex:1;}
-          .home-link{margin-left:auto;}
+        
+        .header > div {
+          flex: 1;
         }
 
         .title{
@@ -50,15 +38,25 @@
           -webkit-background-clip:text;background-clip:text;color:transparent;
           margin-bottom:.5rem;line-height:1.2;
         }
-        .subtitle{color:#64748b;font-size:1.1rem;max-width:600px;margin:0 auto 1.5rem auto;line-height:1.4}
+        .subtitle{
+          color:#64748b;
+          font-size:1.1rem;
+          max-width:600px;
+          line-height:1.4;
+          margin:0;
+        }
 
         /* ---------- Home Link ---------- */
         .home-link{
           background:#e2e8f0;border:none;padding:.75rem 1.25rem;border-radius:1.5rem;
           font-weight:500;cursor:pointer;transition:all .2s ease;
           display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;
-          font-size:0.9rem;margin:0 auto;
+          font-size:0.9rem;
+          flex-shrink:0;
         }
+        .home-link:hover{background:#cbd5e1;transform:translateY(-1px)}
+        .home-link .icon{font-size:1em;line-height:1;}
+        .home-link:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
 
         /* ---------- Tokens ---------- */
         :root{
@@ -248,28 +246,27 @@
           padding-top:2rem;margin-top:2rem;text-align:center;
         }
 
-        /* ---------- Home Link ---------- */
-        .home-link{
-          background:#e2e8f0;border:none;padding:.75rem 1.25rem;border-radius:1.5rem;
-          font-weight:500;cursor:pointer;transition:all .2s ease;
-          display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;
-          font-size:0.9rem;
-        }
-        .home-link:hover{background:#cbd5e1;transform:translateY(-1px)}
-        .home-link .icon{font-size:1em;line-height:1;}
-        .home-link:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
-
+        /* ---------- Mobile Responsive ---------- */
         @media (max-width:768px){
+          .header{
+            flex-direction:column;
+            align-items:flex-start;
+            gap:1rem;
+          }
+          
+          .title{
+            font-size:2rem;
+          }
+          
+          .home-link{
+            align-self:flex-start;
+          }
+          
           .toolbar{padding:1rem;}
           .toolbar-row{flex-direction:column;align-items:stretch;}
           .toolbar-group{justify-content:center;min-height:auto;}
           .container{padding:1.5rem 1rem;}
           .url-input{width:150px;}
-        }
-
-        @media (min-width:768px){
-          .header{flex-direction:row;align-items:center;justify-content:space-between;text-align:left}
-          .subtitle{margin:0}
         }
     </style>
 </head>
@@ -1232,6 +1229,14 @@
         document.getElementById('hexInput').value = '#000000';
         document.getElementById('gradientStartHex').value = '#FF0000';
         document.getElementById('gradientEndHex').value = '#0000FF';
+        
+        // Allow Enter key in image URL input
+        document.getElementById('imageUrl').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                insertImage();
+            }
+        });
     </script>
 </body>
 </html>
