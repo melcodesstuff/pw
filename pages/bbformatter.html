@@ -27,15 +27,15 @@
         });
         .container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;min-height:100vh}
 
-        .header{margin-bottom:2rem;display:flex;flex-direction:column;gap:1rem;text-align:center}
+        .header{margin-bottom:2rem;display:flex;flex-direction:column;gap:1rem;text-align:center;padding:0 1rem;}
 
         .title{
           font-size:2.5rem;font-weight:700;
           background:linear-gradient(135deg,#4f46e5,#7c3aed);
           -webkit-background-clip:text;background-clip:text;color:transparent;
-          margin-bottom:.5rem;
+          margin-bottom:.5rem;line-height:1.2;
         }
-        .subtitle{color:#64748b;font-size:1.1rem;max-width:600px;margin:0 auto}
+        .subtitle{color:#64748b;font-size:1.1rem;max-width:600px;margin:0 auto;line-height:1.4}
 
         /* ---------- Tokens ---------- */
         :root{
@@ -365,6 +365,7 @@
                             <div style="display:flex;align-items:center;gap:0.5rem;">
                                 <span class="group-label">Colors from Image:</span>
                                 <span style="font-size:0.75rem;color:var(--muted);font-style:italic;">Click to use color from your image</span>
+                                <span style="font-size:0.7rem;color:#f59e0b;margin-left:auto;">💡 Works best with placeholder images</span>
                             </div>
                             <div class="recent-colors" id="imageColors">
                                 <!-- Image colors will be populated here -->
@@ -603,6 +604,7 @@
             // Create image element
             const img = document.createElement('img');
             img.src = url;
+            img.crossOrigin = 'anonymous'; // Allow cross-origin access
             img.style.maxWidth = '100%';
             img.style.height = 'auto';
             img.style.display = 'block';
@@ -618,6 +620,8 @@
 
             img.onload = function() {
                 updateBBCodeOutput();
+                // Extract colors from the image
+                extractImageColors(this);
             };
 
             // Focus the visual editor first to ensure we're working with it
@@ -905,6 +909,176 @@
             applyTextColor();
         }
 
+        function extractImageColors(img) {
+            console.log('Extracting colors from image:', img.src);
+            console.log('Image dimensions:', img.naturalWidth, 'x', img.naturalHeight);
+            console.log('Image crossOrigin:', img.crossOrigin);
+            
+            try {
+                // Create a canvas to analyze the image
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Check if image has loaded properly
+                if (!img.naturalWidth || !img.naturalHeight) {
+                    console.log('Image not loaded properly, using fallback colors');
+                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+                    return;
+                }
+                
+                // Set canvas size (smaller for performance)
+                const maxSize = 100;
+                const ratio = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
+                canvas.width = img.naturalWidth * ratio;
+                canvas.height = img.naturalHeight * ratio;
+                
+                console.log('Canvas size:', canvas.width, 'x', canvas.height);
+                
+                // Draw image to canvas
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                console.log('Image drawn to canvas');
+                
+                // Try to get image data (this is where CORS errors happen)
+                let imageData;
+                try {
+                    imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    console.log('Image data extracted successfully');
+                } catch (corsError) {
+                    console.log('CORS error when reading image data:', corsError.message);
+                    console.log('This image cannot be analyzed due to cross-origin restrictions');
+                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+                    return;
+                }
+                
+                const data = imageData.data;
+                
+                // Extract colors (sample every 10th pixel for performance)
+                const colors = new Map();
+                for (let i = 0; i < data.length; i += 40) { // 40 = 4 (RGBA) * 10 (every 10th pixel)
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    const a = data[i + 3];
+                    
+                    // Skip transparent or very transparent pixels
+                    if (a < 200) continue;
+                    
+                    // Skip very dark or very light colors (they're often not interesting)
+                    const brightness = (r + g + b) / 3;
+                    if (brightness < 20 || brightness > 235) continue;
+                    
+                    // Convert to hex
+                    const hex = '#' + [r, g, b].map(x => {
+                        const hex = x.toString(16);
+                        return hex.length === 1 ? '0' + hex : hex;
+                    }).join('');
+                    
+                    // Count color frequency
+                    colors.set(hex, (colors.get(hex) || 0) + 1);
+                }
+                
+                console.log('Found', colors.size, 'unique colors');
+                
+                if (colors.size === 0) {
+                    console.log('No colors found, using fallback');
+                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+                    return;
+                }
+                
+                // Get most frequent colors
+                const sortedColors = Array.from(colors.entries())
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 12) // Top 12 colors
+                    .map(([color]) => color.toUpperCase());
+                
+                // Filter out very similar colors
+                const distinctColors = [];
+                for (const color of sortedColors) {
+                    const rgb = hexToRgb(color);
+                    const isDistinct = distinctColors.every(existingColor => {
+                        const existingRgb = hexToRgb(existingColor);
+                        const distance = Math.sqrt(
+                            Math.pow(rgb.r - existingRgb.r, 2) +
+                            Math.pow(rgb.g - existingRgb.g, 2) +
+                            Math.pow(rgb.b - existingRgb.b, 2)
+                        );
+                        return distance > 40; // Minimum distance threshold
+                    });
+                    
+                    if (isDistinct) {
+                        distinctColors.push(color);
+                    }
+                    
+                    if (distinctColors.length >= 8) break;
+                }
+                
+                console.log('Distinct colors found:', distinctColors);
+                
+                // Display the colors
+                displayImageColors(distinctColors);
+                
+            } catch (e) {
+                console.log('Error extracting colors:', e.message);
+                console.log('Using fallback colors');
+                displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+            }
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function displayImageColors(colors) {
+            console.log('Displaying image colors:', colors);
+            const container = document.getElementById('imageColors');
+            const row = document.getElementById('imageColorsRow');
+            
+            if (colors.length === 0) {
+                row.style.display = 'none';
+                return;
+            }
+            
+            container.innerHTML = '';
+            row.style.display = 'flex';
+            
+            colors.forEach(color => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'recent-color';
+                colorDiv.onclick = () => applyImageColor(color);
+                
+                const swatch = document.createElement('div');
+                swatch.className = 'recent-color-swatch';
+                swatch.style.backgroundColor = color;
+                
+                const hex = document.createElement('div');
+                hex.className = 'recent-color-hex';
+                hex.textContent = color;
+                
+                colorDiv.appendChild(swatch);
+                colorDiv.appendChild(hex);
+                container.appendChild(colorDiv);
+            });
+            
+            console.log('Image colors section should now be visible');
+        }
+
+        function applyImageColor(color) {
+            // Set the color picker and hex input
+            document.getElementById('hexInput').value = color;
+            document.getElementById('colorPicker').value = color.toLowerCase();
+            
+            // Add to recent colors
+            addToRecentColors(color);
+            
+            // Apply the color immediately
+            applyTextColor();
+        }
+
         function insertPlaceholderImage() {
             // Set the placeholder URL
             const placeholderUrl = 'https://placehold.co/500x200';
@@ -912,6 +1086,7 @@
             // Create image element
             const img = document.createElement('img');
             img.src = placeholderUrl;
+            img.crossOrigin = 'anonymous'; // Allow cross-origin access
             img.style.maxWidth = '100%';
             img.style.height = 'auto';
             img.style.display = 'block';
@@ -927,6 +1102,8 @@
 
             img.onload = function() {
                 updateBBCodeOutput();
+                // Extract colors from the placeholder image
+                extractImageColors(this);
             };
 
             // Focus the visual editor first
