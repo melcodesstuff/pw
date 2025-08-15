@@ -541,41 +541,47 @@
                 updateBBCodeOutput();
             };
 
-            // Insert at cursor position or at the end
+            // Focus the visual editor first to ensure we're working with it
+            visualEditor.focus();
+            
+            // Get current selection or create one at the end
             const selection = window.getSelection();
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                
-                // Create a wrapper div for the image
-                const wrapper = document.createElement('div');
-                wrapper.appendChild(img);
-                
-                range.deleteContents();
-                range.insertNode(wrapper);
-                
-                // Create a new line after the image
-                const newLine = document.createElement('div');
-                newLine.innerHTML = '<br>';
-                range.setStartAfter(wrapper);
-                range.insertNode(newLine);
-                
-                // Position cursor in the new line
-                range.setStart(newLine, 0);
-                range.setEnd(newLine, 0);
-                selection.removeAllRanges();
-                selection.addRange(range);
+            let range;
+            
+            if (selection.rangeCount > 0 && selection.getRangeAt(0).commonAncestorContainer.closest && 
+                selection.getRangeAt(0).commonAncestorContainer.closest('.visual-editor')) {
+                // Use existing selection if it's in the visual editor
+                range = selection.getRangeAt(0);
             } else {
-                // If no selection, append to end
-                const wrapper = document.createElement('div');
-                wrapper.appendChild(img);
-                visualEditor.appendChild(wrapper);
-                
-                const newLine = document.createElement('div');
-                newLine.innerHTML = '<br>';
-                visualEditor.appendChild(newLine);
+                // Create a new range at the end of the visual editor
+                range = document.createRange();
+                range.selectNodeContents(visualEditor);
+                range.collapse(false); // Collapse to end
             }
+            
+            // Clear any existing selection
+            range.deleteContents();
+            
+            // Create a div wrapper for the image
+            const wrapper = document.createElement('div');
+            wrapper.appendChild(img);
+            
+            // Insert the image wrapper
+            range.insertNode(wrapper);
+            
+            // Create a new line after the image for continued typing
+            const newLine = document.createElement('div');
+            newLine.innerHTML = '<br>';
+            range.setStartAfter(wrapper);
+            range.insertNode(newLine);
+            
+            // Position cursor in the new line
+            range.setStart(newLine, 0);
+            range.setEnd(newLine, 0);
+            selection.removeAllRanges();
+            selection.addRange(range);
 
-            // Clear the input
+            // Clear the input and update
             document.getElementById('imageUrl').value = '';
             updateBBCodeOutput();
             visualEditor.focus();
