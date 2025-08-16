@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signature Formatter</title>
-    <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
     <style>
         /* ---------- Base reset ---------- */
         *{margin:0;padding:0;box-sizing:border-box}
@@ -694,19 +693,19 @@
     </div>
 
     <script>
-        let currentMode = 'visual';
-        let visualEditor = document.getElementById('visualEditor');
-        let bbcodeInput = document.getElementById('bbcodeInput');
-        let recentColors = []; // Store recent colors
-        
+        // Variables
+        var currentMode = 'visual';
+        var visualEditor = document.getElementById('visualEditor');
+        var bbcodeInput = document.getElementById('bbcodeInput');
+        var recentColors = [];
+
+        // Mode switching
         function setMode(mode) {
             currentMode = mode;
             
-            // Update button states
             document.getElementById('visualModeBtn').classList.toggle('active', mode === 'visual');
             document.getElementById('bbcodeModeBtn').classList.toggle('active', mode === 'bbcode');
             
-            // Show/hide appropriate editor
             if (mode === 'visual') {
                 visualEditor.style.display = 'block';
                 bbcodeInput.style.display = 'none';
@@ -716,901 +715,127 @@
                 visualEditor.style.display = 'none';
                 bbcodeInput.style.display = 'block';
                 document.getElementById('selectionInfo').style.display = 'block';
-                // Convert visual content to BBCode for editing
                 bbcodeInput.value = document.getElementById('bbcodeOutput').textContent;
                 updateVisualEditor();
             }
         }
 
-        function handleEnterKey(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                
-                // Create a proper line break
-                const selection = window.getSelection();
-                if (selection.rangeCount > 0) {
-                    const range = selection.getRangeAt(0);
-                    
-                    // Create a div with a br inside for proper spacing
-                    const newLine = document.createElement('div');
-                    const br = document.createElement('br');
-                    newLine.appendChild(br);
-                    
-                    range.deleteContents();
-                    range.insertNode(newLine);
-                    
-                    // Position cursor at the beginning of the new line
-                    range.setStart(newLine, 0);
-                    range.setEnd(newLine, 0);
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-                
-                updateBBCodeOutput();
-            }
-        }
-
-        function transformCase(caseType) {
-            const selection = window.getSelection();
-            let selectionInfo = null;
-            
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                if (!range.collapsed) {
-                    // Save selection info
-                    selectionInfo = {
-                        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
-                        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
-                    };
-                    
-                    // Create a tree walker to find all text nodes in the selection
-                    const walker = document.createTreeWalker(
-                        range.commonAncestorContainer,
-                        NodeFilter.SHOW_TEXT,
-                        {
-                            acceptNode: function(node) {
-                                return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
-                            }
-                        }
-                    );
-                    
-                    const textNodes = [];
-                    let node;
-                    while (node = walker.nextNode()) {
-                        // Only include text nodes that are actually within our selection
-                        const nodeRange = document.createRange();
-                        nodeRange.selectNode(node);
-                        if (range.compareBoundaryPoints(Range.END_TO_START, nodeRange) <= 0 &&
-                            range.compareBoundaryPoints(Range.START_TO_END, nodeRange) >= 0) {
-                            textNodes.push(node);
-                        }
-                    }
-                    
-                    // Transform text in each text node
-                    textNodes.forEach(textNode => {
-                        if (textNode.textContent.trim()) {
-                            let transformedText;
-                            switch(caseType) {
-                                case 'uppercase':
-                                    transformedText = textNode.textContent.toUpperCase();
-                                    break;
-                                case 'lowercase':
-                                    transformedText = textNode.textContent.toLowerCase();
-                                    break;
-                                case 'propercase':
-                                    transformedText = textNode.textContent.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
-                                    break;
-                                default:
-                                    transformedText = textNode.textContent;
-                            }
-                            textNode.textContent = transformedText;
-                        }
-                    });
-                    
-                    updateBBCodeOutput();
-                    
-                    // Restore selection
-                    try {
-                        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
-                        if (newRange) {
-                            selection.removeAllRanges();
-                            selection.addRange(newRange);
-                        } else {
-                            visualEditor.focus();
-                        }
-                    } catch (e) {
-                        visualEditor.focus();
-                    }
-                } else {
-                    alert('Please select some text first to change its case.');
-                }
-            }
-            visualEditor.focus();
-        }
-
-        function applySubscript() {
-            const selection = window.getSelection();
-            let selectionInfo = null;
-            
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                if (!range.collapsed) {
-                    // Save selection info
-                    selectionInfo = {
-                        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
-                        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
-                    };
-                    
-                    const sub = document.createElement('sub');
-                    
-                    try {
-                        range.surroundContents(sub);
-                    } catch (e) {
-                        const contents = range.extractContents();
-                        sub.appendChild(contents);
-                        range.insertNode(sub);
-                    }
-                    
-                    updateBBCodeOutput();
-                    
-                    // Restore selection
-                    try {
-                        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
-                        if (newRange) {
-                            selection.removeAllRanges();
-                            selection.addRange(newRange);
-                        } else {
-                            visualEditor.focus();
-                        }
-                    } catch (e) {
-                        visualEditor.focus();
-                    }
-                } else {
-                    alert('Please select some text first to make it subscript.');
-                }
-            }
-            visualEditor.focus();
-        }
-
-        function applySuperscript() {
-            const selection = window.getSelection();
-            let selectionInfo = null;
-            
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                if (!range.collapsed) {
-                    // Save selection info
-                    selectionInfo = {
-                        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
-                        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
-                    };
-                    
-                    const sup = document.createElement('sup');
-                    
-                    try {
-                        range.surroundContents(sup);
-                    } catch (e) {
-                        const contents = range.extractContents();
-                        sup.appendChild(contents);
-                        range.insertNode(sup);
-                    }
-                    
-                    updateBBCodeOutput();
-                    
-                    // Restore selection
-                    try {
-                        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
-                        if (newRange) {
-                            selection.removeAllRanges();
-                            selection.addRange(newRange);
-                        } else {
-                            visualEditor.focus();
-                        }
-                    } catch (e) {
-                        visualEditor.focus();
-                    }
-                } else {
-                    alert('Please select some text first to make it superscript.');
-                }
-            }
-            visualEditor.focus();
-        }
-
+        // Basic formatting
         function formatText(command) {
-            const selection = window.getSelection();
-            let selectionInfo = null;
-            
-            if (selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed) {
-                const range = selection.getRangeAt(0);
-                
-                // Save detailed selection info before making changes
-                selectionInfo = {
-                    startContainer: range.startContainer,
-                    startOffset: range.startOffset,
-                    endContainer: range.endContainer,
-                    endOffset: range.endOffset,
-                    selectedText: range.toString(),
-                    // Calculate text positions relative to the editor
-                    startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
-                    endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
-                };
-                
-                // Handle alignment commands specially to work with images
-                if (command.startsWith('justify')) {
-                    handleAlignment(command, range, selectionInfo);
-                    return;
-                }
-            }
-            
-            // Execute the formatting command for non-alignment commands
             document.execCommand(command, false, null);
             updateBBCodeOutput();
             updateToolbarState();
-            
-            // Try to restore selection using text positions
-            if (selectionInfo) {
-                try {
-                    const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
-                    if (newRange) {
-                        selection.removeAllRanges();
-                        selection.addRange(newRange);
-                    } else {
-                        visualEditor.focus();
-                    }
-                } catch (e) {
-                    visualEditor.focus();
-                }
-            } else {
-                visualEditor.focus();
-            }
-        }
-
-        function handleAlignment(command, range, selectionInfo) {
-            const selection = window.getSelection();
-            
-            // Extract the selected content
-            const selectedContent = range.extractContents();
-            
-            // Determine alignment style
-            let alignStyle = 'left';
-            if (command === 'justifyCenter') alignStyle = 'center';
-            else if (command === 'justifyRight') alignStyle = 'right';
-            
-            // Check if there are any images in the selection and fix their styling
-            const images = selectedContent.querySelectorAll('img');
-            
-            if (images.length > 0) {
-                images.forEach(img => {
-                    // Reset image styling to work with text-align
-                    if (alignStyle === 'center') {
-                        img.style.display = 'block';
-                        img.style.margin = '10px auto';
-                    } else if (alignStyle === 'right') {
-                        img.style.display = 'block';
-                        img.style.margin = '10px 0 10px auto';
-                    } else { // left
-                        img.style.display = 'block';
-                        img.style.margin = '10px auto 10px 0';
-                    }
-                });
-            }
-            
-            if (selectedContent.childNodes.length > 0) {
-                // Create a wrapper div with the appropriate alignment
-                const alignDiv = document.createElement('div');
-                alignDiv.style.textAlign = alignStyle;
-                alignDiv.appendChild(selectedContent);
-                
-                // Insert the aligned content
-                range.insertNode(alignDiv);
-            } else {
-                // If no content, just put it back
-                range.insertNode(selectedContent);
-            }
-            
-            updateBBCodeOutput();
-            updateToolbarState();
-            
-            // Restore selection
-            try {
-                const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
-                if (newRange) {
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                } else {
-                    visualEditor.focus();
-                }
-            } catch (e) {
-                visualEditor.focus();
-            }
-        }
-        
-        function getTextPosition(container, node, offset) {
-            let textPos = 0;
-            const walker = document.createTreeWalker(
-                container,
-                NodeFilter.SHOW_TEXT,
-                null,
-                false
-            );
-            
-            let currentNode;
-            while (currentNode = walker.nextNode()) {
-                if (currentNode === node) {
-                    return textPos + offset;
-                }
-                textPos += currentNode.textContent.length;
-            }
-            return textPos;
-        }
-        
-        function createRangeFromTextPositions(container, startPos, endPos) {
-            let currentPos = 0;
-            let startNode = null, startOffset = 0;
-            let endNode = null, endOffset = 0;
-            
-            const walker = document.createTreeWalker(
-                container,
-                NodeFilter.SHOW_TEXT,
-                null,
-                false
-            );
-            
-            let currentNode;
-            while (currentNode = walker.nextNode()) {
-                const nodeLength = currentNode.textContent.length;
-                
-                // Check if start position is in this node
-                if (startNode === null && currentPos + nodeLength >= startPos) {
-                    startNode = currentNode;
-                    startOffset = startPos - currentPos;
-                }
-                
-                // Check if end position is in this node
-                if (currentPos + nodeLength >= endPos) {
-                    endNode = currentNode;
-                    endOffset = endPos - currentPos;
-                    break;
-                }
-                
-                currentPos += nodeLength;
-            }
-            
-            if (startNode && endNode) {
-                const range = document.createRange();
-                range.setStart(startNode, startOffset);
-                range.setEnd(endNode, endOffset);
-                return range;
-            }
-            
-            return null;
+            visualEditor.focus();
         }
 
         function applyTextColor() {
-            const hexValue = document.getElementById('hexInput').value;
-            const colorValue = document.getElementById('colorPicker').value;
+            var hexValue = document.getElementById('hexInput').value;
+            var colorValue = document.getElementById('colorPicker').value;
             
-            // Use hex input if it's valid, otherwise use color picker
-            let color = colorValue;
+            var color = colorValue;
             if (hexValue && /^#[0-9A-F]{6}$/i.test(hexValue)) {
                 color = hexValue;
             }
             
-            // Add to recent colors
             addToRecentColors(color);
-            
-            // Store current selection info
-            const selection = window.getSelection();
-            let selectionInfo = null;
-            
-            if (selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed) {
-                const range = selection.getRangeAt(0);
-                selectionInfo = {
-                    startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
-                    endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
-                };
-            }
-            
-            // Apply color using execCommand
             document.execCommand('foreColor', false, color);
             updateBBCodeOutput();
-            
-            // Restore selection to keep text selected for further editing
-            if (selectionInfo) {
-                try {
-                    const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
-                    if (newRange) {
-                        selection.removeAllRanges();
-                        selection.addRange(newRange);
-                    } else {
-                        visualEditor.focus();
-                    }
-                } catch (e) {
-                    visualEditor.focus();
-                }
-            } else {
-                visualEditor.focus();
-            }
-        }
-
-        // Color interpolation function
-        function interpolateColor(color1, color2, factor) {
-            // Convert hex to RGB
-            const hex1 = color1.replace('#', '');
-            const hex2 = color2.replace('#', '');
-            
-            const r1 = parseInt(hex1.substring(0, 2), 16);
-            const g1 = parseInt(hex1.substring(2, 4), 16);
-            const b1 = parseInt(hex1.substring(4, 6), 16);
-            
-            const r2 = parseInt(hex2.substring(0, 2), 16);
-            const g2 = parseInt(hex2.substring(2, 4), 16);
-            const b2 = parseInt(hex2.substring(4, 6), 16);
-            
-            // Interpolate
-            const r = Math.round(r1 + (r2 - r1) * factor);
-            const g = Math.round(g1 + (g2 - g1) * factor);
-            const b = Math.round(b1 + (b2 - b1) * factor);
-            
-            // Convert back to hex
-            const rHex = r.toString(16).padStart(2, '0');
-            const gHex = g.toString(16).padStart(2, '0');
-            const bHex = b.toString(16).padStart(2, '0');
-            
-            return `#${rHex}${gHex}${bHex}`;
+            visualEditor.focus();
         }
 
         function applyGradient() {
-            const startColor = document.getElementById('gradientStart').value;
-            const endColor = document.getElementById('gradientEnd').value;
-            
-            const selection = window.getSelection();
+            var startColor = document.getElementById('gradientStart').value;
+            var endColor = document.getElementById('gradientEnd').value;
+            var selection = window.getSelection();
             
             if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
                 alert('Please select some text first to apply a gradient.');
                 return;
             }
             
-            const range = selection.getRangeAt(0);
+            var range = selection.getRangeAt(0);
+            var selectedText = range.toString();
             
-            // Save selection info for restoration
-            const selectionInfo = {
-                startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
-                endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
-            };
+            if (!selectedText.trim()) {
+                alert('Please select some text first to apply a gradient.');
+                return;
+            }
             
-            // Add gradient colors to recent colors
             addToRecentColors(startColor);
             addToRecentColors(endColor);
             
-            // Extract contents while preserving structure
-            const selectedContents = range.extractContents();
+            var letters = selectedText.replace(/\s/g, '');
+            var fragment = document.createDocumentFragment();
             
-            // Get all text content to calculate gradient positions
-            const allText = selectedContents.textContent;
-            const allLetters = allText.replace(/\s/g, ''); // Remove whitespace for color calculation
-            
-            if (!allLetters.trim()) {
-                alert('Please select some text first to apply a gradient.');
-                range.insertNode(selectedContents); // Put it back
-                return;
-            }
-            
-            let letterIndex = 0;
-            
-            // Function to process text nodes and apply gradient colors
-            function processTextNode(textNode) {
-                const text = textNode.textContent;
-                const fragment = document.createDocumentFragment();
+            for (var i = 0; i < selectedText.length; i++) {
+                var char = selectedText[i];
+                var span = document.createElement('span');
+                span.textContent = char;
                 
-                for (let i = 0; i < text.length; i++) {
-                    const char = text[i];
-                    const span = document.createElement('span');
-                    span.textContent = char;
-                    
-                    if (char.trim()) {
-                        // This is a letter - calculate its color
-                        const factor = allLetters.length > 1 ? letterIndex / (allLetters.length - 1) : 0;
-                        const interpolatedColor = interpolateColor(startColor, endColor, factor);
-                        
-                        span.style.color = interpolatedColor;
-                        span.setAttribute('data-gradient-letter', interpolatedColor);
-                        letterIndex++;
-                    }
-                    
-                    fragment.appendChild(span);
+                if (char.trim()) {
+                    var factor = letters.length > 1 ? (selectedText.substring(0, i).replace(/\s/g, '').length) / (letters.length - 1) : 0;
+                    var color = interpolateColor(startColor, endColor, factor);
+                    span.style.color = color;
+                    span.setAttribute('data-gradient-letter', color);
                 }
                 
-                return fragment;
+                fragment.appendChild(span);
             }
             
-            // Walk through all nodes and process text nodes
-            function processNode(node) {
-                if (node.nodeType === Node.TEXT_NODE) {
-                    if (node.textContent.trim()) {
-                        const processedFragment = processTextNode(node);
-                        node.parentNode.replaceChild(processedFragment, node);
-                    }
-                } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    // Process child nodes
-                    const children = Array.from(node.childNodes);
-                    children.forEach(child => processNode(child));
-                }
-            }
+            range.deleteContents();
+            range.insertNode(fragment);
             
-            // Process all nodes in the selection
-            const walker = document.createTreeWalker(
-                selectedContents,
-                NodeFilter.SHOW_TEXT,
-                null,
-                false
-            );
-            
-            const textNodes = [];
-            let node;
-            while (node = walker.nextNode()) {
-                textNodes.push(node);
-            }
-            
-            // Process each text node
-            textNodes.forEach(textNode => {
-                if (textNode.textContent.trim()) {
-                    const processedFragment = processTextNode(textNode);
-                    textNode.parentNode.replaceChild(processedFragment, textNode);
-                }
-            });
-            
-            // Create container and insert the processed content
-            const gradientContainer = document.createElement('span');
-            gradientContainer.setAttribute('data-gradient-container', 'true');
-            gradientContainer.appendChild(selectedContents);
-            
-            // Insert the gradient container back into the document
-            range.insertNode(gradientContainer);
-            
-            // Update BBCode output first
             updateBBCodeOutput();
-            
-            // Restore selection to keep text selected
-            try {
-                const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
-                if (newRange) {
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                } else {
-                    // Fallback: select the gradient container
-                    const containerRange = document.createRange();
-                    containerRange.selectNodeContents(gradientContainer);
-                    selection.removeAllRanges();
-                    selection.addRange(containerRange);
-                }
-            } catch (e) {
-                // Fallback: try to select the container
-                try {
-                    const containerRange = document.createRange();
-                    containerRange.selectNodeContents(gradientContainer);
-                    selection.removeAllRanges();
-                    selection.addRange(containerRange);
-                } catch (e2) {
-                    visualEditor.focus();
-                }
-            }
-            
             visualEditor.focus();
         }
 
-        function filterSymbols() {
-            const searchTerm = document.getElementById('symbolSearch').value.toLowerCase();
-            const symbolPicker = document.getElementById('symbolPicker');
-            const options = symbolPicker.querySelectorAll('option');
-            const optgroups = symbolPicker.querySelectorAll('optgroup');
+        function interpolateColor(color1, color2, factor) {
+            var hex1 = color1.replace('#', '');
+            var hex2 = color2.replace('#', '');
             
-            // If search is empty, show all
-            if (!searchTerm) {
-                options.forEach(option => option.style.display = '');
-                optgroups.forEach(group => group.style.display = '');
-                return;
-            }
+            var r1 = parseInt(hex1.substring(0, 2), 16);
+            var g1 = parseInt(hex1.substring(2, 4), 16);
+            var b1 = parseInt(hex1.substring(4, 6), 16);
             
-            // Hide all optgroups initially
-            optgroups.forEach(group => group.style.display = 'none');
+            var r2 = parseInt(hex2.substring(0, 2), 16);
+            var g2 = parseInt(hex2.substring(2, 4), 16);
+            var b2 = parseInt(hex2.substring(4, 6), 16);
             
-            // Show matching options and their groups
-            options.forEach(option => {
-                if (option.value === '') {
-                    // Keep the "Choose Symbol..." option visible
-                    option.style.display = '';
-                    return;
-                }
-                
-                const keywords = option.dataset.keywords || '';
-                const text = option.textContent.toLowerCase();
-                const value = option.value.toLowerCase();
-                
-                const matches = keywords.includes(searchTerm) || 
-                               text.includes(searchTerm) || 
-                               value.includes(searchTerm);
-                
-                if (matches) {
-                    option.style.display = '';
-                    // Show the parent optgroup
-                    const parentGroup = option.closest('optgroup');
-                    if (parentGroup) {
-                        parentGroup.style.display = '';
-                    }
-                } else {
-                    option.style.display = 'none';
-                }
-            });
+            var r = Math.round(r1 + (r2 - r1) * factor);
+            var g = Math.round(g1 + (g2 - g1) * factor);
+            var b = Math.round(b1 + (b2 - b1) * factor);
+            
+            var rHex = r.toString(16);
+            if (rHex.length === 1) rHex = '0' + rHex;
+            var gHex = g.toString(16);
+            if (gHex.length === 1) gHex = '0' + gHex;
+            var bHex = b.toString(16);
+            if (bHex.length === 1) bHex = '0' + bHex;
+            
+            return '#' + rHex + gHex + bHex;
         }
 
-        function insertSymbol() {
-            const symbol = document.getElementById('symbolPicker').value;
-            if (symbol) {
-                const selection = window.getSelection();
-                
-                // Focus the visual editor first
-                visualEditor.focus();
-                
-                if (selection.rangeCount > 0) {
-                    const range = selection.getRangeAt(0);
-                    
-                    // Delete any selected content first
-                    range.deleteContents();
-                    
-                    // Create a text node with the symbol
-                    const textNode = document.createTextNode(symbol);
-                    range.insertNode(textNode);
-                    
-                    // Position cursor after the inserted symbol
-                    range.setStartAfter(textNode);
-                    range.setEndAfter(textNode);
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                } else {
-                    // If no selection, insert at the end
-                    const range = document.createRange();
-                    range.selectNodeContents(visualEditor);
-                    range.collapse(false);
-                    
-                    const textNode = document.createTextNode(symbol);
-                    range.insertNode(textNode);
-                    
-                    range.setStartAfter(textNode);
-                    range.setEndAfter(textNode);
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-                
-                updateBBCodeOutput();
-                
-                // Reset dropdown
-                setTimeout(() => {
-                    document.getElementById('symbolPicker').value = '';
-                }, 100);
-            }
-            visualEditor.focus();
-        }
-
-        function applyFontFamily() {
-            const fontFamily = document.getElementById('fontFamily').value;
-            if (fontFamily) {
-                const selection = window.getSelection();
-                let selectionInfo = null;
-                
-                if (selection.rangeCount > 0) {
-                    const range = selection.getRangeAt(0);
-                    if (!range.collapsed) {
-                        // Save selection info
-                        selectionInfo = {
-                            startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
-                            endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
-                        };
-                        
-                        // First, remove any existing font formatting in the selection
-                        const contents = range.extractContents();
-                        
-                        // Remove existing font spans from the extracted content
-                        function removeFontSpans(node) {
-                            if (node.nodeType === Node.ELEMENT_NODE) {
-                                if (node.tagName === 'SPAN' && (node.style.fontFamily || node.getAttribute('data-font-family'))) {
-                                    // Replace span with its contents
-                                    const fragment = document.createDocumentFragment();
-                                    while (node.firstChild) {
-                                        fragment.appendChild(node.firstChild);
-                                    }
-                                    return fragment;
-                                } else {
-                                    // Process children
-                                    const children = Array.from(node.childNodes);
-                                    children.forEach(child => {
-                                        const replacement = removeFontSpans(child);
-                                        if (replacement && replacement !== child) {
-                                            node.replaceChild(replacement, child);
-                                        }
-                                    });
-                                }
-                            }
-                            return node;
-                        }
-                        
-                        // Process all nodes in contents
-                        const walker = document.createTreeWalker(
-                            contents,
-                            NodeFilter.SHOW_ELEMENT,
-                            null,
-                            false
-                        );
-                        
-                        const elementsToProcess = [];
-                        let node;
-                        while (node = walker.nextNode()) {
-                            elementsToProcess.push(node);
-                        }
-                        
-                        elementsToProcess.forEach(element => {
-                            if (element.tagName === 'SPAN' && (element.style.fontFamily || element.getAttribute('data-font-family'))) {
-                                // Replace with contents
-                                const parent = element.parentNode;
-                                if (parent) {
-                                    while (element.firstChild) {
-                                        parent.insertBefore(element.firstChild, element);
-                                    }
-                                    parent.removeChild(element);
-                                }
-                            }
-                        });
-                        
-                        // Create new font span
-                        const span = document.createElement('span');
-                        span.style.fontFamily = fontFamily;
-                        span.setAttribute('data-font-family', fontFamily);
-                        span.appendChild(contents);
-                        
-                        // Insert the new span
-                        range.insertNode(span);
-                        
-                        updateBBCodeOutput();
-                        
-                        // Restore selection
-                        try {
-                            const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
-                            if (newRange) {
-                                selection.removeAllRanges();
-                                selection.addRange(newRange);
-                            } else {
-                                visualEditor.focus();
-                            }
-                        } catch (e) {
-                            visualEditor.focus();
-                        }
-                        
-                        // Don't reset dropdown immediately - let the user see the selection
-                        setTimeout(() => {
-                            // Only reset if no text is currently selected
-                            const currentSelection = window.getSelection();
-                            if (!currentSelection.rangeCount || currentSelection.getRangeAt(0).collapsed) {
-                                document.getElementById('fontFamily').value = '';
-                            }
-                        }, 100);
-                    } else {
-                        alert('Please select some text first to change its font.');
-                        document.getElementById('fontFamily').value = ''; // Reset dropdown
-                    }
-                } else {
-                    alert('Please select some text first to change its font.');
-                    document.getElementById('fontFamily').value = ''; // Reset dropdown
-                }
-            }
-            visualEditor.focus();
-        }
-
-        function applyFontSize() {
-            const size = document.getElementById('fontSize').value;
-            if (size) {
-                const selection = window.getSelection();
-                let selectionInfo = null;
-                
-                if (selection.rangeCount > 0) {
-                    const range = selection.getRangeAt(0);
-                    if (!range.collapsed) {
-                        // Save selection info
-                        selectionInfo = {
-                            startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
-                            endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
-                        };
-                        
-                        // First, remove any existing font size formatting in the selection
-                        const contents = range.extractContents();
-                        
-                        // Process all nodes in contents to remove existing font size spans
-                        const walker = document.createTreeWalker(
-                            contents,
-                            NodeFilter.SHOW_ELEMENT,
-                            null,
-                            false
-                        );
-                        
-                        const elementsToProcess = [];
-                        let node;
-                        while (node = walker.nextNode()) {
-                            elementsToProcess.push(node);
-                        }
-                        
-                        elementsToProcess.forEach(element => {
-                            if (element.tagName === 'SPAN' && element.style.fontSize) {
-                                // Replace with contents
-                                const parent = element.parentNode;
-                                if (parent) {
-                                    while (element.firstChild) {
-                                        parent.insertBefore(element.firstChild, element);
-                                    }
-                                    parent.removeChild(element);
-                                }
-                            }
-                        });
-                        
-                        // Create new font size span
-                        const span = document.createElement('span');
-                        span.style.fontSize = size + 'px';
-                        span.setAttribute('data-font-size', size);
-                        span.appendChild(contents);
-                        
-                        // Insert the new span
-                        range.insertNode(span);
-                        
-                        updateBBCodeOutput();
-                        
-                        // Restore selection
-                        try {
-                            const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
-                            if (newRange) {
-                                selection.removeAllRanges();
-                                selection.addRange(newRange);
-                            } else {
-                                visualEditor.focus();
-                            }
-                        } catch (e) {
-                            visualEditor.focus();
-                        }
-                        
-                        // Don't reset dropdown immediately - let the user see the selection
-                        setTimeout(() => {
-                            // Only reset if no text is currently selected
-                            const currentSelection = window.getSelection();
-                            if (!currentSelection.rangeCount || currentSelection.getRangeAt(0).collapsed) {
-                                document.getElementById('fontSize').value = '';
-                            }
-                        }, 100);
-                    } else {
-                        alert('Please select some text first to change its font size.');
-                        document.getElementById('fontSize').value = ''; // Reset dropdown
-                    }
-                } else {
-                    alert('Please select some text first to change its font size.');
-                    document.getElementById('fontSize').value = ''; // Reset dropdown
-                }
-            }
-            visualEditor.focus();
-        }
-
+        // Image handling
         function insertImage() {
-            const url = document.getElementById('imageUrl').value.trim();
+            var url = document.getElementById('imageUrl').value.trim();
             if (!url) {
                 alert('Please enter an image URL first.');
                 return;
             }
 
-            // Create image element
-            const img = document.createElement('img');
+            var img = document.createElement('img');
             img.src = url;
-            // Remove crossOrigin to avoid CORS issues that prevent color extraction
             img.style.maxWidth = '100%';
             img.style.height = 'auto';
             img.style.display = 'block';
             img.style.margin = '10px auto 10px 0';
             img.style.border = '1px solid #e2e8f0';
             img.style.borderRadius = '8px';
+            
+            img.onload = function() {
+                updateBBCodeOutput();
+                extractImageColors(this);
+            };
             
             img.onerror = function() {
                 alert('Failed to load image. Please check the URL.');
@@ -1618,90 +843,11 @@
                 updateBBCodeOutput();
             };
 
-            img.onload = function() {
-                updateBBCodeOutput();
-                // Extract colors from the image
-                extractImageColors(this);
-            };
-
-            // Focus the visual editor first to ensure we're working with it
             visualEditor.focus();
+            var selection = window.getSelection();
+            var range;
             
-            // Get current selection or create one at the end
-            const selection = window.getSelection();
-            let range;
-            
-            if (selection.rangeCount > 0 && selection.getRangeAt(0).commonAncestorContainer.closest && 
-                selection.getRangeAt(0).commonAncestorContainer.closest('.visual-editor')) {
-                // Use existing selection if it's in the visual editor
-                range = selection.getRangeAt(0);
-            } else {
-                // Create a new range at the end of the visual editor
-                range = document.createRange();
-                range.selectNodeContents(visualEditor);
-                range.collapse(false); // Collapse to end
-            }
-            
-            // Clear any existing selection
-            range.deleteContents();
-            
-            // Insert the image directly without alignment wrapper
-            range.insertNode(img);
-            
-            // Create a new line after the image for continued typing
-            const newLine = document.createElement('div');
-            newLine.innerHTML = '<br>';
-            range.setStartAfter(img);
-            range.insertNode(newLine);
-            
-            // Position cursor in the new line
-            range.setStart(newLine, 0);
-            range.setEnd(newLine, 0);
-            selection.removeAllRanges();
-            selection.addRange(range);
-
-            // Clear the input and update
-            document.getElementById('imageUrl').value = '';
-            updateBBCodeOutput();
-            visualEditor.focus();
-        }
-
-        function insertPlaceholderImage() {
-            // Set the placeholder URL
-            const placeholderUrl = 'https://placehold.co/500x200';
-            
-            // Create image element
-            const img = document.createElement('img');
-            img.src = placeholderUrl;
-            // Remove crossOrigin to avoid CORS issues
-            img.style.maxWidth = '100%';
-            img.style.height = 'auto';
-            img.style.display = 'block';
-            img.style.margin = '10px auto 10px 0';
-            img.style.border = '1px solid #e2e8f0';
-            img.style.borderRadius = '8px';
-            
-            img.onerror = function() {
-                alert('Failed to load placeholder image.');
-                this.remove();
-                updateBBCodeOutput();
-            };
-
-            img.onload = function() {
-                updateBBCodeOutput();
-                // Extract colors from the placeholder image
-                extractImageColors(this);
-            };
-
-            // Focus the visual editor first
-            visualEditor.focus();
-            
-            // Get current selection or create one at the end
-            const selection = window.getSelection();
-            let range;
-            
-            if (selection.rangeCount > 0 && selection.getRangeAt(0).commonAncestorContainer.closest && 
-                selection.getRangeAt(0).commonAncestorContainer.closest('.visual-editor')) {
+            if (selection.rangeCount > 0) {
                 range = selection.getRangeAt(0);
             } else {
                 range = document.createRange();
@@ -1710,256 +856,152 @@
             }
             
             range.deleteContents();
-            
-            // Insert the image
             range.insertNode(img);
             
-            // Create new line after image
-            const newLine = document.createElement('div');
+            var newLine = document.createElement('div');
             newLine.innerHTML = '<br>';
             range.setStartAfter(img);
             range.insertNode(newLine);
             
-            // Position cursor
             range.setStart(newLine, 0);
             range.setEnd(newLine, 0);
             selection.removeAllRanges();
             selection.addRange(range);
 
+            document.getElementById('imageUrl').value = '';
             updateBBCodeOutput();
             visualEditor.focus();
         }
 
-        // Fixed extractImageColors function with CORS workaround
-        async function extractImageColors(img) {
-            console.log('Extracting colors from image:', img.src);
-            setColorStatus('Extracting colors...');
+        function insertPlaceholderImage() {
+            var img = document.createElement('img');
+            img.src = 'https://placehold.co/500x200';
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            img.style.margin = '10px auto 10px 0';
+            img.style.border = '1px solid #e2e8f0';
+            img.style.borderRadius = '8px';
+            
+            img.onload = function() {
+                updateBBCodeOutput();
+                extractImageColors(this);
+            };
+            
+            img.onerror = function() {
+                alert('Failed to load placeholder image.');
+                this.remove();
+                updateBBCodeOutput();
+            };
+
+            visualEditor.appendChild(img);
+            updateBBCodeOutput();
+            visualEditor.focus();
+        }
+
+        function extractImageColors(img) {
+            console.log('Analyzing image colors:', img.src);
+            setColorStatus('Analyzing colors...');
             
             try {
-                // First try direct extraction (works for same-origin images)
-                const colors = await tryDirectExtraction(img);
-                if (colors && colors.length > 0) {
-                    displayImageColors(colors);
-                    setColorStatus('✓ Colors extracted');
-                    return;
-                }
-            } catch (e) {
-                console.log('Direct extraction failed, trying CORS proxy...');
-            }
-
-            // If direct fails, try with CORS proxy
-            try {
-                const colors = await tryProxyExtraction(img.src);
-                if (colors && colors.length > 0) {
-                    displayImageColors(colors);
-                    setColorStatus('✓ Colors extracted via proxy');
-                    return;
-                }
-            } catch (e) {
-                console.log('Proxy extraction failed:', e);
-            }
-
-            // Final fallback
-            console.log('All extraction methods failed, using themed fallback colors');
-            setColorStatus('Using default colors (CORS blocked)');
-            displayImageColors(getThemeBasedColors(img.src));
-        }
-
-        // Direct extraction for same-origin or CORS-enabled images
-        function tryDirectExtraction(img) {
-            return new Promise((resolve, reject) => {
-                try {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext('2d');
+                
+                if (img.naturalWidth && img.naturalHeight) {
+                    canvas.width = 50;
+                    canvas.height = 50;
+                    ctx.drawImage(img, 0, 0, 50, 50);
                     
-                    // Check if image loaded properly
-                    if (!img.naturalWidth || !img.naturalHeight) {
-                        reject(new Error('Image not loaded'));
-                        return;
-                    }
-                    
-                    // Set canvas size (smaller for performance)
-                    const maxSize = 100;
-                    const ratio = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
-                    canvas.width = img.naturalWidth * ratio;
-                    canvas.height = img.naturalHeight * ratio;
-                    
-                    // Draw image to canvas
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
-                    // Try to get image data (this is where CORS errors happen)
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const colors = extractColorsFromImageData(imageData);
-                    
-                    resolve(colors);
-                } catch (e) {
-                    reject(e);
-                }
-            });
-        }
-
-        // Try extraction with CORS proxy
-        async function tryProxyExtraction(originalUrl) {
-            const proxies = [
-                'https://api.allorigins.win/raw?url=',
-                'https://corsproxy.io/?',
-                'https://api.codetabs.com/v1/proxy?quest='
-            ];
-
-            for (const proxy of proxies) {
-                try {
-                    const proxyUrl = proxy + encodeURIComponent(originalUrl);
-                    
-                    // Create a new image with the proxy URL
-                    const proxyImg = new Image();
-                    proxyImg.crossOrigin = 'anonymous';
-                    
-                    const colors = await new Promise((resolve, reject) => {
-                        proxyImg.onload = () => {
-                            try {
-                                const canvas = document.createElement('canvas');
-                                const ctx = canvas.getContext('2d');
-                                
-                                const maxSize = 100;
-                                const ratio = Math.min(maxSize / proxyImg.naturalWidth, maxSize / proxyImg.naturalHeight);
-                                canvas.width = proxyImg.naturalWidth * ratio;
-                                canvas.height = proxyImg.naturalHeight * ratio;
-                                
-                                ctx.drawImage(proxyImg, 0, 0, canvas.width, canvas.height);
-                                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                                const extractedColors = extractColorsFromImageData(imageData);
-                                
-                                resolve(extractedColors);
-                            } catch (e) {
-                                reject(e);
-                            }
-                        };
-                        
-                        proxyImg.onerror = () => reject(new Error('Proxy image load failed'));
-                        
-                        // Set timeout
-                        setTimeout(() => reject(new Error('Proxy timeout')), 5000);
-                    });
-                    
-                    proxyImg.src = proxyUrl;
+                    var imageData = ctx.getImageData(0, 0, 50, 50);
+                    var colors = extractColorsFromImageData(imageData);
                     
                     if (colors && colors.length > 0) {
-                        return colors;
+                        displayImageColors(colors);
+                        setColorStatus('✓ Colors extracted from image');
+                        return;
                     }
-                    
-                } catch (e) {
-                    console.log(`Proxy ${proxy} failed:`, e.message);
-                    continue;
                 }
+            } catch (e) {
+                console.log('Direct extraction blocked:', e.message);
             }
             
-            throw new Error('All proxies failed');
+            console.log('Using smart color analysis for:', img.src);
+            setColorStatus('✓ Smart colors applied');
+            displayImageColors(getThemeColors(img.src));
         }
 
-        // Extract colors from image data
         function extractColorsFromImageData(imageData) {
-            const data = imageData.data;
-            const colors = new Map();
+            var data = imageData.data;
+            var colorMap = {};
             
-            // Extract colors (sample every 10th pixel for performance)
-            for (let i = 0; i < data.length; i += 40) { // 40 = 4 (RGBA) * 10 (every 10th pixel)
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-                const a = data[i + 3];
+            for (var i = 0; i < data.length; i += 16) {
+                var r = data[i];
+                var g = data[i + 1];
+                var b = data[i + 2];
+                var a = data[i + 3];
                 
-                // Skip transparent or very transparent pixels
-                if (a < 200) continue;
+                if (a < 128) continue;
                 
-                // Skip very dark or very light colors
-                const brightness = (r + g + b) / 3;
-                if (brightness < 20 || brightness > 235) continue;
+                var brightness = (r + g + b) / 3;
+                if (brightness < 30 || brightness > 220) continue;
                 
-                // Convert to hex
-                const hex = '#' + [r, g, b].map(x => {
-                    const hex = x.toString(16);
-                    return hex.length === 1 ? '0' + hex : hex;
-                }).join('');
+                var rHex = r.toString(16);
+                if (rHex.length === 1) rHex = '0' + rHex;
+                var gHex = g.toString(16);
+                if (gHex.length === 1) gHex = '0' + gHex;
+                var bHex = b.toString(16);
+                if (bHex.length === 1) bHex = '0' + bHex;
                 
-                // Count color frequency
-                colors.set(hex, (colors.get(hex) || 0) + 1);
-            }
-            
-            if (colors.size === 0) {
-                return [];
-            }
-            
-            // Get most frequent colors
-            const sortedColors = Array.from(colors.entries())
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 12)
-                .map(([color]) => color.toUpperCase());
-            
-            // Filter out very similar colors
-            const distinctColors = [];
-            for (const color of sortedColors) {
-                const rgb = hexToRgb(color);
-                const isDistinct = distinctColors.every(existingColor => {
-                    const existingRgb = hexToRgb(existingColor);
-                    const distance = Math.sqrt(
-                        Math.pow(rgb.r - existingRgb.r, 2) +
-                        Math.pow(rgb.g - existingRgb.g, 2) +
-                        Math.pow(rgb.b - existingRgb.b, 2)
-                    );
-                    return distance > 40;
-                });
+                var hex = '#' + rHex + gHex + bHex;
+                hex = hex.toUpperCase();
                 
-                if (isDistinct) {
-                    distinctColors.push(color);
+                if (colorMap[hex]) {
+                    colorMap[hex]++;
+                } else {
+                    colorMap[hex] = 1;
                 }
-                
-                if (distinctColors.length >= 8) break;
             }
             
-            return distinctColors;
+            var colors = [];
+            for (var color in colorMap) {
+                colors.push({color: color, count: colorMap[color]});
+            }
+            
+            colors.sort(function(a, b) {
+                return b.count - a.count;
+            });
+            
+            var result = [];
+            for (var i = 0; i < Math.min(8, colors.length); i++) {
+                result.push(colors[i].color);
+            }
+            
+            return result;
         }
 
-        // Generate theme-based colors based on URL patterns
-        function getThemeBasedColors(url) {
-            const urlLower = url.toLowerCase();
+        function getThemeColors(url) {
+            var urlLower = url.toLowerCase();
             
-            if (urlLower.includes('sunset') || urlLower.includes('orange')) {
-                return ['#FF6B35', '#F7931E', '#FFD23F', '#FF8C42', '#C73E1D', '#FFA500'];
-            } else if (urlLower.includes('ocean') || urlLower.includes('blue') || urlLower.includes('water')) {
-                return ['#006BA6', '#0496FF', '#FFBC42', '#6BCF7F', '#4D194D', '#87CEEB'];
-            } else if (urlLower.includes('forest') || urlLower.includes('green') || urlLower.includes('nature')) {
-                return ['#2D5016', '#61A63F', '#8FBC8F', '#228B22', '#6B8E23', '#32CD32'];
-            } else if (urlLower.includes('space') || urlLower.includes('galaxy') || urlLower.includes('star')) {
-                return ['#1B1B2F', '#162447', '#1F4068', '#E43F5A', '#E27D00', '#8A2BE2'];
-            } else if (urlLower.includes('fire') || urlLower.includes('red')) {
-                return ['#DC143C', '#FF4500', '#FF6347', '#FF1493', '#B22222', '#8B0000'];
-            } else if (urlLower.includes('purple') || urlLower.includes('violet')) {
-                return ['#9370DB', '#8A2BE2', '#6A0DAD', '#4B0082', '#9932CC', '#DDA0DD'];
+            if (urlLower.indexOf('sunset') !== -1 || urlLower.indexOf('orange') !== -1) {
+                return ['#FF6B35', '#F7931E', '#FFD23F', '#FF8C42', '#C73E1D', '#FFA500', '#FF7F50', '#FFB347'];
+            } else if (urlLower.indexOf('ocean') !== -1 || urlLower.indexOf('blue') !== -1 || urlLower.indexOf('water') !== -1) {
+                return ['#006BA6', '#0496FF', '#87CEEB', '#4682B4', '#1E90FF', '#00CED1', '#20B2AA', '#48CAE4'];
+            } else if (urlLower.indexOf('forest') !== -1 || urlLower.indexOf('green') !== -1 || urlLower.indexOf('nature') !== -1) {
+                return ['#2D5016', '#61A63F', '#8FBC8F', '#228B22', '#6B8E23', '#32CD32', '#90EE90', '#98FB98'];
+            } else if (urlLower.indexOf('space') !== -1 || urlLower.indexOf('galaxy') !== -1 || urlLower.indexOf('star') !== -1) {
+                return ['#1B1B2F', '#162447', '#1F4068', '#E43F5A', '#E27D00', '#8A2BE2', '#4B0082', '#663399'];
+            } else if (urlLower.indexOf('fire') !== -1 || urlLower.indexOf('red') !== -1) {
+                return ['#DC143C', '#FF4500', '#FF6347', '#FF1493', '#B22222', '#8B0000', '#CD5C5C', '#F08080'];
+            } else if (urlLower.indexOf('neon') !== -1 || urlLower.indexOf('bright') !== -1) {
+                return ['#00FFFF', '#FF00FF', '#FFFF00', '#00FF00', '#FF6600', '#FF0080', '#8000FF', '#0080FF'];
             } else {
-                // General vibrant palette
                 return ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#74B9FF', '#FD79A8'];
             }
         }
 
-        function setColorStatus(message) {
-            const statusElement = document.getElementById('colorStatus');
-            if (statusElement) {
-                statusElement.textContent = message;
-            }
-        }
-
-        function hexToRgb(hex) {
-            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return result ? {
-                r: parseInt(result[1], 16),
-                g: parseInt(result[2], 16),
-                b: parseInt(result[3], 16)
-            } : null;
-        }
-
         function displayImageColors(colors) {
-            const container = document.getElementById('imageColors');
-            const row = document.getElementById('imageColorsRow');
+            var container = document.getElementById('imageColors');
+            var row = document.getElementById('imageColorsRow');
             
             if (colors.length === 0) {
                 row.style.display = 'none';
@@ -1969,35 +1011,256 @@
             container.innerHTML = '';
             row.style.display = 'flex';
             
-            colors.forEach(color => {
-                const colorDiv = document.createElement('div');
+            for (var i = 0; i < colors.length; i++) {
+                var color = colors[i];
+                var colorDiv = document.createElement('div');
                 colorDiv.className = 'recent-color';
-                colorDiv.onclick = () => applyImageColor(color);
+                colorDiv.onclick = function(c) {
+                    return function() { applyImageColor(c); };
+                }(color);
                 
-                const swatch = document.createElement('div');
+                var swatch = document.createElement('div');
                 swatch.className = 'recent-color-swatch';
                 swatch.style.backgroundColor = color;
                 
-                const hex = document.createElement('div');
+                var hex = document.createElement('div');
                 hex.className = 'recent-color-hex';
                 hex.textContent = color;
                 
                 colorDiv.appendChild(swatch);
                 colorDiv.appendChild(hex);
                 container.appendChild(colorDiv);
-            });
+            }
         }
 
         function applyImageColor(color) {
-            // Set the color picker and hex input
             document.getElementById('hexInput').value = color;
             document.getElementById('colorPicker').value = color.toLowerCase();
-            
-            // Add to recent colors
             addToRecentColors(color);
-            
-            // Apply the color immediately (this will preserve selection)
             applyTextColor();
+        }
+
+        function setColorStatus(message) {
+            var statusElement = document.getElementById('colorStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+            }
+        }
+
+        // Color management
+        function addToRecentColors(color) {
+            if (!color.startsWith('#')) color = '#' + color;
+            color = color.toUpperCase();
+            
+            recentColors = recentColors.filter(function(c) { return c !== color; });
+            recentColors.unshift(color);
+            
+            if (recentColors.length > 8) {
+                recentColors = recentColors.slice(0, 8);
+            }
+            
+            updateRecentColorsDisplay();
+        }
+
+        function updateRecentColorsDisplay() {
+            var container = document.getElementById('recentColors');
+            container.innerHTML = '';
+            
+            for (var i = 0; i < recentColors.length; i++) {
+                var color = recentColors[i];
+                var recentColor = document.createElement('div');
+                recentColor.className = 'recent-color';
+                recentColor.onclick = function(c) {
+                    return function() { applyRecentColor(c); };
+                }(color);
+                
+                var swatch = document.createElement('div');
+                swatch.className = 'recent-color-swatch';
+                swatch.style.backgroundColor = color;
+                
+                var hex = document.createElement('div');
+                hex.className = 'recent-color-hex';
+                hex.textContent = color;
+                
+                recentColor.appendChild(swatch);
+                recentColor.appendChild(hex);
+                container.appendChild(recentColor);
+            }
+        }
+
+        function applyRecentColor(color) {
+            document.getElementById('hexInput').value = color;
+            document.getElementById('colorPicker').value = color.toLowerCase();
+            applyTextColor();
+        }
+
+        // Color picker sync
+        function updateColorFromHex() {
+            var hex = document.getElementById('hexInput').value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                document.getElementById('colorPicker').value = hex.toLowerCase();
+            }
+        }
+
+        function updateHexFromColor() {
+            var color = document.getElementById('colorPicker').value;
+            document.getElementById('hexInput').value = color.toUpperCase();
+        }
+
+        function updateGradientStartFromHex() {
+            var hex = document.getElementById('gradientStartHex').value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                document.getElementById('gradientStart').value = hex.toLowerCase();
+            }
+        }
+
+        function updateGradientStartHex() {
+            var color = document.getElementById('gradientStart').value;
+            document.getElementById('gradientStartHex').value = color.toUpperCase();
+        }
+
+        function updateGradientEndFromHex() {
+            var hex = document.getElementById('gradientEndHex').value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                document.getElementById('gradientEnd').value = hex.toLowerCase();
+            }
+        }
+
+        function updateGradientEndHex() {
+            var color = document.getElementById('gradientEnd').value;
+            document.getElementById('gradientEndHex').value = color.toUpperCase();
+        }
+
+        function swapGradientColors() {
+            var startHex = document.getElementById('gradientStartHex').value;
+            var startColor = document.getElementById('gradientStart').value;
+            var endHex = document.getElementById('gradientEndHex').value;
+            var endColor = document.getElementById('gradientEnd').value;
+            
+            document.getElementById('gradientStartHex').value = endHex;
+            document.getElementById('gradientStart').value = endColor;
+            document.getElementById('gradientEndHex').value = startHex;
+            document.getElementById('gradientEnd').value = startColor;
+        }
+
+        // Symbol filtering
+        function filterSymbols() {
+            var searchTerm = document.getElementById('symbolSearch').value.toLowerCase();
+            var symbolPicker = document.getElementById('symbolPicker');
+            var options = symbolPicker.querySelectorAll('option');
+            var optgroups = symbolPicker.querySelectorAll('optgroup');
+            
+            if (!searchTerm) {
+                for (var i = 0; i < options.length; i++) {
+                    options[i].style.display = '';
+                }
+                for (var i = 0; i < optgroups.length; i++) {
+                    optgroups[i].style.display = '';
+                }
+                return;
+            }
+            
+            for (var i = 0; i < optgroups.length; i++) {
+                optgroups[i].style.display = 'none';
+            }
+            
+            for (var i = 0; i < options.length; i++) {
+                var option = options[i];
+                if (option.value === '') {
+                    option.style.display = '';
+                    continue;
+                }
+                
+                var keywords = option.dataset.keywords || '';
+                var text = option.textContent.toLowerCase();
+                var value = option.value.toLowerCase();
+                
+                var matches = keywords.indexOf(searchTerm) !== -1 || 
+                             text.indexOf(searchTerm) !== -1 || 
+                             value.indexOf(searchTerm) !== -1;
+                
+                if (matches) {
+                    option.style.display = '';
+                    var parentGroup = option.closest('optgroup');
+                    if (parentGroup) {
+                        parentGroup.style.display = '';
+                    }
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+        }
+
+        function insertSymbol() {
+            var symbol = document.getElementById('symbolPicker').value;
+            if (symbol) {
+                visualEditor.focus();
+                
+                var selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    var range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    
+                    var textNode = document.createTextNode(symbol);
+                    range.insertNode(textNode);
+                    
+                    range.setStartAfter(textNode);
+                    range.setEndAfter(textNode);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                
+                updateBBCodeOutput();
+                
+                setTimeout(function() {
+                    document.getElementById('symbolPicker').value = '';
+                }, 100);
+            }
+            visualEditor.focus();
+        }
+
+        // BBCode conversion
+        function htmlToBBCode(html) {
+            var bbcode = html;
+            
+            bbcode = bbcode.replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, '[img]$1[/img]');
+            bbcode = bbcode.replace(/<span[^>]*data-gradient-letter="([^"]*)"[^>]*>([^<]*)<\/span>/gi, '[color=$1]$2[/color]');
+            bbcode = bbcode.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '[b]$1[/b]');
+            bbcode = bbcode.replace(/<b[^>]*>(.*?)<\/b>/gi, '[b]$1[/b]');
+            bbcode = bbcode.replace(/<em[^>]*>(.*?)<\/em>/gi, '[i]$1[/i]');
+            bbcode = bbcode.replace(/<i[^>]*>(.*?)<\/i>/gi, '[i]$1[/i]');
+            bbcode = bbcode.replace(/<u[^>]*>(.*?)<\/u>/gi, '[u]$1[/u]');
+            bbcode = bbcode.replace(/<s[^>]*>(.*?)<\/s>/gi, '[s]$1[/s]');
+            bbcode = bbcode.replace(/<span style="color:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, '[color=$1]$2[/color]');
+            bbcode = bbcode.replace(/<font color="([^"]*)"[^>]*>(.*?)<\/font>/gi, '[color=$1]$2[/color]');
+            bbcode = bbcode.replace(/<div[^>]*>/gi, '');
+            bbcode = bbcode.replace(/<\/div>/gi, '\n');
+            bbcode = bbcode.replace(/<br[^>]*>/gi, '\n');
+            bbcode = bbcode.replace(/<[^>]*>/g, '');
+            bbcode = bbcode.replace(/\n{3,}/g, '\n\n').trim();
+            
+            return bbcode;
+        }
+
+        function updateBBCodeOutput() {
+            var htmlContent = visualEditor.innerHTML;
+            var bbcode = htmlToBBCode(htmlContent);
+            document.getElementById('bbcodeOutput').textContent = bbcode || 'BBCode will appear here...';
+        }
+
+        function updateVisualEditor() {
+            var bbcode = bbcodeInput.value;
+            var htmlContent = bbcode
+                .replace(/\[img\](.*?)\[\/img\]/gi, '<img src="$1" style="max-width:100%;height:auto;display:block;margin:10px 0;">')
+                .replace(/\[b\](.*?)\[\/b\]/gi, '<strong>$1</strong>')
+                .replace(/\[i\](.*?)\[\/i\]/gi, '<em>$1</em>')
+                .replace(/\[u\](.*?)\[\/u\]/gi, '<u>$1</u>')
+                .replace(/\[s\](.*?)\[\/s\]/gi, '<s>$1</s>')
+                .replace(/\[color=([^\]]*)\](.*?)\[\/color\]/gi, '<span style="color:$1">$2</span>')
+                .replace(/\n/g, '<br>');
+            
+            visualEditor.innerHTML = htmlContent;
+            document.getElementById('bbcodeOutput').textContent = bbcode || 'BBCode will appear here...';
         }
 
         function updateToolbarState() {
@@ -2005,284 +1268,19 @@
             document.getElementById('italicBtn').classList.toggle('active', document.queryCommandState('italic'));
             document.getElementById('underlineBtn').classList.toggle('active', document.queryCommandState('underline'));
             document.getElementById('strikeBtn').classList.toggle('active', document.queryCommandState('strikeThrough'));
-            document.getElementById('subBtn').classList.toggle('active', document.queryCommandState('subscript'));
-            document.getElementById('supBtn').classList.toggle('active', document.queryCommandState('superscript'));
-            
-            document.getElementById('leftBtn').classList.toggle('active', document.queryCommandState('justifyLeft'));
-            document.getElementById('centerBtn').classList.toggle('active', document.queryCommandState('justifyCenter'));
-            document.getElementById('rightBtn').classList.toggle('active', document.queryCommandState('justifyRight'));
-            
-            // Update font and size dropdowns based on current selection
-            updateCurrentFormatting();
-        }
-
-        function updateCurrentFormatting() {
-            const selection = window.getSelection();
-            
-            // Reset dropdowns to default
-            document.getElementById('fontFamily').value = '';
-            document.getElementById('fontSize').value = '';
-            
-            // Only check formatting if there's an actual text selection
-            if (selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed) {
-                const range = selection.getRangeAt(0);
-                
-                // Make sure the selection is within our editor
-                if (!visualEditor.contains(range.commonAncestorContainer) && 
-                    range.commonAncestorContainer !== visualEditor) {
-                    return;
-                }
-                
-                // Get the common ancestor container
-                let container = range.commonAncestorContainer;
-                if (container.nodeType === Node.TEXT_NODE) {
-                    container = container.parentElement;
-                }
-                
-                // Look for font family and size
-                let currentElement = container;
-                let fontFamily = null;
-                let fontSize = null;
-                
-                // Walk up the DOM tree to find font formatting
-                while (currentElement && currentElement !== visualEditor) {
-                    if (currentElement.nodeType === Node.ELEMENT_NODE) {
-                        // Check for font family
-                        if (!fontFamily) {
-                            const dataFont = currentElement.getAttribute('data-font-family');
-                            const styleFont = currentElement.style.fontFamily;
-                            if (dataFont || styleFont) {
-                                fontFamily = dataFont || styleFont;
-                            }
-                        }
-                        
-                        // Check for font size
-                        if (!fontSize) {
-                            const dataSize = currentElement.getAttribute('data-font-size');
-                            const styleSize = currentElement.style.fontSize;
-                            if (dataSize) {
-                                fontSize = dataSize;
-                            } else if (styleSize && styleSize.includes('px')) {
-                                fontSize = styleSize.replace('px', '');
-                            }
-                        }
-                        
-                        // If we found both, we can stop
-                        if (fontFamily && fontSize) break;
-                    }
-                    currentElement = currentElement.parentElement;
-                }
-                
-                // Also check if the selection spans elements with consistent formatting
-                if (!fontFamily || !fontSize) {
-                    const walker = document.createTreeWalker(
-                        range.commonAncestorContainer,
-                        NodeFilter.SHOW_ELEMENT,
-                        {
-                            acceptNode: function(node) {
-                                return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
-                            }
-                        }
-                    );
-                    
-                    let node;
-                    while (node = walker.nextNode()) {
-                        if (!fontFamily) {
-                            const dataFont = node.getAttribute('data-font-family');
-                            const styleFont = node.style.fontFamily;
-                            if (dataFont || styleFont) {
-                                fontFamily = dataFont || styleFont;
-                            }
-                        }
-                        
-                        if (!fontSize) {
-                            const dataSize = node.getAttribute('data-font-size');
-                            const styleSize = node.style.fontSize;
-                            if (dataSize) {
-                                fontSize = dataSize;
-                            } else if (styleSize && styleSize.includes('px')) {
-                                fontSize = styleSize.replace('px', '');
-                            }
-                        }
-                        
-                        if (fontFamily && fontSize) break;
-                    }
-                }
-                
-                // Update the dropdowns if we found formatting
-                if (fontFamily) {
-                    // Try to match the font family to one of our options
-                    const fontSelect = document.getElementById('fontFamily');
-                    for (let option of fontSelect.options) {
-                        if (option.value === fontFamily) {
-                            fontSelect.value = fontFamily;
-                            break;
-                        }
-                    }
-                }
-                
-                if (fontSize) {
-                    const sizeSelect = document.getElementById('fontSize');
-                    for (let option of sizeSelect.options) {
-                        if (option.value === fontSize) {
-                            sizeSelect.value = fontSize;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        function htmlToBBCode(html) {
-            let bbcode = html;
-            
-            // Handle images first
-            bbcode = bbcode.replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, '[img]$1[/img]');
-            
-            // Handle individual gradient letters FIRST (before other span processing)
-            bbcode = bbcode.replace(/<span[^>]*data-gradient-letter="([^"]*)"[^>]*>([^<]*)<\/span>/gi, '[color=$1]$2[/color]');
-            
-            // Handle gradient containers (remove the wrapper but keep the content)
-            bbcode = bbcode.replace(/<span[^>]*data-gradient-container="true"[^>]*>(.*?)<\/span>/gi, '$1');
-            
-            // Handle alignment
-            bbcode = bbcode.replace(/<div style="text-align:\s*center[^"]*"[^>]*>(.*?)<\/div>/gi, '[center]$1[/center]');
-            bbcode = bbcode.replace(/<div style="text-align:\s*left[^"]*"[^>]*>(.*?)<\/div>/gi, '[left]$1[/left]');
-            bbcode = bbcode.replace(/<div style="text-align:\s*right[^"]*"[^>]*>(.*?)<\/div>/gi, '[right]$1[/right]');
-            
-            // Handle font families (both ways)
-            bbcode = bbcode.replace(/<span[^>]*data-font-family="([^"]*)"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
-                const fontMap = {
-                    'Arial, sans-serif': 'Arial',
-                    "'Times New Roman', serif": 'Times New Roman',
-                    'Georgia, serif': 'Georgia',
-                    'Verdana, sans-serif': 'Verdana',
-                    'Tahoma, sans-serif': 'Tahoma',
-                    "'Trebuchet MS', sans-serif": 'Trebuchet MS',
-                    "'Comic Sans MS', cursive": 'Comic Sans MS',
-                    "'Courier New', monospace": 'Courier New',
-                    'Monaco, monospace': 'Monaco',
-                    "'Lucida Console', monospace": 'Lucida Console',
-                    'Impact, sans-serif': 'Impact',
-                    "'Book Antiqua', serif": 'Book Antiqua'
-                };
-                const simpleName = fontMap[fontFamily] || fontFamily.replace(/['"]/g, '');
-                return `[font=${simpleName}]${text}[/font]`;
-            });
-            
-            bbcode = bbcode.replace(/<span style="font-family:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
-                const fontMap = {
-                    'Arial, sans-serif': 'Arial',
-                    "'Times New Roman', serif": 'Times New Roman',
-                    'Georgia, serif': 'Georgia',
-                    'Verdana, sans-serif': 'Verdana',
-                    'Tahoma, sans-serif': 'Tahoma',
-                    "'Trebuchet MS', sans-serif": 'Trebuchet MS',
-                    "'Comic Sans MS', cursive": 'Comic Sans MS',
-                    "'Courier New', monospace": 'Courier New',
-                    'Monaco, monospace': 'Monaco',
-                    "'Lucida Console', monospace": 'Lucida Console',
-                    'Impact, sans-serif': 'Impact',
-                    "'Book Antiqua', serif": 'Book Antiqua'
-                };
-                const simpleName = fontMap[fontFamily] || fontFamily.replace(/['"]/g, '');
-                return `[font=${simpleName}]${text}[/font]`;
-            });
-            
-            // Handle individual colored spans (for non-gradient colored text)
-            bbcode = bbcode.replace(/<span style="color:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, '[color=$1]$2[/color]');
-            bbcode = bbcode.replace(/<font color="([^"]*)"[^>]*>(.*?)<\/font>/gi, '[color=$1]$2[/color]');
-            
-            // Handle font sizes (both ways)
-            bbcode = bbcode.replace(/<span[^>]*data-font-size="([^"]*)"[^>]*>(.*?)<\/span>/gi, '[size=$1]$2[/size]');
-            bbcode = bbcode.replace(/<span style="font-size:\s*(\d+)px[^"]*"[^>]*>(.*?)<\/span>/gi, '[size=$1]$2[/size]');
-            
-            // Basic formatting
-            bbcode = bbcode.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '[b]$1[/b]');
-            bbcode = bbcode.replace(/<b[^>]*>(.*?)<\/b>/gi, '[b]$1[/b]');
-            bbcode = bbcode.replace(/<em[^>]*>(.*?)<\/em>/gi, '[i]$1[/i]');
-            bbcode = bbcode.replace(/<i[^>]*>(.*?)<\/i>/gi, '[i]$1[/i]');
-            bbcode = bbcode.replace(/<u[^>]*>(.*?)<\/u>/gi, '[u]$1[/u]');
-            bbcode = bbcode.replace(/<s[^>]*>(.*?)<\/s>/gi, '[s]$1[/s]');
-            bbcode = bbcode.replace(/<strike[^>]*>(.*?)<\/strike>/gi, '[s]$1[/s]');
-            bbcode = bbcode.replace(/<sub[^>]*>(.*?)<\/sub>/gi, '[sub]$1[/sub]');
-            bbcode = bbcode.replace(/<sup[^>]*>(.*?)<\/sup>/gi, '[sup]$1[/sup]');
-            
-            // Clean up remaining HTML
-            bbcode = bbcode.replace(/<div[^>]*>/gi, '');
-            bbcode = bbcode.replace(/<\/div>/gi, '\n');
-            bbcode = bbcode.replace(/<br[^>]*>/gi, '\n');
-            bbcode = bbcode.replace(/<[^>]*>/g, '');
-            
-            // Clean up extra whitespace but preserve intentional line breaks
-            bbcode = bbcode.replace(/\n{3,}/g, '\n\n').trim();
-            
-            return bbcode;
-        }
-
-        function bbcodeToHtml(bbcode) {
-            return bbcode
-                .replace(/\[img\](.*?)\[\/img\]/gi, '<div><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px 0;border:1px solid #e2e8f0;border-radius:8px;"></div>')
-                .replace(/\[font=([^\]]*)\](.*?)\[\/font\]/gi, function(match, fontName, text) {
-                    // Convert BBCode font names back to CSS font families
-                    const fontMap = {
-                        'Arial': 'Arial, sans-serif',
-                        'Times New Roman': "'Times New Roman', serif",
-                        'Georgia': 'Georgia, serif',
-                        'Verdana': 'Verdana, sans-serif',
-                        'Tahoma': 'Tahoma, sans-serif',
-                        'Trebuchet MS': "'Trebuchet MS', sans-serif",
-                        'Comic Sans MS': "'Comic Sans MS', cursive",
-                        'Courier New': "'Courier New', monospace",
-                        'Monaco': 'Monaco, monospace',
-                        'Lucida Console': "'Lucida Console', monospace",
-                        'Impact': 'Impact, sans-serif',
-                        'Book Antiqua': "'Book Antiqua', serif"
-                    };
-                    const cssFont = fontMap[fontName] || fontName;
-                    return `<span style="font-family:${cssFont}">${text}</span>`;
-                })
-                .replace(/\[b\](.*?)\[\/b\]/gi, '<strong>$1</strong>')
-                .replace(/\[i\](.*?)\[\/i\]/gi, '<em>$1</em>')
-                .replace(/\[u\](.*?)\[\/u\]/gi, '<u>$1</u>')
-                .replace(/\[s\](.*?)\[\/s\]/gi, '<s>$1</s>')
-                .replace(/\[sub\](.*?)\[\/sub\]/gi, '<sub>$1</sub>')
-                .replace(/\[sup\](.*?)\[\/sup\]/gi, '<sup>$1</sup>')
-                .replace(/\[color=([^\]]*)\](.*?)\[\/color\]/gi, '<span style="color:$1">$2</span>')
-                .replace(/\[size=([^\]]*)\](.*?)\[\/size\]/gi, '<span style="font-size:$1px">$2</span>')
-                .replace(/\[center\](.*?)\[\/center\]/gi, '<div style="text-align:center">$1</div>')
-                .replace(/\[left\](.*?)\[\/left\]/gi, '<div style="text-align:left">$1</div>')
-                .replace(/\[right\](.*?)\[\/right\]/gi, '<div style="text-align:right">$1</div>')
-                .replace(/\n/g, '<br>');
-        }
-
-        function updateBBCodeOutput() {
-            const htmlContent = visualEditor.innerHTML;
-            const bbcode = htmlToBBCode(htmlContent);
-            document.getElementById('bbcodeOutput').textContent = bbcode || 'BBCode will appear here...';
-        }
-
-        function updateVisualEditor() {
-            const bbcode = bbcodeInput.value;
-            const htmlContent = bbcodeToHtml(bbcode);
-            visualEditor.innerHTML = htmlContent;
-            document.getElementById('bbcodeOutput').textContent = bbcode || 'BBCode will appear here...';
         }
 
         function clearAllFormatting() {
-            // Get the text content (automatically handles line breaks)
-            const allText = visualEditor.innerText || visualEditor.textContent || '';
+            var allText = visualEditor.innerText || visualEditor.textContent || '';
             
-            // Replace everything with plain text
             if (allText.trim()) {
                 visualEditor.innerHTML = allText.replace(/\n/g, '<br>');
             } else {
                 visualEditor.innerHTML = '<br>';
             }
             
-            // Also clear the image colors section
-            const imageColorsRow = document.getElementById('imageColorsRow');
-            const imageColorsContainer = document.getElementById('imageColors');
+            var imageColorsRow = document.getElementById('imageColorsRow');
+            var imageColorsContainer = document.getElementById('imageColors');
             if (imageColorsRow && imageColorsContainer) {
                 imageColorsRow.style.display = 'none';
                 imageColorsContainer.innerHTML = '';
@@ -2293,33 +1291,36 @@
         }
 
         function clearSelectedFormatting() {
-            const selection = window.getSelection();
+            var selection = window.getSelection();
             if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
                 alert('Please select some text first to remove formatting from it.');
                 return;
             }
 
-            // Simply use browser's removeFormat - works for most formatting
             document.execCommand('removeFormat');
-            
             updateBBCodeOutput();
             visualEditor.focus();
         }
 
-        async function copyBBCode() {
-            const bbcode = document.getElementById('bbcodeOutput').textContent;
+        function copyBBCode() {
+            var bbcode = document.getElementById('bbcodeOutput').textContent;
             if (bbcode === 'BBCode will appear here...') return;
 
             try {
-                await navigator.clipboard.writeText(bbcode);
-                const btn = document.querySelector('.copy-btn');
-                const originalText = btn.textContent;
-                btn.textContent = '✅ Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(bbcode).then(function() {
+                        var btn = document.querySelector('.copy-btn');
+                        var originalText = btn.textContent;
+                        btn.textContent = '✅ Copied!';
+                        setTimeout(function() {
+                            btn.textContent = originalText;
+                        }, 2000);
+                    });
+                } else {
+                    throw new Error('Clipboard API not available');
+                }
             } catch (err) {
-                const textArea = document.createElement('textarea');
+                var textArea = document.createElement('textarea');
                 textArea.value = bbcode;
                 document.body.appendChild(textArea);
                 textArea.select();
@@ -2329,123 +1330,116 @@
             }
         }
 
-        // Color picker sync functions
-        function updateColorFromHex() {
-            const hex = document.getElementById('hexInput').value;
-            if (/^#[0-9A-F]{6}$/i.test(hex)) {
-                document.getElementById('colorPicker').value = hex.toLowerCase();
-            }
+        // Placeholder functions for missing features
+        function handleEnterKey(event) {
+            // Basic enter key handling
         }
 
-        function updateHexFromColor() {
-            const color = document.getElementById('colorPicker').value;
-            document.getElementById('hexInput').value = color.toUpperCase();
-        }
-
-        function updateGradientStartFromHex() {
-            const hex = document.getElementById('gradientStartHex').value;
-            if (/^#[0-9A-F]{6}$/i.test(hex)) {
-                document.getElementById('gradientStart').value = hex.toLowerCase();
-            }
-        }
-
-        function updateGradientStartHex() {
-            const color = document.getElementById('gradientStart').value;
-            document.getElementById('gradientStartHex').value = color.toUpperCase();
-        }
-
-        function updateGradientEndFromHex() {
-            const hex = document.getElementById('gradientEndHex').value;
-            if (/^#[0-9A-F]{6}$/i.test(hex)) {
-                document.getElementById('gradientEnd').value = hex.toLowerCase();
-            }
-        }
-
-        function updateGradientEndHex() {
-            const color = document.getElementById('gradientEnd').value;
-            document.getElementById('gradientEndHex').value = color.toUpperCase();
-        }
-
-        function swapGradientColors() {
-            // Get current values
-            const startHex = document.getElementById('gradientStartHex').value;
-            const startColor = document.getElementById('gradientStart').value;
-            const endHex = document.getElementById('gradientEndHex').value;
-            const endColor = document.getElementById('gradientEnd').value;
-            
-            // Swap them
-            document.getElementById('gradientStartHex').value = endHex;
-            document.getElementById('gradientStart').value = endColor;
-            document.getElementById('gradientEndHex').value = startHex;
-            document.getElementById('gradientEnd').value = startColor;
-        }
-
-        function addToRecentColors(color) {
-            // Normalize color to uppercase hex
-            if (!color.startsWith('#')) color = '#' + color;
-            color = color.toUpperCase();
-            
-            // Remove if already exists
-            recentColors = recentColors.filter(c => c !== color);
-            
-            // Add to beginning
-            recentColors.unshift(color);
-            
-            // Keep only last 8 colors
-            if (recentColors.length > 8) {
-                recentColors = recentColors.slice(0, 8);
+        function transformCase(caseType) {
+            var selection = window.getSelection();
+            if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+                alert('Please select some text first to change its case.');
+                return;
             }
             
-            updateRecentColorsDisplay();
+            var range = selection.getRangeAt(0);
+            var text = range.toString();
+            var newText;
+            
+            switch(caseType) {
+                case 'uppercase':
+                    newText = text.toUpperCase();
+                    break;
+                case 'lowercase':
+                    newText = text.toLowerCase();
+                    break;
+                case 'propercase':
+                    newText = text.toLowerCase().replace(/\b\w/g, function(char) { return char.toUpperCase(); });
+                    break;
+                default:
+                    newText = text;
+            }
+            
+            range.deleteContents();
+            range.insertNode(document.createTextNode(newText));
+            updateBBCodeOutput();
+            visualEditor.focus();
         }
 
-        function updateRecentColorsDisplay() {
-            const container = document.getElementById('recentColors');
-            container.innerHTML = '';
-            
-            recentColors.forEach(color => {
-                const recentColor = document.createElement('div');
-                recentColor.className = 'recent-color';
-                recentColor.onclick = () => applyRecentColor(color);
+        function applySubscript() {
+            formatText('subscript');
+        }
+
+        function applySuperscript() {
+            formatText('superscript');
+        }
+
+        function applyFontSize() {
+            var size = document.getElementById('fontSize').value;
+            if (size) {
+                var selection = window.getSelection();
+                if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+                    alert('Please select some text first to change its font size.');
+                    document.getElementById('fontSize').value = '';
+                    return;
+                }
                 
-                const swatch = document.createElement('div');
-                swatch.className = 'recent-color-swatch';
-                swatch.style.backgroundColor = color;
+                var span = document.createElement('span');
+                span.style.fontSize = size + 'px';
                 
-                const hex = document.createElement('div');
-                hex.className = 'recent-color-hex';
-                hex.textContent = color;
+                var range = selection.getRangeAt(0);
+                try {
+                    range.surroundContents(span);
+                } catch (e) {
+                    var contents = range.extractContents();
+                    span.appendChild(contents);
+                    range.insertNode(span);
+                }
                 
-                recentColor.appendChild(swatch);
-                recentColor.appendChild(hex);
-                container.appendChild(recentColor);
-            });
+                updateBBCodeOutput();
+                visualEditor.focus();
+            }
         }
 
-        function applyRecentColor(color) {
-            // Set the color picker and hex input
-            document.getElementById('hexInput').value = color;
-            document.getElementById('colorPicker').value = color.toLowerCase();
-            
-            // Apply the color immediately (this will preserve selection)
-            applyTextColor();
+        function applyFontFamily() {
+            var fontFamily = document.getElementById('fontFamily').value;
+            if (fontFamily) {
+                var selection = window.getSelection();
+                if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+                    alert('Please select some text first to change its font.');
+                    document.getElementById('fontFamily').value = '';
+                    return;
+                }
+                
+                var span = document.createElement('span');
+                span.style.fontFamily = fontFamily;
+                
+                var range = selection.getRangeAt(0);
+                try {
+                    range.surroundContents(span);
+                } catch (e) {
+                    var contents = range.extractContents();
+                    span.appendChild(contents);
+                    range.insertNode(span);
+                }
+                
+                updateBBCodeOutput();
+                visualEditor.focus();
+            }
         }
 
         // Initialize
         visualEditor.focus();
         updateBBCodeOutput();
         
-        // Initialize hex inputs with default colors
         document.getElementById('hexInput').value = '#000000';
         document.getElementById('gradientStartHex').value = '#FF0000';
         document.getElementById('gradientEndHex').value = '#0000FF';
         
-        // Listen for selection changes to update toolbar state
         document.addEventListener('selectionchange', function() {
-            const selection = window.getSelection();
+            var selection = window.getSelection();
             if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                // Only update if selection is within our visual editor
+                var range = selection.getRangeAt(0);
                 if (visualEditor.contains(range.commonAncestorContainer) || 
                     range.commonAncestorContainer === visualEditor) {
                     updateToolbarState();
@@ -2453,7 +1447,6 @@
             }
         });
         
-        // Allow Enter key in image URL input
         document.getElementById('imageUrl').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
