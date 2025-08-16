@@ -34,7 +34,7 @@
           flex-shrink:0;
         }
         
-        .header > div {
+        .header > div:first-child {
           flex: 1;
         }
 
@@ -315,7 +315,7 @@
             font-size:2rem;
           }
           
-          .header-buttons{
+          .header > div:last-child{
             align-self:flex-end;
             width:100%;
             display:flex;
@@ -645,7 +645,7 @@
                             <div style="display:flex;align-items:center;gap:0.5rem;">
                                 <span class="group-label">Colors from Image:</span>
                                 <span style="font-size:0.75rem;color:var(--muted);font-style:italic;">Click to use color from your image</span>
-                                <span style="font-size:0.7rem;color:#f59e0b;margin-left:auto;">💡 Works best with placeholder images</span>
+
                             </div>
                             <div class="recent-colors" id="imageColors">
                                 <!-- Image colors will be populated here -->
@@ -722,42 +722,105 @@
             }
         }
 
+        function handleEnterKey(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                
+                // Create a proper line break
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    
+                    // Create a div with a br inside for proper spacing
+                    const newLine = document.createElement('div');
+                    const br = document.createElement('br');
+                    newLine.appendChild(br);
+                    
+                    range.deleteContents();
+                    range.insertNode(newLine);
+                    
+                    // Position cursor at the beginning of the new line
+                    range.setStart(newLine, 0);
+                    range.setEnd(newLine, 0);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                
+                updateBBCodeOutput();
+            }
+        }
+
         function transformCase(caseType) {
             const selection = window.getSelection();
+            let selectionInfo = null;
+            
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
                 if (!range.collapsed) {
-                    // Get the selected text
-                    const selectedText = range.toString();
+                    // Save selection info
+                    selectionInfo = {
+                        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                    };
                     
-                    // Transform the text based on case type
-                    let transformedText;
-                    switch(caseType) {
-                        case 'uppercase':
-                            transformedText = selectedText.toUpperCase();
-                            break;
-                        case 'lowercase':
-                            transformedText = selectedText.toLowerCase();
-                            break;
-                        case 'propercase':
-                            transformedText = selectedText.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
-                            break;
-                        default:
-                            transformedText = selectedText;
+                    // Create a tree walker to find all text nodes in the selection
+                    const walker = document.createTreeWalker(
+                        range.commonAncestorContainer,
+                        NodeFilter.SHOW_TEXT,
+                        {
+                            acceptNode: function(node) {
+                                return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+                            }
+                        }
+                    );
+                    
+                    const textNodes = [];
+                    let node;
+                    while (node = walker.nextNode()) {
+                        // Only include text nodes that are actually within our selection
+                        const nodeRange = document.createRange();
+                        nodeRange.selectNode(node);
+                        if (range.compareBoundaryPoints(Range.END_TO_START, nodeRange) <= 0 &&
+                            range.compareBoundaryPoints(Range.START_TO_END, nodeRange) >= 0) {
+                            textNodes.push(node);
+                        }
                     }
                     
-                    // Replace the selected content with transformed text
-                    range.deleteContents();
-                    const textNode = document.createTextNode(transformedText);
-                    range.insertNode(textNode);
-                    
-                    // Select the newly inserted text
-                    const newRange = document.createRange();
-                    newRange.selectNode(textNode);
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
+                    // Transform text in each text node
+                    textNodes.forEach(textNode => {
+                        if (textNode.textContent.trim()) {
+                            let transformedText;
+                            switch(caseType) {
+                                case 'uppercase':
+                                    transformedText = textNode.textContent.toUpperCase();
+                                    break;
+                                case 'lowercase':
+                                    transformedText = textNode.textContent.toLowerCase();
+                                    break;
+                                case 'propercase':
+                                    transformedText = textNode.textContent.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+                                    break;
+                                default:
+                                    transformedText = textNode.textContent;
+                            }
+                            textNode.textContent = transformedText;
+                        }
+                    });
                     
                     updateBBCodeOutput();
+                    
+                    // Restore selection
+                    try {
+                        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                        if (newRange) {
+                            selection.removeAllRanges();
+                            selection.addRange(newRange);
+                        } else {
+                            visualEditor.focus();
+                        }
+                    } catch (e) {
+                        visualEditor.focus();
+                    }
                 } else {
                     alert('Please select some text first to change its case.');
                 }
@@ -793,75 +856,45 @@
             }
         }
 
-        function transformCase(caseType) {
-            const selection = window.getSelection();
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                if (!range.collapsed) {
-                    // Get the selected text
-                    const selectedText = range.toString();
-                    
-                    // Transform the text based on case type
-                    let transformedText;
-                    switch(caseType) {
-                        case 'uppercase':
-                            transformedText = selectedText.toUpperCase();
-                            break;
-                        case 'lowercase':
-                            transformedText = selectedText.toLowerCase();
-                            break;
-                        case 'propercase':
-                            transformedText = selectedText.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
-                            break;
-                        default:
-                            transformedText = selectedText;
-                    }
-                    
-                    // Replace the selected content with transformed text
-                    range.deleteContents();
-                    const textNode = document.createTextNode(transformedText);
-                    range.insertNode(textNode);
-                    
-                    // Select the newly inserted text
-                    const newRange = document.createRange();
-                    newRange.selectNode(textNode);
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                    
-                    updateBBCodeOutput();
-                } else {
-                    alert('Please select some text first to change its case.');
-                }
-            }
-            visualEditor.focus();
-        }
+
 
         function applySubscript() {
             const selection = window.getSelection();
+            let selectionInfo = null;
+            
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
                 if (!range.collapsed) {
+                    // Save selection info
+                    selectionInfo = {
+                        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                    };
+                    
                     const sub = document.createElement('sub');
-                    let newRange;
                     
                     try {
                         range.surroundContents(sub);
-                        // Create new range that selects the sub content
-                        newRange = document.createRange();
-                        newRange.selectNodeContents(sub);
                     } catch (e) {
                         const contents = range.extractContents();
                         sub.appendChild(contents);
                         range.insertNode(sub);
-                        // Create new range that selects the sub content
-                        newRange = document.createRange();
-                        newRange.selectNodeContents(sub);
                     }
                     
-                    // Restore selection to the formatted text
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
                     updateBBCodeOutput();
+                    
+                    // Restore selection
+                    try {
+                        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                        if (newRange) {
+                            selection.removeAllRanges();
+                            selection.addRange(newRange);
+                        } else {
+                            visualEditor.focus();
+                        }
+                    } catch (e) {
+                        visualEditor.focus();
+                    }
                 } else {
                     alert('Please select some text first to make it subscript.');
                 }
@@ -871,30 +904,41 @@
 
         function applySuperscript() {
             const selection = window.getSelection();
+            let selectionInfo = null;
+            
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
                 if (!range.collapsed) {
+                    // Save selection info
+                    selectionInfo = {
+                        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                    };
+                    
                     const sup = document.createElement('sup');
-                    let newRange;
                     
                     try {
                         range.surroundContents(sup);
-                        // Create new range that selects the sup content
-                        newRange = document.createRange();
-                        newRange.selectNodeContents(sup);
                     } catch (e) {
                         const contents = range.extractContents();
                         sup.appendChild(contents);
                         range.insertNode(sup);
-                        // Create new range that selects the sup content
-                        newRange = document.createRange();
-                        newRange.selectNodeContents(sup);
                     }
                     
-                    // Restore selection to the formatted text
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
                     updateBBCodeOutput();
+                    
+                    // Restore selection
+                    try {
+                        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                        if (newRange) {
+                            selection.removeAllRanges();
+                            selection.addRange(newRange);
+                        } else {
+                            visualEditor.focus();
+                        }
+                    } catch (e) {
+                        visualEditor.focus();
+                    }
                 } else {
                     alert('Please select some text first to make it superscript.');
                 }
@@ -904,24 +948,106 @@
 
         function formatText(command) {
             const selection = window.getSelection();
-            const originalRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+            let selectionInfo = null;
             
+            if (selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed) {
+                const range = selection.getRangeAt(0);
+                
+                // Save detailed selection info before making changes
+                selectionInfo = {
+                    startContainer: range.startContainer,
+                    startOffset: range.startOffset,
+                    endContainer: range.endContainer,
+                    endOffset: range.endOffset,
+                    selectedText: range.toString(),
+                    // Calculate text positions relative to the editor
+                    startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                    endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                };
+            }
+            
+            // Execute the formatting command
             document.execCommand(command, false, null);
             updateBBCodeOutput();
             updateToolbarState();
             
-            // Try to restore selection to the formatted content
-            if (originalRange && !originalRange.collapsed) {
+            // Try to restore selection using text positions
+            if (selectionInfo) {
                 try {
-                    selection.removeAllRanges();
-                    selection.addRange(originalRange);
+                    const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                    if (newRange) {
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    } else {
+                        visualEditor.focus();
+                    }
                 } catch (e) {
-                    // If we can't restore exact range, just focus the editor
                     visualEditor.focus();
                 }
             } else {
                 visualEditor.focus();
             }
+        }
+        
+        function getTextPosition(container, node, offset) {
+            let textPos = 0;
+            const walker = document.createTreeWalker(
+                container,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            let currentNode;
+            while (currentNode = walker.nextNode()) {
+                if (currentNode === node) {
+                    return textPos + offset;
+                }
+                textPos += currentNode.textContent.length;
+            }
+            return textPos;
+        }
+        
+        function createRangeFromTextPositions(container, startPos, endPos) {
+            let currentPos = 0;
+            let startNode = null, startOffset = 0;
+            let endNode = null, endOffset = 0;
+            
+            const walker = document.createTreeWalker(
+                container,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            let currentNode;
+            while (currentNode = walker.nextNode()) {
+                const nodeLength = currentNode.textContent.length;
+                
+                // Check if start position is in this node
+                if (startNode === null && currentPos + nodeLength >= startPos) {
+                    startNode = currentNode;
+                    startOffset = startPos - currentPos;
+                }
+                
+                // Check if end position is in this node
+                if (currentPos + nodeLength >= endPos) {
+                    endNode = currentNode;
+                    endOffset = endPos - currentPos;
+                    break;
+                }
+                
+                currentPos += nodeLength;
+            }
+            
+            if (startNode && endNode) {
+                const range = document.createRange();
+                range.setStart(startNode, startOffset);
+                range.setEnd(endNode, endOffset);
+                return range;
+            }
+            
+            return null;
         }
 
         function applyTextColor() {
@@ -937,21 +1063,33 @@
             // Add to recent colors
             addToRecentColors(color);
             
-            // Store current selection
+            // Store current selection info
             const selection = window.getSelection();
-            const originalRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+            let selectionInfo = null;
             
-            // Apply color using execCommand which works better for continuing formatting
+            if (selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed) {
+                const range = selection.getRangeAt(0);
+                selectionInfo = {
+                    startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                    endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                };
+            }
+            
+            // Apply color using execCommand
             document.execCommand('foreColor', false, color);
             updateBBCodeOutput();
             
-            // Try to restore selection
-            if (originalRange && !originalRange.collapsed) {
+            // Restore selection
+            if (selectionInfo) {
                 try {
-                    selection.removeAllRanges();
-                    selection.addRange(originalRange);
+                    const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                    if (newRange) {
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    } else {
+                        visualEditor.focus();
+                    }
                 } catch (e) {
-                    // If we can't restore exact range, just focus the editor
                     visualEditor.focus();
                 }
             } else {
@@ -1056,31 +1194,42 @@
             const fontFamily = document.getElementById('fontFamily').value;
             if (fontFamily) {
                 const selection = window.getSelection();
+                let selectionInfo = null;
+                
                 if (selection.rangeCount > 0) {
                     const range = selection.getRangeAt(0);
                     if (!range.collapsed) {
+                        // Save selection info
+                        selectionInfo = {
+                            startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                            endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                        };
+                        
                         const span = document.createElement('span');
                         span.style.fontFamily = fontFamily;
-                        let newRange;
                         
                         try {
                             range.surroundContents(span);
-                            // Create new range that selects the span content
-                            newRange = document.createRange();
-                            newRange.selectNodeContents(span);
                         } catch (e) {
                             const contents = range.extractContents();
                             span.appendChild(contents);
                             range.insertNode(span);
-                            // Create new range that selects the span content
-                            newRange = document.createRange();
-                            newRange.selectNodeContents(span);
                         }
                         
-                        // Restore selection to the formatted text
-                        selection.removeAllRanges();
-                        selection.addRange(newRange);
                         updateBBCodeOutput();
+                        
+                        // Restore selection
+                        try {
+                            const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                            if (newRange) {
+                                selection.removeAllRanges();
+                                selection.addRange(newRange);
+                            } else {
+                                visualEditor.focus();
+                            }
+                        } catch (e) {
+                            visualEditor.focus();
+                        }
                         
                         // Reset dropdown for visual feedback
                         setTimeout(() => {
@@ -1102,31 +1251,42 @@
             const size = document.getElementById('fontSize').value;
             if (size) {
                 const selection = window.getSelection();
+                let selectionInfo = null;
+                
                 if (selection.rangeCount > 0) {
                     const range = selection.getRangeAt(0);
                     if (!range.collapsed) {
+                        // Save selection info
+                        selectionInfo = {
+                            startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                            endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                        };
+                        
                         const span = document.createElement('span');
                         span.style.fontSize = size + 'px';
-                        let newRange;
                         
                         try {
                             range.surroundContents(span);
-                            // Create new range that selects the span content
-                            newRange = document.createRange();
-                            newRange.selectNodeContents(span);
                         } catch (e) {
                             const contents = range.extractContents();
                             span.appendChild(contents);
                             range.insertNode(span);
-                            // Create new range that selects the span content
-                            newRange = document.createRange();
-                            newRange.selectNodeContents(span);
                         }
                         
-                        // Restore selection to the formatted text
-                        selection.removeAllRanges();
-                        selection.addRange(newRange);
                         updateBBCodeOutput();
+                        
+                        // Restore selection
+                        try {
+                            const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                            if (newRange) {
+                                selection.removeAllRanges();
+                                selection.addRange(newRange);
+                            } else {
+                                visualEditor.focus();
+                            }
+                        } catch (e) {
+                            visualEditor.focus();
+                        }
                         
                         // Reset dropdown for visual feedback
                         setTimeout(() => {
@@ -1149,9 +1309,17 @@
             const endColor = document.getElementById('gradientEnd').value;
             
             const selection = window.getSelection();
+            let selectionInfo = null;
+            
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
                 if (!range.collapsed) {
+                    // Save selection info
+                    selectionInfo = {
+                        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                    };
+                    
                     // Add gradient colors to recent colors
                     addToRecentColors(startColor);
                     addToRecentColors(endColor);
@@ -1159,8 +1327,6 @@
                     // Check if selection spans multiple block elements
                     const contents = range.cloneContents();
                     const hasBlockElements = contents.querySelector('div, p, br') !== null;
-                    
-                    let newRange;
                     
                     if (hasBlockElements) {
                         // Multi-line selection - apply gradient to each text node individually
@@ -1187,7 +1353,6 @@
                         }
                         
                         // Apply gradient to each text node
-                        const gradientSpans = [];
                         textNodes.forEach(textNode => {
                             if (textNode.textContent.trim()) {
                                 const span = document.createElement('span');
@@ -1199,16 +1364,8 @@
                                 
                                 textNode.parentNode.insertBefore(span, textNode);
                                 span.appendChild(textNode);
-                                gradientSpans.push(span);
                             }
                         });
-                        
-                        // Try to select all the gradient spans
-                        if (gradientSpans.length > 0) {
-                            newRange = document.createRange();
-                            newRange.setStartBefore(gradientSpans[0]);
-                            newRange.setEndAfter(gradientSpans[gradientSpans.length - 1]);
-                        }
                         
                     } else {
                         // Single line selection - use the original method
@@ -1221,25 +1378,27 @@
                         
                         try {
                             range.surroundContents(span);
-                            // Create new range that selects the span content
-                            newRange = document.createRange();
-                            newRange.selectNodeContents(span);
                         } catch (e) {
                             const contents = range.extractContents();
                             span.appendChild(contents);
                             range.insertNode(span);
-                            // Create new range that selects the span content
-                            newRange = document.createRange();
-                            newRange.selectNodeContents(span);
                         }
                     }
                     
-                    // Restore selection
-                    selection.removeAllRanges();
-                    if (newRange) {
-                        selection.addRange(newRange);
-                    }
                     updateBBCodeOutput();
+                    
+                    // Restore selection
+                    try {
+                        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                        if (newRange) {
+                            selection.removeAllRanges();
+                            selection.addRange(newRange);
+                        } else {
+                            visualEditor.focus();
+                        }
+                    } catch (e) {
+                        visualEditor.focus();
+                    }
                 } else {
                     alert('Please select some text first to apply a gradient.');
                 }
@@ -1298,24 +1457,13 @@
             // Clear any existing selection
             range.deleteContents();
             
-            // Create a div wrapper for the image with alignment
-            const wrapper = document.createElement('div');
-            if (imageAlignment === 'center') {
-                wrapper.style.textAlign = 'center';
-            } else if (imageAlignment === 'left') {
-                wrapper.style.textAlign = 'left';
-            } else if (imageAlignment === 'right') {
-                wrapper.style.textAlign = 'right';
-            }
-            wrapper.appendChild(img);
-            
-            // Insert the image wrapper
-            range.insertNode(wrapper);
+            // Insert the image directly without alignment wrapper
+            range.insertNode(img);
             
             // Create a new line after the image for continued typing
             const newLine = document.createElement('div');
             newLine.innerHTML = '<br>';
-            range.setStartAfter(wrapper);
+            range.setStartAfter(img);
             range.insertNode(newLine);
             
             // Position cursor in the new line
@@ -1326,43 +1474,6 @@
 
             // Clear the input and update
             document.getElementById('imageUrl').value = '';
-            updateBBCodeOutput();
-            visualEditor.focus();
-        }
-
-        function clearSelectedFormatting() {
-            const selection = window.getSelection();
-            if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
-                alert('Please select some text first to remove formatting from it.');
-                return;
-            }
-
-            // Simply use browser's removeFormat - works for most formatting
-            document.execCommand('removeFormat');
-            
-            updateBBCodeOutput();
-            visualEditor.focus();
-        }
-
-        function clearAllFormatting() {
-            // Get the text content (automatically handles line breaks)
-            const allText = visualEditor.innerText || visualEditor.textContent || '';
-            
-            // Replace everything with plain text
-            if (allText.trim()) {
-                visualEditor.innerHTML = allText.replace(/\n/g, '<br>');
-            } else {
-                visualEditor.innerHTML = '<br>';
-            }
-            
-            // Also clear the image colors section
-            const imageColorsRow = document.getElementById('imageColorsRow');
-            const imageColorsContainer = document.getElementById('imageColors');
-            if (imageColorsRow && imageColorsContainer) {
-                imageColorsRow.style.display = 'none';
-                imageColorsContainer.innerHTML = '';
-            }
-            
             updateBBCodeOutput();
             visualEditor.focus();
         }
@@ -1499,6 +1610,434 @@
             const htmlContent = bbcodeToHtml(bbcode);
             visualEditor.innerHTML = htmlContent;
             document.getElementById('bbcodeOutput').textContent = bbcode || 'BBCode will appear here...';
+        }
+
+        function clearAllFormatting() {
+            // Get the text content (automatically handles line breaks)
+            const allText = visualEditor.innerText || visualEditor.textContent || '';
+            
+            // Replace everything with plain text
+            if (allText.trim()) {
+                visualEditor.innerHTML = allText.replace(/\n/g, '<br>');
+            } else {
+                visualEditor.innerHTML = '<br>';
+            }
+            
+            // Also clear the image colors section
+            const imageColorsRow = document.getElementById('imageColorsRow');
+            const imageColorsContainer = document.getElementById('imageColors');
+            if (imageColorsRow && imageColorsContainer) {
+                imageColorsRow.style.display = 'none';
+                imageColorsContainer.innerHTML = '';
+            }
+            
+            updateBBCodeOutput();
+            visualEditor.focus();
+        }
+
+        function clearSelectedFormatting() {
+            const selection = window.getSelection();
+            if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+                alert('Please select some text first to remove formatting from it.');
+                return;
+            }
+
+            // Simply use browser's removeFormat - works for most formatting
+            document.execCommand('removeFormat');
+            
+            updateBBCodeOutput();
+            visualEditor.focus();
+        }
+
+        async function copyBBCode() {
+            const bbcode = document.getElementById('bbcodeOutput').textContent;
+            if (bbcode === 'BBCode will appear here...') return;
+
+            try {
+                await navigator.clipboard.writeText(bbcode);
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                const textArea = document.createElement('textarea');
+                textArea.value = bbcode;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('BBCode copied to clipboard!');
+            }
+        }
+
+        // Color picker sync functions
+        function updateColorFromHex() {
+            const hex = document.getElementById('hexInput').value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                document.getElementById('colorPicker').value = hex.toLowerCase();
+            }
+        }
+
+        function updateHexFromColor() {
+            const color = document.getElementById('colorPicker').value;
+            document.getElementById('hexInput').value = color.toUpperCase();
+        }
+
+        function updateGradientStartFromHex() {
+            const hex = document.getElementById('gradientStartHex').value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                document.getElementById('gradientStart').value = hex.toLowerCase();
+            }
+        }
+
+        function updateGradientStartHex() {
+            const color = document.getElementById('gradientStart').value;
+            document.getElementById('gradientStartHex').value = color.toUpperCase();
+        }
+
+        function updateGradientEndFromHex() {
+            const hex = document.getElementById('gradientEndHex').value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                document.getElementById('gradientEnd').value = hex.toLowerCase();
+            }
+        }
+
+        function updateGradientEndHex() {
+            const color = document.getElementById('gradientEnd').value;
+            document.getElementById('gradientEndHex').value = color.toUpperCase();
+        }
+
+        function swapGradientColors() {
+            // Get current values
+            const startHex = document.getElementById('gradientStartHex').value;
+            const startColor = document.getElementById('gradientStart').value;
+            const endHex = document.getElementById('gradientEndHex').value;
+            const endColor = document.getElementById('gradientEnd').value;
+            
+            // Swap them
+            document.getElementById('gradientStartHex').value = endHex;
+            document.getElementById('gradientStart').value = endColor;
+            document.getElementById('gradientEndHex').value = startHex;
+            document.getElementById('gradientEnd').value = startColor;
+        }
+
+        function addToRecentColors(color) {
+            // Normalize color to uppercase hex
+            if (!color.startsWith('#')) color = '#' + color;
+            color = color.toUpperCase();
+            
+            // Remove if already exists
+            recentColors = recentColors.filter(c => c !== color);
+            
+            // Add to beginning
+            recentColors.unshift(color);
+            
+            // Keep only last 8 colors
+            if (recentColors.length > 8) {
+                recentColors = recentColors.slice(0, 8);
+            }
+            
+            updateRecentColorsDisplay();
+        }
+
+        function updateRecentColorsDisplay() {
+            const container = document.getElementById('recentColors');
+            container.innerHTML = '';
+            
+            recentColors.forEach(color => {
+                const recentColor = document.createElement('div');
+                recentColor.className = 'recent-color';
+                recentColor.onclick = () => applyRecentColor(color);
+                
+                const swatch = document.createElement('div');
+                swatch.className = 'recent-color-swatch';
+                swatch.style.backgroundColor = color;
+                
+                const hex = document.createElement('div');
+                hex.className = 'recent-color-hex';
+                hex.textContent = color;
+                
+                recentColor.appendChild(swatch);
+                recentColor.appendChild(hex);
+                container.appendChild(recentColor);
+            });
+        }
+
+        function applyRecentColor(color) {
+            // Set the color picker and hex input
+            document.getElementById('hexInput').value = color;
+            document.getElementById('colorPicker').value = color.toLowerCase();
+            
+            // Apply the color immediately (this will preserve selection)
+            applyTextColor();
+        }
+
+        function extractImageColors(img) {
+            console.log('Extracting colors from image:', img.src);
+            console.log('Image dimensions:', img.naturalWidth, 'x', img.naturalHeight);
+            console.log('Image crossOrigin:', img.crossOrigin);
+            
+            try {
+                // Create a canvas to analyze the image
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Check if image has loaded properly
+                if (!img.naturalWidth || !img.naturalHeight) {
+                    console.log('Image not loaded properly, using fallback colors');
+                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+                    return;
+                }
+                
+                // Set canvas size (smaller for performance)
+                const maxSize = 100;
+                const ratio = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
+                canvas.width = img.naturalWidth * ratio;
+                canvas.height = img.naturalHeight * ratio;
+                
+                console.log('Canvas size:', canvas.width, 'x', canvas.height);
+                
+                // Draw image to canvas
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                console.log('Image drawn to canvas');
+                
+                // Try to get image data (this is where CORS errors happen)
+                let imageData;
+                try {
+                    imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    console.log('Image data extracted successfully');
+                } catch (corsError) {
+                    console.log('CORS error when reading image data:', corsError.message);
+                    console.log('This image cannot be analyzed due to cross-origin restrictions');
+                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+                    return;
+                }
+                
+                const data = imageData.data;
+                
+                // Extract colors (sample every 10th pixel for performance)
+                const colors = new Map();
+                for (let i = 0; i < data.length; i += 40) { // 40 = 4 (RGBA) * 10 (every 10th pixel)
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    const a = data[i + 3];
+                    
+                    // Skip transparent or very transparent pixels
+                    if (a < 200) continue;
+                    
+                    // Skip very dark or very light colors (they're often not interesting)
+                    const brightness = (r + g + b) / 3;
+                    if (brightness < 20 || brightness > 235) continue;
+                    
+                    // Convert to hex
+                    const hex = '#' + [r, g, b].map(x => {
+                        const hex = x.toString(16);
+                        return hex.length === 1 ? '0' + hex : hex;
+                    }).join('');
+                    
+                    // Count color frequency
+                    colors.set(hex, (colors.get(hex) || 0) + 1);
+                }
+                
+                console.log('Found', colors.size, 'unique colors');
+                
+                if (colors.size === 0) {
+                    console.log('No colors found, using fallback');
+                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+                    return;
+                }
+                
+                // Get most frequent colors
+                const sortedColors = Array.from(colors.entries())
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 12) // Top 12 colors
+                    .map(([color]) => color.toUpperCase());
+                
+                // Filter out very similar colors
+                const distinctColors = [];
+                for (const color of sortedColors) {
+                    const rgb = hexToRgb(color);
+                    const isDistinct = distinctColors.every(existingColor => {
+                        const existingRgb = hexToRgb(existingColor);
+                        const distance = Math.sqrt(
+                            Math.pow(rgb.r - existingRgb.r, 2) +
+                            Math.pow(rgb.g - existingRgb.g, 2) +
+                            Math.pow(rgb.b - existingRgb.b, 2)
+                        );
+                        return distance > 40; // Minimum distance threshold
+                    });
+                    
+                    if (isDistinct) {
+                        distinctColors.push(color);
+                    }
+                    
+                    if (distinctColors.length >= 8) break;
+                }
+                
+                console.log('Distinct colors found:', distinctColors);
+                
+                // Display the colors
+                displayImageColors(distinctColors);
+                
+            } catch (e) {
+                console.log('Error extracting colors:', e.message);
+                console.log('Using fallback colors');
+                displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+            }
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function displayImageColors(colors) {
+            console.log('Displaying image colors:', colors);
+            const container = document.getElementById('imageColors');
+            const row = document.getElementById('imageColorsRow');
+            
+            if (colors.length === 0) {
+                row.style.display = 'none';
+                return;
+            }
+            
+            container.innerHTML = '';
+            row.style.display = 'flex';
+            
+            colors.forEach(color => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'recent-color';
+                colorDiv.onclick = () => applyImageColor(color);
+                
+                const swatch = document.createElement('div');
+                swatch.className = 'recent-color-swatch';
+                swatch.style.backgroundColor = color;
+                
+                const hex = document.createElement('div');
+                hex.className = 'recent-color-hex';
+                hex.textContent = color;
+                
+                colorDiv.appendChild(swatch);
+                colorDiv.appendChild(hex);
+                container.appendChild(colorDiv);
+            });
+            
+            console.log('Image colors section should now be visible');
+        }
+
+        function setImageAlignment(align) {
+            imageAlignment = align;
+            
+            // Update button states
+            document.getElementById('imageLeftBtn').classList.remove('active');
+            document.getElementById('imageCenterBtn').classList.remove('active');
+            document.getElementById('imageRightBtn').classList.remove('active');
+            
+            // Set active state and update styles
+            const activeBtn = document.getElementById('image' + align.charAt(0).toUpperCase() + align.slice(1) + 'Btn');
+            activeBtn.classList.add('active');
+            
+            // Update all buttons to default style first
+            document.querySelectorAll('#imageLeftBtn, #imageCenterBtn, #imageRightBtn').forEach(btn => {
+                btn.style.background = '';
+                btn.style.color = '';
+            });
+            
+            // Apply active styling
+            activeBtn.style.background = 'var(--accent)';
+            activeBtn.style.color = '#fff';
+        }
+
+        function applyImageColor(color) {
+            // Set the color picker and hex input
+            document.getElementById('hexInput').value = color;
+            document.getElementById('colorPicker').value = color.toLowerCase();
+            
+            // Add to recent colors
+            addToRecentColors(color);
+            
+            // Apply the color immediately (this will preserve selection)
+            applyTextColor();
+        }
+
+        function insertPlaceholderImage() {
+            // Set the placeholder URL
+            const placeholderUrl = 'https://placehold.co/500x200';
+            
+            // Create image element
+            const img = document.createElement('img');
+            img.src = placeholderUrl;
+            img.crossOrigin = 'anonymous'; // Allow cross-origin access
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            img.style.margin = '10px 0';
+            img.style.border = '1px solid #e2e8f0';
+            img.style.borderRadius = '8px';
+            
+            img.onerror = function() {
+                alert('Failed to load placeholder image.');
+                this.remove();
+                updateBBCodeOutput();
+            };
+
+            img.onload = function() {
+                updateBBCodeOutput();
+                // Extract colors from the placeholder image
+                extractImageColors(this);
+            };
+
+            // Focus the visual editor first
+            visualEditor.focus();
+            
+            // Get current selection or create one at the end
+            const selection = window.getSelection();
+            let range;
+            
+            if (selection.rangeCount > 0 && selection.getRangeAt(0).commonAncestorContainer.closest && 
+                selection.getRangeAt(0).commonAncestorContainer.closest('.visual-editor')) {
+                range = selection.getRangeAt(0);
+            } else {
+                range = document.createRange();
+                range.selectNodeContents(visualEditor);
+                range.collapse(false);
+            }
+            
+            range.deleteContents();
+            
+            // Create wrapper and insert with alignment
+            const wrapper = document.createElement('div');
+            if (imageAlignment === 'center') {
+                wrapper.style.textAlign = 'center';
+            } else if (imageAlignment === 'left') {
+                wrapper.style.textAlign = 'left';
+            } else if (imageAlignment === 'right') {
+                wrapper.style.textAlign = 'right';
+            }
+            wrapper.appendChild(img);
+            range.insertNode(wrapper);
+            
+            // Create new line after image
+            const newLine = document.createElement('div');
+            newLine.innerHTML = '<br>';
+            range.setStartAfter(wrapper);
+            range.insertNode(newLine);
+            
+            // Position cursor
+            range.setStart(newLine, 0);
+            range.setEnd(newLine, 0);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            updateBBCodeOutput();
+            visualEditor.focus();
         }
 
         async function copyBBCode() {
