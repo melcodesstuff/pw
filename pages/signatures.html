@@ -147,6 +147,7 @@
 
         .toolbar-group.full-width{
           width:100%;justify-content:space-between;
+          overflow-x:auto;flex-wrap:wrap;
         }
 
         .toolbar-btn{
@@ -159,14 +160,14 @@
         .toolbar-btn:disabled{opacity:0.5;cursor:not-allowed}
 
         .color-input{
-          width:45px;height:40px;border:2px solid var(--border);border-radius:6px;
+          width:40px;height:40px;border:2px solid var(--border);border-radius:6px;
           cursor:pointer;transition:all 0.2s ease;
         }
         .color-input:hover{border-color:var(--accent)}
 
         .hex-input{
           border:1px solid var(--border);border-radius:6px;padding:0.6rem;
-          background:#fff;font-size:0.8rem;width:90px;text-transform:uppercase;
+          background:#fff;font-size:0.8rem;width:75px;text-transform:uppercase;
           font-family:monospace;
         }
 
@@ -180,13 +181,30 @@
           background:#fff;cursor:pointer;font-size:0.85rem;min-width:100px;
         }
 
+        .font-select{
+          border:1px solid var(--border);border-radius:6px;padding:0.6rem;
+          background:#fff;cursor:pointer;font-size:0.85rem;min-width:130px;
+        }
+
+        .symbol-search{
+          border:1px solid var(--border);border-radius:6px;padding:0.6rem;
+          background:#fff;font-size:0.85rem;width:140px;margin-right:0.5rem;
+        }
+
+        .symbol-select{
+          border:1px solid var(--border);border-radius:6px;padding:0.6rem;
+          background:#fff;cursor:pointer;font-size:0.85rem;min-width:150px;
+          font-family: inherit;
+        }
+
         .group-label{
           font-size:0.8rem;color:var(--muted);font-weight:500;margin-right:0.5rem;
           white-space:nowrap;
         }
 
         .color-controls{
-          display:flex;align-items:center;gap:0.75rem;
+          display:flex;align-items:center;gap:0.5rem;
+          flex-wrap:wrap;min-width:0;
         }
         
         .recent-colors{
@@ -264,9 +282,15 @@
           
           .toolbar{padding:1rem;}
           .toolbar-row{flex-direction:column;align-items:stretch;}
-          .toolbar-group{justify-content:center;min-height:auto;}
+          .toolbar-group{justify-content:center;min-height:auto;flex-wrap:wrap;gap:0.5rem;}
+          .toolbar-group.full-width{flex-direction:column;align-items:stretch;}
+          .color-controls{justify-content:center;flex-wrap:wrap;}
           .container{padding:1.5rem 1rem;}
           .url-input{width:150px;}
+          .hex-input{width:60px;}
+          .font-select{min-width:120px;}
+          .symbol-select{min-width:140px;}
+          .symbol-search{width:120px;}
         }
     </style>
 </head>
@@ -274,9 +298,9 @@
     <div class="container">
         <header class="header">
             <div>
-                <h1 class="title">BBCode Formatter</h1>
+                <h1 class="title">Signature Formatter</h1>
                 <p class="subtitle">
-                    Visual editor for beautiful Potter's World forum posts and signatures!
+                    Visual editor for easy signatures!
                 </p>
             </div>
             <a href="../index.html" class="home-link">
@@ -286,7 +310,7 @@
         </header>
         
         <div class="card">
-            <p class="card-desc">Type and format your text visually! Select any text to change its formatting, colors, or create gradients. Add images to create rich content.</p>
+            <p class="card-desc">Style text with formatting, colors, gradients, fonts, and case options. Choose from 80+ searchable symbols and add aligned images. Generates clean BBCode instantly!</p>
             
             <div class="mode-toggle">
                 <button class="mode-btn active" onclick="setMode('visual')" id="visualModeBtn">✨ Visual Editor</button>
@@ -314,6 +338,15 @@
                         <button class="toolbar-btn" onclick="formatText('italic')" id="italicBtn"><em>I</em></button>
                         <button class="toolbar-btn" onclick="formatText('underline')" id="underlineBtn"><u>U</u></button>
                         <button class="toolbar-btn" onclick="formatText('strikeThrough')" id="strikeBtn"><s>S</s></button>
+                        <button class="toolbar-btn" onclick="applySubscript()" id="subBtn">X<sub>₂</sub></button>
+                        <button class="toolbar-btn" onclick="applySuperscript()" id="supBtn">X<sup>²</sup></button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <span class="group-label">Case:</span>
+                        <button class="toolbar-btn" onclick="transformCase('uppercase')" title="UPPERCASE">AA</button>
+                        <button class="toolbar-btn" onclick="transformCase('lowercase')" title="lowercase">aa</button>
+                        <button class="toolbar-btn" onclick="transformCase('propercase')" title="Proper Case">Aa</button>
                     </div>
 
                     <div class="toolbar-group">
@@ -334,6 +367,186 @@
                     </div>
 
                     <div class="toolbar-group">
+                        <span class="group-label">Font:</span>
+                        <select id="fontFamily" class="font-select" onchange="applyFontFamily()">
+                            <option value="">Default</option>
+                            <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial</option>
+                            <option value="'Times New Roman', serif" style="font-family: 'Times New Roman', serif;">Times New Roman</option>
+                            <option value="Georgia, serif" style="font-family: Georgia, serif;">Georgia</option>
+                            <option value="Verdana, sans-serif" style="font-family: Verdana, sans-serif;">Verdana</option>
+                            <option value="Tahoma, sans-serif" style="font-family: Tahoma, sans-serif;">Tahoma</option>
+                            <option value="'Trebuchet MS', sans-serif" style="font-family: 'Trebuchet MS', sans-serif;">Trebuchet MS</option>
+                            <option value="'Comic Sans MS', cursive" style="font-family: 'Comic Sans MS', cursive;">Comic Sans MS</option>
+                            <option value="'Courier New', monospace" style="font-family: 'Courier New', monospace;">Courier New</option>
+                            <option value="Monaco, monospace" style="font-family: Monaco, monospace;">Monaco</option>
+                            <option value="'Lucida Console', monospace" style="font-family: 'Lucida Console', monospace;">Lucida Console</option>
+                            <option value="Impact, sans-serif" style="font-family: Impact, sans-serif;">Impact</option>
+                            <option value="'Book Antiqua', serif" style="font-family: 'Book Antiqua', serif;">Book Antiqua</option>
+                        </select>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <span class="group-label">Symbols:</span>
+                        <input type="text" id="symbolSearch" class="symbol-search" placeholder="Search symbols..." oninput="filterSymbols()">
+                        <select id="symbolPicker" class="symbol-select" onchange="insertSymbol()">
+                            <option value="">Choose Symbol...</option>
+                            <optgroup label="♥ Hearts & Love">
+                                <option value="♥" data-keywords="heart love">♥ Heart</option>
+                                <option value="♡" data-keywords="heart love outline">♡ Heart Outline</option>
+                            </optgroup>
+                            <optgroup label="★ Stars & Celestial">
+                                <option value="★" data-keywords="star">★ Star</option>
+                                <option value="☆" data-keywords="star outline">☆ Star Outline</option>
+                                <option value="✦" data-keywords="star four point">✦ Four Point Star</option>
+                                <option value="✧" data-keywords="star four point outline">✧ Four Point Star Outline</option>
+                                <option value="☽" data-keywords="moon crescent">☽ Moon</option>
+                                <option value="☾" data-keywords="moon crescent">☾ Moon</option>
+                                <option value="☀" data-keywords="sun">☀ Sun</option>
+                                <option value="✴" data-keywords="star eight point">✴ Eight Point Star</option>
+                                <option value="❋" data-keywords="star asterisk">❋ Heavy Asterisk</option>
+                                <option value="✱" data-keywords="star asterisk">✱ Heavy Asterisk</option>
+                            </optgroup>
+                            <optgroup label="→ Arrows & Directions">
+                                <option value="→" data-keywords="arrow right">→ Right Arrow</option>
+                                <option value="←" data-keywords="arrow left">← Left Arrow</option>
+                                <option value="↑" data-keywords="arrow up">↑ Up Arrow</option>
+                                <option value="↓" data-keywords="arrow down">↓ Down Arrow</option>
+                                <option value="↔" data-keywords="arrow left right horizontal">↔ Left Right Arrow</option>
+                                <option value="↕" data-keywords="arrow up down vertical">↕ Up Down Arrow</option>
+                                <option value="➤" data-keywords="arrow triangle right">➤ Triangle Right</option>
+                                <option value="➜" data-keywords="arrow heavy right">➜ Heavy Right</option>
+                                <option value="⇒" data-keywords="arrow double right">⇒ Double Right</option>
+                                <option value="⇐" data-keywords="arrow double left">⇐ Double Left</option>
+                                <option value="⇑" data-keywords="arrow double up">⇑ Double Up</option>
+                                <option value="⇓" data-keywords="arrow double down">⇓ Double Down</option>
+                                <option value="↗" data-keywords="arrow diagonal up right">↗ Up Right Arrow</option>
+                                <option value="↖" data-keywords="arrow diagonal up left">↖ Up Left Arrow</option>
+                                <option value="↘" data-keywords="arrow diagonal down right">↘ Down Right Arrow</option>
+                                <option value="↙" data-keywords="arrow diagonal down left">↙ Down Left Arrow</option>
+                            </optgroup>
+                            <optgroup label="♪ Music & Audio">
+                                <option value="♪" data-keywords="music note eighth">♪ Eighth Note</option>
+                                <option value="♫" data-keywords="music note beamed">♫ Beamed Notes</option>
+                                <option value="♬" data-keywords="music note beamed">♬ Beamed Notes 2</option>
+                                <option value="♭" data-keywords="music flat">♭ Flat</option>
+                                <option value="♯" data-keywords="music sharp">♯ Sharp</option>
+                                <option value="♮" data-keywords="music natural">♮ Natural</option>
+                            </optgroup>
+                            <optgroup label="◆ Shapes & Geometry">
+                                <option value="●" data-keywords="circle black filled">● Circle</option>
+                                <option value="○" data-keywords="circle white outline">○ Circle Outline</option>
+                                <option value="■" data-keywords="square black filled">■ Square</option>
+                                <option value="□" data-keywords="square white outline">□ Square Outline</option>
+                                <option value="▲" data-keywords="triangle up black">▲ Triangle Up</option>
+                                <option value="△" data-keywords="triangle up white outline">△ Triangle Up Outline</option>
+                                <option value="▼" data-keywords="triangle down black">▼ Triangle Down</option>
+                                <option value="▽" data-keywords="triangle down white outline">▽ Triangle Down Outline</option>
+                                <option value="◆" data-keywords="diamond black filled">◆ Diamond</option>
+                                <option value="◇" data-keywords="diamond white outline">◇ Diamond Outline</option>
+                                <option value="♠" data-keywords="spade card suit">♠ Spade</option>
+                                <option value="♣" data-keywords="club card suit">♣ Club</option>
+                                <option value="♦" data-keywords="diamond card suit">♦ Diamond Suit</option>
+                                <option value="♧" data-keywords="club card suit outline">♧ Club Outline</option>
+                                <option value="◉" data-keywords="circle dot">◉ Circle with Dot</option>
+                                <option value="◎" data-keywords="circle bullseye">◎ Bullseye</option>
+                                <option value="▪" data-keywords="square small black">▪ Small Square</option>
+                                <option value="▫" data-keywords="square small white">▫ Small White Square</option>
+                            </optgroup>
+                            <optgroup label="✓ Checks & Marks">
+                                <option value="✓" data-keywords="check mark tick">✓ Check Mark</option>
+                                <option value="✔" data-keywords="check mark heavy tick">✔ Heavy Check</option>
+                                <option value="✗" data-keywords="x mark cross">✗ X Mark</option>
+                                <option value="✘" data-keywords="x mark heavy cross">✘ Heavy X</option>
+                                <option value="⚠" data-keywords="warning caution">⚠ Warning</option>
+                                <option value="⚡" data-keywords="lightning bolt">⚡ Lightning</option>
+                                <option value="☢" data-keywords="radioactive">☢ Radioactive</option>
+                                <option value="☣" data-keywords="biohazard">☣ Biohazard</option>
+                                <option value="⚜" data-keywords="fleur de lis">⚜ Fleur-de-lis</option>
+                            </optgroup>
+                            <optgroup label="☀ Weather & Nature">
+                                <option value="☀" data-keywords="sun sunny">☀ Sunny</option>
+                                <option value="☁" data-keywords="cloud cloudy">☁ Cloud</option>
+                                <option value="⛅" data-keywords="cloud partly cloudy">⛅ Partly Cloudy</option>
+                                <option value="❄" data-keywords="snowflake snow">❄ Snowflake</option>
+                                <option value="❅" data-keywords="snowflake snow">❅ Snowflake</option>
+                                <option value="☂" data-keywords="umbrella rain">☂ Umbrella</option>
+                                <option value="☘" data-keywords="clover shamrock">☘ Shamrock</option>
+                                <option value="❀" data-keywords="flower">❀ Flower</option>
+                                <option value="✿" data-keywords="flower">✿ Flower</option>
+                                <option value="❁" data-keywords="flower">❁ Flower</option>
+                                <option value="✾" data-keywords="flower">✾ Flower</option>
+                            </optgroup>
+                            <optgroup label="✦ Math & Science">
+                                <option value="±" data-keywords="plus minus">± Plus Minus</option>
+                                <option value="×" data-keywords="multiply times">× Multiply</option>
+                                <option value="÷" data-keywords="divide division">÷ Divide</option>
+                                <option value="≈" data-keywords="approximately equal">≈ Approximately</option>
+                                <option value="≠" data-keywords="not equal">≠ Not Equal</option>
+                                <option value="≤" data-keywords="less than equal">≤ Less Equal</option>
+                                <option value="≥" data-keywords="greater than equal">≥ Greater Equal</option>
+                                <option value="∞" data-keywords="infinity">∞ Infinity</option>
+                                <option value="π" data-keywords="pi">π Pi</option>
+                                <option value="∑" data-keywords="sum sigma">∑ Sum</option>
+                                <option value="∆" data-keywords="delta change">∆ Delta</option>
+                                <option value="∇" data-keywords="nabla gradient">∇ Nabla</option>
+                                <option value="∈" data-keywords="element of">∈ Element Of</option>
+                                <option value="∉" data-keywords="not element of">∉ Not Element Of</option>
+                                <option value="∀" data-keywords="for all">∀ For All</option>
+                                <option value="∃" data-keywords="there exists">∃ There Exists</option>
+                            </optgroup>
+                            <optgroup label="© Special Characters">
+                                <option value="©" data-keywords="copyright">© Copyright</option>
+                                <option value="®" data-keywords="registered trademark">® Registered</option>
+                                <option value="™" data-keywords="trademark">™ Trademark</option>
+                                <option value="°" data-keywords="degree">° Degree</option>
+                                <option value="§" data-keywords="section">§ Section</option>
+                                <option value="¶" data-keywords="paragraph">¶ Paragraph</option>
+                                <option value="†" data-keywords="dagger cross">† Dagger</option>
+                                <option value="‡" data-keywords="double dagger cross">‡ Double Dagger</option>
+                                <option value="•" data-keywords="bullet point">• Bullet</option>
+                                <option value="‣" data-keywords="triangle bullet point">‣ Triangle Bullet</option>
+                                <option value="…" data-keywords="ellipsis dots">… Ellipsis</option>
+                                <option value="–" data-keywords="en dash">– En Dash</option>
+                                <option value="—" data-keywords="em dash">— Em Dash</option>
+                                <option value="‹" data-keywords="quote angle bracket">‹ Single Left Quote</option>
+                                <option value="›" data-keywords="quote angle bracket">› Single Right Quote</option>
+                                <option value="«" data-keywords="quote angle bracket">« Double Left Quote</option>
+                                <option value="»" data-keywords="quote angle bracket">» Double Right Quote</option>
+                                <option value="‰" data-keywords="percent per mille">‰ Per Mille</option>
+                                <option value="‱" data-keywords="percent basis point">‱ Basis Point</option>
+                            </optgroup>
+                            <optgroup label="☺ Faces & Gestures">
+                                <option value="☺" data-keywords="smile happy face">☺ Smiling Face</option>
+                                <option value="☻" data-keywords="smile happy face black">☻ Black Smiling</option>
+                                <option value="☹" data-keywords="sad frown face">☹ Frowning Face</option>
+                                <option value="✌" data-keywords="peace victory hand">✌ Peace</option>
+                                <option value="☝" data-keywords="finger pointing up">☝ Index Pointing Up</option>
+                                <option value="✋" data-keywords="hand raised stop">✋ Raised Hand</option>
+                                <option value="✊" data-keywords="fist raised">✊ Raised Fist</option>
+                                <option value="✍" data-keywords="writing hand">✍ Writing Hand</option>
+                            </optgroup>
+                            <optgroup label="⚔ Symbols & Misc">
+                                <option value="⚔" data-keywords="sword crossed swords">⚔ Crossed Swords</option>
+                                <option value="⚖" data-keywords="scale balance justice">⚖ Balance Scale</option>
+                                <option value="⚗" data-keywords="alembic chemistry">⚗ Alembic</option>
+                                <option value="⚙" data-keywords="gear settings">⚙ Gear</option>
+                                <option value="⚓" data-keywords="anchor">⚓ Anchor</option>
+                                <option value="⚡" data-keywords="lightning bolt">⚡ Lightning Bolt</option>
+                                <option value="♨" data-keywords="hot springs steam">♨ Hot Springs</option>
+                                <option value="☮" data-keywords="peace symbol">☮ Peace Symbol</option>
+                                <option value="☯" data-keywords="yin yang">☯ Yin Yang</option>
+                                <option value="☪" data-keywords="crescent star islam">☪ Star and Crescent</option>
+                                <option value="✡" data-keywords="star david judaism">✡ Star of David</option>
+                                <option value="☬" data-keywords="adi shakti">☬ Adi Shakti</option>
+                                <option value="☭" data-keywords="hammer sickle">☭ Hammer and Sickle</option>
+                                <option value="♻" data-keywords="recycle">♻ Recycling Symbol</option>
+                                <option value="⚰" data-keywords="coffin">⚰ Coffin</option>
+                                <option value="⚱" data-keywords="urn funeral">⚱ Funeral Urn</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="toolbar-group">
                         <span class="group-label">Align:</span>
                         <button class="toolbar-btn" onclick="formatText('justifyLeft')" id="leftBtn" title="Align Left">⬅️</button>
                         <button class="toolbar-btn" onclick="formatText('justifyCenter')" id="centerBtn" title="Align Center">⬆️</button>
@@ -346,17 +559,17 @@
                     <div class="toolbar-group full-width">
                         <div class="color-controls">
                             <span class="group-label">Text Color:</span>
-                            <input type="text" id="hexInput" class="hex-input" placeholder="#000000" maxlength="7" oninput="updateColorFromHex()" style="width:100px;">
-                            <input type="color" id="colorPicker" class="color-input" value="#000000" onchange="updateHexFromColor()" style="margin-left:0.5rem;">
+                            <input type="text" id="hexInput" class="hex-input" placeholder="#000000" maxlength="7" oninput="updateColorFromHex()">
+                            <input type="color" id="colorPicker" class="color-input" value="#000000" onchange="updateHexFromColor()">
                             <button class="toolbar-btn" onclick="applyTextColor()" title="Apply Color">🎨 Apply</button>
                         </div>
                         
                         <div class="color-controls">
                             <span class="group-label">Gradient:</span>
-                            <input type="text" id="gradientStartHex" class="hex-input" placeholder="#ff0000" maxlength="7" oninput="updateGradientStartFromHex()" style="width:80px;">
+                            <input type="text" id="gradientStartHex" class="hex-input" placeholder="#ff0000" maxlength="7" oninput="updateGradientStartFromHex()">
                             <input type="color" id="gradientStart" class="color-input" value="#ff0000" onchange="updateGradientStartHex()" title="Start Color">
                             <button class="swap-btn" onclick="swapGradientColors()" title="Swap gradient colors">⇄</button>
-                            <input type="text" id="gradientEndHex" class="hex-input" placeholder="#0000ff" maxlength="7" oninput="updateGradientEndFromHex()" style="width:80px;">
+                            <input type="text" id="gradientEndHex" class="hex-input" placeholder="#0000ff" maxlength="7" oninput="updateGradientEndFromHex()">
                             <input type="color" id="gradientEnd" class="color-input" value="#0000ff" onchange="updateGradientEndHex()" title="End Color">
                             <button class="toolbar-btn" onclick="applyGradient()" title="Apply Gradient">🌈 Apply</button>
                         </div>
@@ -462,6 +675,49 @@
             }
         }
 
+        function transformCase(caseType) {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (!range.collapsed) {
+                    // Get the selected text
+                    const selectedText = range.toString();
+                    
+                    // Transform the text based on case type
+                    let transformedText;
+                    switch(caseType) {
+                        case 'uppercase':
+                            transformedText = selectedText.toUpperCase();
+                            break;
+                        case 'lowercase':
+                            transformedText = selectedText.toLowerCase();
+                            break;
+                        case 'propercase':
+                            transformedText = selectedText.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+                            break;
+                        default:
+                            transformedText = selectedText;
+                    }
+                    
+                    // Replace the selected content with transformed text
+                    range.deleteContents();
+                    const textNode = document.createTextNode(transformedText);
+                    range.insertNode(textNode);
+                    
+                    // Select the newly inserted text
+                    const newRange = document.createRange();
+                    newRange.selectNode(textNode);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                    
+                    updateBBCodeOutput();
+                } else {
+                    alert('Please select some text first to change its case.');
+                }
+            }
+            visualEditor.focus();
+        }
+
         function handleEnterKey(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
@@ -490,11 +746,135 @@
             }
         }
 
+        function transformCase(caseType) {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (!range.collapsed) {
+                    // Get the selected text
+                    const selectedText = range.toString();
+                    
+                    // Transform the text based on case type
+                    let transformedText;
+                    switch(caseType) {
+                        case 'uppercase':
+                            transformedText = selectedText.toUpperCase();
+                            break;
+                        case 'lowercase':
+                            transformedText = selectedText.toLowerCase();
+                            break;
+                        case 'propercase':
+                            transformedText = selectedText.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+                            break;
+                        default:
+                            transformedText = selectedText;
+                    }
+                    
+                    // Replace the selected content with transformed text
+                    range.deleteContents();
+                    const textNode = document.createTextNode(transformedText);
+                    range.insertNode(textNode);
+                    
+                    // Select the newly inserted text
+                    const newRange = document.createRange();
+                    newRange.selectNode(textNode);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                    
+                    updateBBCodeOutput();
+                } else {
+                    alert('Please select some text first to change its case.');
+                }
+            }
+            visualEditor.focus();
+        }
+
+        function applySubscript() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (!range.collapsed) {
+                    const sub = document.createElement('sub');
+                    let newRange;
+                    
+                    try {
+                        range.surroundContents(sub);
+                        // Create new range that selects the sub content
+                        newRange = document.createRange();
+                        newRange.selectNodeContents(sub);
+                    } catch (e) {
+                        const contents = range.extractContents();
+                        sub.appendChild(contents);
+                        range.insertNode(sub);
+                        // Create new range that selects the sub content
+                        newRange = document.createRange();
+                        newRange.selectNodeContents(sub);
+                    }
+                    
+                    // Restore selection to the formatted text
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                    updateBBCodeOutput();
+                } else {
+                    alert('Please select some text first to make it subscript.');
+                }
+            }
+            visualEditor.focus();
+        }
+
+        function applySuperscript() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (!range.collapsed) {
+                    const sup = document.createElement('sup');
+                    let newRange;
+                    
+                    try {
+                        range.surroundContents(sup);
+                        // Create new range that selects the sup content
+                        newRange = document.createRange();
+                        newRange.selectNodeContents(sup);
+                    } catch (e) {
+                        const contents = range.extractContents();
+                        sup.appendChild(contents);
+                        range.insertNode(sup);
+                        // Create new range that selects the sup content
+                        newRange = document.createRange();
+                        newRange.selectNodeContents(sup);
+                    }
+                    
+                    // Restore selection to the formatted text
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                    updateBBCodeOutput();
+                } else {
+                    alert('Please select some text first to make it superscript.');
+                }
+            }
+            visualEditor.focus();
+        }
+
         function formatText(command) {
+            const selection = window.getSelection();
+            const originalRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+            
             document.execCommand(command, false, null);
             updateBBCodeOutput();
             updateToolbarState();
-            visualEditor.focus();
+            
+            // Try to restore selection to the formatted content
+            if (originalRange && !originalRange.collapsed) {
+                try {
+                    selection.removeAllRanges();
+                    selection.addRange(originalRange);
+                } catch (e) {
+                    // If we can't restore exact range, just focus the editor
+                    visualEditor.focus();
+                }
+            } else {
+                visualEditor.focus();
+            }
         }
 
         function applyTextColor() {
@@ -510,9 +890,164 @@
             // Add to recent colors
             addToRecentColors(color);
             
+            // Store current selection
+            const selection = window.getSelection();
+            const originalRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+            
             // Apply color using execCommand which works better for continuing formatting
             document.execCommand('foreColor', false, color);
             updateBBCodeOutput();
+            
+            // Try to restore selection
+            if (originalRange && !originalRange.collapsed) {
+                try {
+                    selection.removeAllRanges();
+                    selection.addRange(originalRange);
+                } catch (e) {
+                    // If we can't restore exact range, just focus the editor
+                    visualEditor.focus();
+                }
+            } else {
+                visualEditor.focus();
+            }
+        }
+
+        function filterSymbols() {
+            const searchTerm = document.getElementById('symbolSearch').value.toLowerCase();
+            const symbolPicker = document.getElementById('symbolPicker');
+            const options = symbolPicker.querySelectorAll('option');
+            const optgroups = symbolPicker.querySelectorAll('optgroup');
+            
+            // If search is empty, show all
+            if (!searchTerm) {
+                options.forEach(option => option.style.display = '');
+                optgroups.forEach(group => group.style.display = '');
+                return;
+            }
+            
+            // Hide all optgroups initially
+            optgroups.forEach(group => group.style.display = 'none');
+            
+            // Show matching options and their groups
+            options.forEach(option => {
+                if (option.value === '') {
+                    // Keep the "Choose Symbol..." option visible
+                    option.style.display = '';
+                    return;
+                }
+                
+                const keywords = option.dataset.keywords || '';
+                const text = option.textContent.toLowerCase();
+                const value = option.value.toLowerCase();
+                
+                const matches = keywords.includes(searchTerm) || 
+                               text.includes(searchTerm) || 
+                               value.includes(searchTerm);
+                
+                if (matches) {
+                    option.style.display = '';
+                    // Show the parent optgroup
+                    const parentGroup = option.closest('optgroup');
+                    if (parentGroup) {
+                        parentGroup.style.display = '';
+                    }
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        }
+
+        function insertSymbol() {
+            const symbol = document.getElementById('symbolPicker').value;
+            if (symbol) {
+                const selection = window.getSelection();
+                
+                // Focus the visual editor first
+                visualEditor.focus();
+                
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    
+                    // Delete any selected content first
+                    range.deleteContents();
+                    
+                    // Create a text node with the symbol
+                    const textNode = document.createTextNode(symbol);
+                    range.insertNode(textNode);
+                    
+                    // Position cursor after the inserted symbol
+                    range.setStartAfter(textNode);
+                    range.setEndAfter(textNode);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                } else {
+                    // If no selection, insert at the end
+                    const range = document.createRange();
+                    range.selectNodeContents(visualEditor);
+                    range.collapse(false);
+                    
+                    const textNode = document.createTextNode(symbol);
+                    range.insertNode(textNode);
+                    
+                    range.setStartAfter(textNode);
+                    range.setEndAfter(textNode);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                
+                updateBBCodeOutput();
+                
+                // Reset dropdown
+                setTimeout(() => {
+                    document.getElementById('symbolPicker').value = '';
+                }, 100);
+            }
+            visualEditor.focus();
+        }
+
+        function applyFontFamily() {
+            const fontFamily = document.getElementById('fontFamily').value;
+            if (fontFamily) {
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    if (!range.collapsed) {
+                        const span = document.createElement('span');
+                        span.style.fontFamily = fontFamily;
+                        let newRange;
+                        
+                        try {
+                            range.surroundContents(span);
+                            // Create new range that selects the span content
+                            newRange = document.createRange();
+                            newRange.selectNodeContents(span);
+                        } catch (e) {
+                            const contents = range.extractContents();
+                            span.appendChild(contents);
+                            range.insertNode(span);
+                            // Create new range that selects the span content
+                            newRange = document.createRange();
+                            newRange.selectNodeContents(span);
+                        }
+                        
+                        // Restore selection to the formatted text
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                        updateBBCodeOutput();
+                        
+                        // Reset dropdown for visual feedback
+                        setTimeout(() => {
+                            document.getElementById('fontFamily').value = '';
+                        }, 100);
+                    } else {
+                        alert('Please select some text first to change its font.');
+                        document.getElementById('fontFamily').value = ''; // Reset dropdown
+                    }
+                } else {
+                    alert('Please select some text first to change its font.');
+                    document.getElementById('fontFamily').value = ''; // Reset dropdown
+                }
+            }
             visualEditor.focus();
         }
 
@@ -525,16 +1060,38 @@
                     if (!range.collapsed) {
                         const span = document.createElement('span');
                         span.style.fontSize = size + 'px';
+                        let newRange;
+                        
                         try {
                             range.surroundContents(span);
+                            // Create new range that selects the span content
+                            newRange = document.createRange();
+                            newRange.selectNodeContents(span);
                         } catch (e) {
                             const contents = range.extractContents();
                             span.appendChild(contents);
                             range.insertNode(span);
+                            // Create new range that selects the span content
+                            newRange = document.createRange();
+                            newRange.selectNodeContents(span);
                         }
+                        
+                        // Restore selection to the formatted text
                         selection.removeAllRanges();
+                        selection.addRange(newRange);
                         updateBBCodeOutput();
+                        
+                        // Reset dropdown for visual feedback
+                        setTimeout(() => {
+                            document.getElementById('fontSize').value = '';
+                        }, 100);
+                    } else {
+                        alert('Please select some text first to change its font size.');
+                        document.getElementById('fontSize').value = ''; // Reset dropdown
                     }
+                } else {
+                    alert('Please select some text first to change its font size.');
+                    document.getElementById('fontSize').value = ''; // Reset dropdown
                 }
             }
             visualEditor.focus();
@@ -555,6 +1112,8 @@
                     // Check if selection spans multiple block elements
                     const contents = range.cloneContents();
                     const hasBlockElements = contents.querySelector('div, p, br') !== null;
+                    
+                    let newRange;
                     
                     if (hasBlockElements) {
                         // Multi-line selection - apply gradient to each text node individually
@@ -581,6 +1140,7 @@
                         }
                         
                         // Apply gradient to each text node
+                        const gradientSpans = [];
                         textNodes.forEach(textNode => {
                             if (textNode.textContent.trim()) {
                                 const span = document.createElement('span');
@@ -592,8 +1152,16 @@
                                 
                                 textNode.parentNode.insertBefore(span, textNode);
                                 span.appendChild(textNode);
+                                gradientSpans.push(span);
                             }
                         });
+                        
+                        // Try to select all the gradient spans
+                        if (gradientSpans.length > 0) {
+                            newRange = document.createRange();
+                            newRange.setStartBefore(gradientSpans[0]);
+                            newRange.setEndAfter(gradientSpans[gradientSpans.length - 1]);
+                        }
                         
                     } else {
                         // Single line selection - use the original method
@@ -606,14 +1174,24 @@
                         
                         try {
                             range.surroundContents(span);
+                            // Create new range that selects the span content
+                            newRange = document.createRange();
+                            newRange.selectNodeContents(span);
                         } catch (e) {
                             const contents = range.extractContents();
                             span.appendChild(contents);
                             range.insertNode(span);
+                            // Create new range that selects the span content
+                            newRange = document.createRange();
+                            newRange.selectNodeContents(span);
                         }
                     }
                     
+                    // Restore selection
                     selection.removeAllRanges();
+                    if (newRange) {
+                        selection.addRange(newRange);
+                    }
                     updateBBCodeOutput();
                 } else {
                     alert('Please select some text first to apply a gradient.');
@@ -747,6 +1325,8 @@
             document.getElementById('italicBtn').classList.toggle('active', document.queryCommandState('italic'));
             document.getElementById('underlineBtn').classList.toggle('active', document.queryCommandState('underline'));
             document.getElementById('strikeBtn').classList.toggle('active', document.queryCommandState('strikeThrough'));
+            document.getElementById('subBtn').classList.toggle('active', document.queryCommandState('subscript'));
+            document.getElementById('supBtn').classList.toggle('active', document.queryCommandState('superscript'));
             
             document.getElementById('leftBtn').classList.toggle('active', document.queryCommandState('justifyLeft'));
             document.getElementById('centerBtn').classList.toggle('active', document.queryCommandState('justifyCenter'));
@@ -770,6 +1350,27 @@
             bbcode = bbcode.replace(/<div style="text-align:\s*left[^"]*"[^>]*>(.*?)<\/div>/gi, '[left]$1[/left]');
             bbcode = bbcode.replace(/<div style="text-align:\s*right[^"]*"[^>]*>(.*?)<\/div>/gi, '[right]$1[/right]');
             
+            // Handle font families
+            bbcode = bbcode.replace(/<span style="font-family:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
+                // Convert common font families to simpler BBCode names
+                const fontMap = {
+                    'Arial, sans-serif': 'Arial',
+                    "'Times New Roman', serif": 'Times New Roman',
+                    'Georgia, serif': 'Georgia',
+                    'Verdana, sans-serif': 'Verdana',
+                    'Tahoma, sans-serif': 'Tahoma',
+                    "'Trebuchet MS', sans-serif": 'Trebuchet MS',
+                    "'Comic Sans MS', cursive": 'Comic Sans MS',
+                    "'Courier New', monospace": 'Courier New',
+                    'Monaco, monospace': 'Monaco',
+                    "'Lucida Console', monospace": 'Lucida Console',
+                    'Impact, sans-serif': 'Impact',
+                    "'Book Antiqua', serif": 'Book Antiqua'
+                };
+                const simpleName = fontMap[fontFamily] || fontFamily;
+                return `[font=${simpleName}]${text}[/font]`;
+            });
+            
             // Handle font colors
             bbcode = bbcode.replace(/<span style="color:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, '[color=$1]$2[/color]');
             bbcode = bbcode.replace(/<font color="([^"]*)"[^>]*>(.*?)<\/font>/gi, '[color=$1]$2[/color]');
@@ -785,6 +1386,8 @@
             bbcode = bbcode.replace(/<u[^>]*>(.*?)<\/u>/gi, '[u]$1[/u]');
             bbcode = bbcode.replace(/<s[^>]*>(.*?)<\/s>/gi, '[s]$1[/s]');
             bbcode = bbcode.replace(/<strike[^>]*>(.*?)<\/strike>/gi, '[s]$1[/s]');
+            bbcode = bbcode.replace(/<sub[^>]*>(.*?)<\/sub>/gi, '[sub]$1[/sub]');
+            bbcode = bbcode.replace(/<sup[^>]*>(.*?)<\/sup>/gi, '[sup]$1[/sup]');
             
             // Clean up remaining HTML
             bbcode = bbcode.replace(/<div[^>]*>/gi, '');
@@ -805,10 +1408,31 @@
                 .replace(/\[right\]\[img\](.*?)\[\/img\]\[\/right\]/gi, '<div style="text-align:right"><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px 0;border:1px solid #e2e8f0;border-radius:8px;"></div>')
                 .replace(/\[img\](.*?)\[\/img\]/gi, '<div><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px 0;border:1px solid #e2e8f0;border-radius:8px;"></div>')
                 .replace(/\[gradient=([^,]+),([^\]]+)\](.*?)\[\/gradient\]/gi, '<span style="background:linear-gradient(90deg,$1,$2);-webkit-background-clip:text;background-clip:text;color:transparent" data-gradient="$1,$2">$3</span>')
+                .replace(/\[font=([^\]]*)\](.*?)\[\/font\]/gi, function(match, fontName, text) {
+                    // Convert BBCode font names back to CSS font families
+                    const fontMap = {
+                        'Arial': 'Arial, sans-serif',
+                        'Times New Roman': "'Times New Roman', serif",
+                        'Georgia': 'Georgia, serif',
+                        'Verdana': 'Verdana, sans-serif',
+                        'Tahoma': 'Tahoma, sans-serif',
+                        'Trebuchet MS': "'Trebuchet MS', sans-serif",
+                        'Comic Sans MS': "'Comic Sans MS', cursive",
+                        'Courier New': "'Courier New', monospace",
+                        'Monaco': 'Monaco, monospace',
+                        'Lucida Console': "'Lucida Console', monospace",
+                        'Impact': 'Impact, sans-serif',
+                        'Book Antiqua': "'Book Antiqua', serif"
+                    };
+                    const cssFont = fontMap[fontName] || fontName;
+                    return `<span style="font-family:${cssFont}">${text}</span>`;
+                })
                 .replace(/\[b\](.*?)\[\/b\]/gi, '<strong>$1</strong>')
                 .replace(/\[i\](.*?)\[\/i\]/gi, '<em>$1</em>')
                 .replace(/\[u\](.*?)\[\/u\]/gi, '<u>$1</u>')
                 .replace(/\[s\](.*?)\[\/s\]/gi, '<s>$1</s>')
+                .replace(/\[sub\](.*?)\[\/sub\]/gi, '<sub>$1</sub>')
+                .replace(/\[sup\](.*?)\[\/sup\]/gi, '<sup>$1</sup>')
                 .replace(/\[color=([^\]]*)\](.*?)\[\/color\]/gi, '<span style="color:$1">$2</span>')
                 .replace(/\[size=([^\]]*)\](.*?)\[\/size\]/gi, '<span style="font-size:$1px">$2</span>')
                 .replace(/\[center\](.*?)\[\/center\]/gi, '<div style="text-align:center">$1</div>')
@@ -951,7 +1575,7 @@
             document.getElementById('hexInput').value = color;
             document.getElementById('colorPicker').value = color.toLowerCase();
             
-            // Apply the color immediately
+            // Apply the color immediately (this will preserve selection)
             applyTextColor();
         }
 
@@ -1144,7 +1768,7 @@
             // Add to recent colors
             addToRecentColors(color);
             
-            // Apply the color immediately
+            // Apply the color immediately (this will preserve selection)
             applyTextColor();
         }
 
