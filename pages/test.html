@@ -1,0 +1,2465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signature Formatter</title>
+    <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
+    <style>
+        /* ---------- Base reset ---------- */
+        *{margin:0;padding:0;box-sizing:border-box}
+
+        /* ---------- Base layout/typography ---------- */
+        body{
+          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+          background:#f8fafc;
+          color:#0f172a;
+          line-height:1.6;
+          transition:all .3s ease;
+        }
+
+        .container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;min-height:100vh}
+
+        .header{
+          margin-bottom:2rem;
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:2rem;
+        }
+        
+        .header-buttons {
+          display:flex;
+          align-items:center;
+          flex-shrink:0;
+        }
+        
+        .header > div:first-child {
+          flex: 1;
+        }
+
+        .title{
+          font-size:2.5rem;font-weight:700;
+          background:linear-gradient(135deg,#4f46e5,#7c3aed);
+          -webkit-background-clip:text;background-clip:text;color:transparent;
+          margin-bottom:.5rem;line-height:1.2;
+        }
+        .subtitle{
+          color:#64748b;
+          font-size:1.1rem;
+          max-width:600px;
+          line-height:1.4;
+          margin:0;
+        }
+
+        /* ---------- Home Link ---------- */
+        .home-link{
+          background:#e2e8f0;border:none;padding:.75rem 1.25rem;border-radius:1.5rem;
+          font-weight:500;cursor:pointer;transition:all .2s ease;
+          display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;
+          font-size:0.9rem;
+          flex-shrink:0;
+        }
+        .home-link:hover{background:#cbd5e1;transform:translateY(-1px)}
+        .home-link .icon{font-size:1em;line-height:1;}
+        .home-link:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+
+        /* ---------- Ko-fi Button ---------- */
+        .kofi-btn{
+          background:var(--accent);border:none;padding:.75rem;border-radius:1.5rem;
+          font-weight:500;cursor:pointer;transition:all .2s ease;
+          display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:#fff;
+          font-size:0.9rem;width:44px;height:44px;position:relative;
+          flex-shrink:0;margin-right:0.75rem;
+        }
+        .kofi-btn:hover{background:#3730a3;transform:translateY(-1px);color:#fff}
+        .kofi-btn:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+        
+        .kofi-btn::after {
+          content: "Buy me a coffee";
+          position: absolute;
+          bottom: -2.5rem;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(0,0,0,0.8);
+          color: white;
+          padding: 0.5rem 0.75rem;
+          border-radius: 6px;
+          font-size: 0.75rem;
+          white-space: nowrap;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s ease;
+          z-index: 1000;
+        }
+        
+        .kofi-btn:hover::after {
+          opacity: 1;
+        }
+
+        /* ---------- Tokens ---------- */
+        :root{
+          --bg:#f8fafc;
+          --ink:#0f172a;
+          --panel:#ffffff;
+          --border:rgba(226,232,240,.7);
+          --muted:#64748b;
+          --accent:#4f46e5;
+        }
+
+        /* ---------- Cards ---------- */
+        .card{
+          background:#fff;border:1px solid rgba(226,232,240,.7);border-radius:1rem;padding:2rem;
+          box-shadow:0 1px 3px rgba(0,0,0,.1);transition:all .3s ease;
+          margin-bottom:1.5rem;
+        }
+        .card:hover{box-shadow:0 10px 25px rgba(0,0,0,.1)}
+        .card-desc{font-size:.95rem;color:#64748b;margin-bottom:2rem;text-align:center}
+
+        /* ---------- Mode Toggle ---------- */
+        .mode-toggle{
+          display:flex;background:#f1f5f9;border-radius:12px;padding:6px;margin-bottom:2rem;
+          width:fit-content;margin-left:auto;margin-right:auto;
+        }
+        .mode-btn{
+          padding:0.75rem 1.5rem;border-radius:8px;border:none;background:transparent;
+          cursor:pointer;transition:all 0.2s ease;font-weight:500;font-size:0.9rem;
+        }
+        .mode-btn.active{background:#fff;color:var(--accent);box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+
+        /* ---------- Visual Editor ---------- */
+        .editor-container{margin-bottom:2rem}
+        .editor-label{
+          display:block;font-weight:500;color:var(--ink);margin-bottom:.75rem;font-size:.9rem;
+        }
+
+        .visual-editor{
+          background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 24px;
+          font-family:inherit;font-size:1rem;transition:all .2s ease;width:100%;
+          color:var(--ink);min-height:200px;line-height:1.6;
+          outline:none;overflow-y:auto;
+        }
+        .visual-editor:focus{
+          outline:2px solid rgba(79,70,229,.5);outline-offset:2px;border-color:var(--accent);
+        }
+        .visual-editor:empty:before{
+          content:'Start typing here... Select text to format it!';
+          color:#94a3b8;font-style:italic;
+        }
+
+        .visual-editor img{
+          max-width:100%;height:auto;display:block;margin:10px 0;
+          border:1px solid #e2e8f0;border-radius:8px;
+        }
+
+        .bbcode-input{
+          background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 24px;
+          font-family:monospace;font-size:.9rem;transition:all .2s ease;width:100%;
+          color:var(--ink);min-height:200px;resize:vertical;display:none;
+        }
+        .bbcode-input:focus{
+          outline:2px solid rgba(79,70,229,.5);outline-offset:2px;border-color:var(--accent);
+        }
+
+        /* ---------- Selection Info ---------- */
+        .selection-info{
+          background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;
+          padding:1rem;margin-bottom:2rem;font-size:0.85rem;color:#0369a1;
+        }
+
+        /* ---------- Toolbar ---------- */
+        .toolbar{
+          background:#f8fafc;border:1px solid var(--border);border-radius:12px;
+          padding:1rem;margin-bottom:2rem;display:grid;gap:0.75rem;
+        }
+
+        .toolbar-row{
+          display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;
+        }
+
+        .toolbar-group{
+          display:flex;align-items:center;gap:0.5rem;
+          padding:0.5rem 0.75rem;border-radius:6px;background:#fff;
+          border:1px solid rgba(226,232,240,.5);
+          min-height:48px;
+        }
+
+        .toolbar-group.full-width{
+          width:100%;justify-content:space-between;
+          overflow-x:auto;flex-wrap:wrap;
+        }
+
+        .toolbar-btn{
+          background:#fff;border:1px solid var(--border);border-radius:6px;
+          padding:0.6rem 1rem;cursor:pointer;transition:all 0.2s ease;
+          font-weight:500;font-size:0.85rem;white-space:nowrap;
+        }
+        .toolbar-btn:hover{background:#f1f5f9;border-color:var(--accent)}
+        .toolbar-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+        .toolbar-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+        .color-input{
+          width:36px;height:36px;border:2px solid var(--border);border-radius:6px;
+          cursor:pointer;transition:all 0.2s ease;
+        }
+        .color-input:hover{border-color:var(--accent)}
+
+        .hex-input{
+          border:1px solid var(--border);border-radius:6px;padding:0.6rem;
+          background:#fff;font-size:0.8rem;width:75px;text-transform:uppercase;
+          font-family:monospace;
+        }
+
+        .url-input{
+          border:1px solid var(--border);border-radius:6px;padding:0.5rem;
+          background:#fff;font-size:0.8rem;width:180px;
+        }
+
+        .size-select{
+          border:1px solid var(--border);border-radius:6px;padding:0.5rem;
+          background:#fff;cursor:pointer;font-size:0.8rem;min-width:90px;
+        }
+
+        .font-select{
+          border:1px solid var(--border);border-radius:6px;padding:0.5rem;
+          background:#fff;cursor:pointer;font-size:0.8rem;min-width:120px;
+        }
+
+        .symbol-search{
+          border:1px solid var(--border);border-radius:6px;padding:0.5rem;
+          background:#fff;font-size:0.8rem;width:120px;margin-right:0.5rem;
+        }
+
+        .symbol-select{
+          border:1px solid var(--border);border-radius:6px;padding:0.5rem;
+          background:#fff;cursor:pointer;font-size:0.8rem;min-width:140px;
+          font-family: inherit;
+        }
+
+        .group-label{
+          font-size:0.8rem;color:var(--muted);font-weight:500;margin-right:0.5rem;
+          white-space:nowrap;
+        }
+
+        .color-controls{
+          display:flex;align-items:center;gap:0.5rem;
+          flex-wrap:wrap;min-width:0;
+        }
+        
+        .recent-colors{
+          display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.5rem;
+        }
+        
+        .recent-color{
+          display:flex;flex-direction:column;align-items:center;gap:0.25rem;
+          cursor:pointer;transition:all 0.2s ease;
+        }
+        
+        .recent-color:hover{
+          transform:scale(1.1);
+        }
+        
+        .recent-color-swatch{
+          width:25px;height:25px;border:2px solid var(--border);border-radius:4px;
+        }
+        
+        .recent-color-hex{
+          font-size:0.65rem;color:var(--muted);font-family:monospace;
+        }
+
+        .swap-btn{
+          background:#f8fafc;border:1px solid var(--border);border-radius:4px;
+          padding:0.25rem;cursor:pointer;transition:all 0.2s ease;
+          font-size:0.7rem;display:flex;align-items:center;justify-content:center;
+          width:26px;height:26px;
+        }
+        .swap-btn:hover{background:#f1f5f9;border-color:var(--accent)}
+
+        /* ---------- BBCode Output ---------- */
+        .bbcode-output-section{
+          background:#fff;border:1px solid var(--border);border-radius:12px;
+          padding:2rem;margin-top:1rem;
+        }
+
+        .bbcode-output{
+          font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;
+          border-radius:8px;padding:1.5rem;white-space:pre-wrap;word-wrap:break-word;
+          font-size:0.9rem;line-height:1.5;min-height:120px;
+        }
+
+        .copy-btn{
+          background:rgba(79,70,229,.1);border:1px solid rgba(79,70,229,.3);
+          color:var(--accent);padding:0.75rem 1.5rem;border-radius:8px;
+          font-size:0.9rem;cursor:pointer;margin-top:1.5rem;
+          transition:all 0.2s ease;font-weight:500;
+        }
+        .copy-btn:hover{
+          background:rgba(79,70,229,.2);transform:translateY(-1px);
+        }
+
+        /* ---------- Color Status ---------- */
+        .color-status{
+          font-size:0.75rem;
+          color:var(--muted);
+          font-style:italic;
+          margin-left:0.5rem;
+        }
+
+        /* ---------- Footer ---------- */
+        .footer{
+          font-size:.875rem;color:#94a3b8;border-top:1px solid rgba(226,232,240,.6);
+          padding-top:2rem;margin-top:2rem;text-align:center;
+        }
+
+        /* ---------- Mobile Responsive ---------- */
+        @media (max-width:768px){
+          .header{
+            flex-direction:column;
+            align-items:flex-start;
+            gap:1rem;
+          }
+          
+          .title{
+            font-size:2rem;
+          }
+          
+          .header > div:last-child{
+            align-self:flex-end;
+            width:100%;
+            display:flex;
+            justify-content:flex-end;
+          }
+          
+          .toolbar{padding:0.75rem;}
+          .toolbar-row{flex-direction:column;align-items:stretch;}
+          .toolbar-group{justify-content:center;min-height:auto;flex-wrap:wrap;gap:0.25rem;}
+          .toolbar-group.full-width{flex-direction:column;align-items:stretch;}
+          .color-controls{justify-content:center;flex-wrap:wrap;}
+          .container{padding:1.5rem 1rem;}
+          .url-input{width:140px;}
+          .hex-input{width:55px;}
+          .font-select{min-width:110px;}
+          .symbol-select{min-width:130px;}
+          .symbol-search{width:110px;}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div>
+                <h1 class="title">Signature Formatter</h1>
+                <p class="subtitle">
+                    Visual editor for signatures with letter-by-letter gradients that work in BBCode!
+                </p>
+            </div>
+            <div class="header-buttons">
+                <a href="https://ko-fi.com/N4N81JRSGT" class="kofi-btn" target="_blank" rel="noopener">
+                    ☕
+                </a>
+                <a href="../index.html" class="home-link">
+                    <span class="icon">🏠</span>
+                    Home
+                </a>
+            </div>
+        </header>
+        
+        <div class="card">
+            <p class="card-desc">Style text with formatting, colors, letter-by-letter gradients, fonts, and case options. Choose from 80+ searchable symbols and add aligned images. Generates clean BBCode instantly!</p>
+            
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="setMode('visual')" id="visualModeBtn">✨ Visual Editor</button>
+                <button class="mode-btn" onclick="setMode('bbcode')" id="bbcodeModeBtn">💻 BBCode Input</button>
+            </div>
+
+            <div class="editor-container">
+                <div class="visual-editor" id="visualEditor" contenteditable="true" 
+                    oninput="updateBBCodeOutput()" onmouseup="updateToolbarState()" onkeyup="updateToolbarState()" onkeydown="handleEnterKey(event)"></div>
+                <textarea class="bbcode-input" id="bbcodeInput" 
+                    placeholder="Paste your BBCode here..." oninput="updateVisualEditor()"></textarea>
+            </div>
+
+            <div class="selection-info" id="selectionInfo">
+                💡 Tip: Select any text to format it, or click where you want to start typing with formatting
+            </div>
+
+            <div class="toolbar">
+                <!-- Row 1: Basic Formatting -->
+                <div class="toolbar-row">
+                    <div class="toolbar-group">
+                        <span class="group-label">Style:</span>
+                        <button class="toolbar-btn" onclick="formatText('bold')" id="boldBtn"><strong>B</strong></button>
+                        <button class="toolbar-btn" onclick="formatText('italic')" id="italicBtn"><em>I</em></button>
+                        <button class="toolbar-btn" onclick="formatText('underline')" id="underlineBtn"><u>U</u></button>
+                        <button class="toolbar-btn" onclick="formatText('strikeThrough')" id="strikeBtn"><s>S</s></button>
+                        <button class="toolbar-btn" onclick="applySubscript()" id="subBtn">X<sub>₂</sub></button>
+                        <button class="toolbar-btn" onclick="applySuperscript()" id="supBtn">X<sup>²</sup></button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <span class="group-label">Case:</span>
+                        <button class="toolbar-btn" onclick="transformCase('uppercase')" title="UPPERCASE">AA</button>
+                        <button class="toolbar-btn" onclick="transformCase('lowercase')" title="lowercase">aa</button>
+                        <button class="toolbar-btn" onclick="transformCase('propercase')" title="Proper Case">Aa</button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <span class="group-label">Size:</span>
+                        <select id="fontSize" class="size-select" onchange="applyFontSize()">
+                            <option value="">Default</option>
+                            <option value="8">8px</option>
+                            <option value="10">10px</option>
+                            <option value="12">12px</option>
+                            <option value="14">14px</option>
+                            <option value="16">16px</option>
+                            <option value="18">18px</option>
+                            <option value="20">20px</option>
+                            <option value="24">24px</option>
+                            <option value="28">28px</option>
+                            <option value="32">32px</option>
+                        </select>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <span class="group-label">Font:</span>
+                        <select id="fontFamily" class="font-select" onchange="applyFontFamily()">
+                            <option value="">Default</option>
+                            <option value="Arial, sans-serif">Arial</option>
+                            <option value="'Times New Roman', serif">Times New Roman</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="Verdana, sans-serif">Verdana</option>
+                            <option value="Tahoma, sans-serif">Tahoma</option>
+                            <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                            <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                            <option value="'Courier New', monospace">Courier New</option>
+                            <option value="Monaco, monospace">Monaco</option>
+                            <option value="'Lucida Console', monospace">Lucida Console</option>
+                            <option value="Impact, sans-serif">Impact</option>
+                            <option value="'Book Antiqua', serif">Book Antiqua</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 2: Colors -->
+                <div class="toolbar-row">
+                    <div class="toolbar-group full-width">
+                        <div class="color-controls">
+                            <span class="group-label">Text Color:</span>
+                            <input type="text" id="hexInput" class="hex-input" placeholder="#000000" maxlength="7" oninput="updateColorFromHex()">
+                            <input type="color" id="colorPicker" class="color-input" value="#000000" onchange="updateHexFromColor()">
+                            <button class="toolbar-btn" onclick="applyTextColor()" title="Apply Color">🎨 Apply</button>
+                        </div>
+                        
+                        <div class="color-controls">
+                            <span class="group-label">Gradient:</span>
+                            <input type="text" id="gradientStartHex" class="hex-input" placeholder="#ff0000" maxlength="7" oninput="updateGradientStartFromHex()">
+                            <input type="color" id="gradientStart" class="color-input" value="#ff0000" onchange="updateGradientStartHex()" title="Start Color">
+                            <button class="swap-btn" onclick="swapGradientColors()" title="Swap gradient colors">⇄</button>
+                            <input type="text" id="gradientEndHex" class="hex-input" placeholder="#0000ff" maxlength="7" oninput="updateGradientEndFromHex()">
+                            <input type="color" id="gradientEnd" class="color-input" value="#0000ff" onchange="updateGradientEndHex()" title="End Color">
+                            <button class="toolbar-btn" onclick="applyGradient()" title="Apply Letter-by-Letter Gradient">🌈 Apply</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Symbols and Alignment -->
+                <div class="toolbar-row">
+                    <div class="toolbar-group">
+                        <span class="group-label">Symbols:</span>
+                        <input type="text" id="symbolSearch" class="symbol-search" placeholder="Search symbols..." oninput="filterSymbols()">
+                        <select id="symbolPicker" class="symbol-select" onchange="insertSymbol()">
+                            <option value="">Choose Symbol...</option>
+                            <optgroup label="♥ Hearts & Love">
+                                <option value="♥" data-keywords="heart love">♥ Heart</option>
+                                <option value="♡" data-keywords="heart love outline">♡ Heart Outline</option>
+                            </optgroup>
+                            <optgroup label="★ Stars & Celestial">
+                                <option value="★" data-keywords="star">★ Star</option>
+                                <option value="☆" data-keywords="star outline">☆ Star Outline</option>
+                                <option value="✦" data-keywords="star four point">✦ Four Point Star</option>
+                                <option value="✧" data-keywords="star four point outline">✧ Four Point Star Outline</option>
+                                <option value="☽" data-keywords="moon crescent">☽ Moon</option>
+                                <option value="☾" data-keywords="moon crescent">☾ Moon</option>
+                                <option value="☀" data-keywords="sun">☀ Sun</option>
+                                <option value="✴" data-keywords="star eight point">✴ Eight Point Star</option>
+                                <option value="❋" data-keywords="star asterisk">❋ Heavy Asterisk</option>
+                                <option value="✱" data-keywords="star asterisk">✱ Heavy Asterisk</option>
+                            </optgroup>
+                            <optgroup label="→ Arrows & Directions">
+                                <option value="→" data-keywords="arrow right">→ Right Arrow</option>
+                                <option value="←" data-keywords="arrow left">← Left Arrow</option>
+                                <option value="↑" data-keywords="arrow up">↑ Up Arrow</option>
+                                <option value="↓" data-keywords="arrow down">↓ Down Arrow</option>
+                                <option value="↔" data-keywords="arrow left right horizontal">↔ Left Right Arrow</option>
+                                <option value="↕" data-keywords="arrow up down vertical">↕ Up Down Arrow</option>
+                                <option value="➤" data-keywords="arrow triangle right">➤ Triangle Right</option>
+                                <option value="➜" data-keywords="arrow heavy right">➜ Heavy Right</option>
+                                <option value="⇒" data-keywords="arrow double right">⇒ Double Right</option>
+                                <option value="⇐" data-keywords="arrow double left">⇐ Double Left</option>
+                                <option value="⇑" data-keywords="arrow double up">⇑ Double Up</option>
+                                <option value="⇓" data-keywords="arrow double down">⇓ Double Down</option>
+                                <option value="↗" data-keywords="arrow diagonal up right">↗ Up Right Arrow</option>
+                                <option value="↖" data-keywords="arrow diagonal up left">↖ Up Left Arrow</option>
+                                <option value="↘" data-keywords="arrow diagonal down right">↘ Down Right Arrow</option>
+                                <option value="↙" data-keywords="arrow diagonal down left">↙ Down Left Arrow</option>
+                            </optgroup>
+                            <optgroup label="♪ Music & Audio">
+                                <option value="♪" data-keywords="music note eighth">♪ Eighth Note</option>
+                                <option value="♫" data-keywords="music note beamed">♫ Beamed Notes</option>
+                                <option value="♬" data-keywords="music note beamed">♬ Beamed Notes 2</option>
+                                <option value="♭" data-keywords="music flat">♭ Flat</option>
+                                <option value="♯" data-keywords="music sharp">♯ Sharp</option>
+                                <option value="♮" data-keywords="music natural">♮ Natural</option>
+                            </optgroup>
+                            <optgroup label="◆ Shapes & Geometry">
+                                <option value="●" data-keywords="circle black filled">● Circle</option>
+                                <option value="○" data-keywords="circle white outline">○ Circle Outline</option>
+                                <option value="■" data-keywords="square black filled">■ Square</option>
+                                <option value="□" data-keywords="square white outline">□ Square Outline</option>
+                                <option value="▲" data-keywords="triangle up black">▲ Triangle Up</option>
+                                <option value="△" data-keywords="triangle up white outline">△ Triangle Up Outline</option>
+                                <option value="▼" data-keywords="triangle down black">▼ Triangle Down</option>
+                                <option value="▽" data-keywords="triangle down white outline">▽ Triangle Down Outline</option>
+                                <option value="◆" data-keywords="diamond black filled">◆ Diamond</option>
+                                <option value="◇" data-keywords="diamond white outline">◇ Diamond Outline</option>
+                                <option value="♠" data-keywords="spade card suit">♠ Spade</option>
+                                <option value="♣" data-keywords="club card suit">♣ Club</option>
+                                <option value="♦" data-keywords="diamond card suit">♦ Diamond Suit</option>
+                                <option value="♧" data-keywords="club card suit outline">♧ Club Outline</option>
+                                <option value="◉" data-keywords="circle dot">◉ Circle with Dot</option>
+                                <option value="◎" data-keywords="circle bullseye">◎ Bullseye</option>
+                                <option value="▪" data-keywords="square small black">▪ Small Square</option>
+                                <option value="▫" data-keywords="square small white">▫ Small White Square</option>
+                            </optgroup>
+                            <optgroup label="✓ Checks & Marks">
+                                <option value="✓" data-keywords="check mark tick">✓ Check Mark</option>
+                                <option value="✔" data-keywords="check mark heavy tick">✔ Heavy Check</option>
+                                <option value="✗" data-keywords="x mark cross">✗ X Mark</option>
+                                <option value="✘" data-keywords="x mark heavy cross">✘ Heavy X</option>
+                                <option value="⚠" data-keywords="warning caution">⚠ Warning</option>
+                                <option value="⚡" data-keywords="lightning bolt">⚡ Lightning</option>
+                                <option value="☢" data-keywords="radioactive">☢ Radioactive</option>
+                                <option value="☣" data-keywords="biohazard">☣ Biohazard</option>
+                                <option value="⚜" data-keywords="fleur de lis">⚜ Fleur-de-lis</option>
+                            </optgroup>
+                            <optgroup label="☀ Weather & Nature">
+                                <option value="☀" data-keywords="sun sunny">☀ Sunny</option>
+                                <option value="☁" data-keywords="cloud cloudy">☁ Cloud</option>
+                                <option value="⛅" data-keywords="cloud partly cloudy">⛅ Partly Cloudy</option>
+                                <option value="❄" data-keywords="snowflake snow">❄ Snowflake</option>
+                                <option value="❅" data-keywords="snowflake snow">❅ Snowflake</option>
+                                <option value="☂" data-keywords="umbrella rain">☂ Umbrella</option>
+                                <option value="☘" data-keywords="clover shamrock">☘ Shamrock</option>
+                                <option value="❀" data-keywords="flower">❀ Flower</option>
+                                <option value="✿" data-keywords="flower">✿ Flower</option>
+                                <option value="❁" data-keywords="flower">❁ Flower</option>
+                                <option value="✾" data-keywords="flower">✾ Flower</option>
+                            </optgroup>
+                            <optgroup label="✦ Math & Science">
+                                <option value="±" data-keywords="plus minus">± Plus Minus</option>
+                                <option value="×" data-keywords="multiply times">× Multiply</option>
+                                <option value="÷" data-keywords="divide division">÷ Divide</option>
+                                <option value="≈" data-keywords="approximately equal">≈ Approximately</option>
+                                <option value="≠" data-keywords="not equal">≠ Not Equal</option>
+                                <option value="≤" data-keywords="less than equal">≤ Less Equal</option>
+                                <option value="≥" data-keywords="greater than equal">≥ Greater Equal</option>
+                                <option value="∞" data-keywords="infinity">∞ Infinity</option>
+                                <option value="π" data-keywords="pi">π Pi</option>
+                                <option value="∑" data-keywords="sum sigma">∑ Sum</option>
+                                <option value="∆" data-keywords="delta change">∆ Delta</option>
+                                <option value="∇" data-keywords="nabla gradient">∇ Nabla</option>
+                                <option value="∈" data-keywords="element of">∈ Element Of</option>
+                                <option value="∉" data-keywords="not element of">∉ Not Element Of</option>
+                                <option value="∀" data-keywords="for all">∀ For All</option>
+                                <option value="∃" data-keywords="there exists">∃ There Exists</option>
+                            </optgroup>
+                            <optgroup label="© Special Characters">
+                                <option value="©" data-keywords="copyright">© Copyright</option>
+                                <option value="®" data-keywords="registered trademark">® Registered</option>
+                                <option value="™" data-keywords="trademark">™ Trademark</option>
+                                <option value="°" data-keywords="degree">° Degree</option>
+                                <option value="§" data-keywords="section">§ Section</option>
+                                <option value="¶" data-keywords="paragraph">¶ Paragraph</option>
+                                <option value="†" data-keywords="dagger cross">† Dagger</option>
+                                <option value="‡" data-keywords="double dagger cross">‡ Double Dagger</option>
+                                <option value="•" data-keywords="bullet point">• Bullet</option>
+                                <option value="‣" data-keywords="triangle bullet point">‣ Triangle Bullet</option>
+                                <option value="…" data-keywords="ellipsis dots">… Ellipsis</option>
+                                <option value="–" data-keywords="en dash">– En Dash</option>
+                                <option value="—" data-keywords="em dash">— Em Dash</option>
+                                <option value="‹" data-keywords="quote angle bracket">‹ Single Left Quote</option>
+                                <option value="›" data-keywords="quote angle bracket">› Single Right Quote</option>
+                                <option value="«" data-keywords="quote angle bracket">« Double Left Quote</option>
+                                <option value="»" data-keywords="quote angle bracket">» Double Right Quote</option>
+                                <option value="‰" data-keywords="percent per mille">‰ Per Mille</option>
+                                <option value="‱" data-keywords="percent basis point">‱ Basis Point</option>
+                            </optgroup>
+                            <optgroup label="☺ Faces & Gestures">
+                                <option value="☺" data-keywords="smile happy face">☺ Smiling Face</option>
+                                <option value="☻" data-keywords="smile happy face black">☻ Black Smiling</option>
+                                <option value="☹" data-keywords="sad frown face">☹ Frowning Face</option>
+                                <option value="✌" data-keywords="peace victory hand">✌ Peace</option>
+                                <option value="☝" data-keywords="finger pointing up">☝ Index Pointing Up</option>
+                                <option value="✋" data-keywords="hand raised stop">✋ Raised Hand</option>
+                                <option value="✊" data-keywords="fist raised">✊ Raised Fist</option>
+                                <option value="✍" data-keywords="writing hand">✍ Writing Hand</option>
+                            </optgroup>
+                            <optgroup label="⚔ Symbols & Misc">
+                                <option value="⚔" data-keywords="sword crossed swords">⚔ Crossed Swords</option>
+                                <option value="⚖" data-keywords="scale balance justice">⚖ Balance Scale</option>
+                                <option value="⚗" data-keywords="alembic chemistry">⚗ Alembic</option>
+                                <option value="⚙" data-keywords="gear settings">⚙ Gear</option>
+                                <option value="⚓" data-keywords="anchor">⚓ Anchor</option>
+                                <option value="⚡" data-keywords="lightning bolt">⚡ Lightning Bolt</option>
+                                <option value="♨" data-keywords="hot springs steam">♨ Hot Springs</option>
+                                <option value="☮" data-keywords="peace symbol">☮ Peace Symbol</option>
+                                <option value="☯" data-keywords="yin yang">☯ Yin Yang</option>
+                                <option value="☪" data-keywords="crescent star islam">☪ Star and Crescent</option>
+                                <option value="✡" data-keywords="star david judaism">✡ Star of David</option>
+                                <option value="☬" data-keywords="adi shakti">☬ Adi Shakti</option>
+                                <option value="☭" data-keywords="hammer sickle">☭ Hammer and Sickle</option>
+                                <option value="♻" data-keywords="recycle">♻ Recycling Symbol</option>
+                                <option value="⚰" data-keywords="coffin">⚰ Coffin</option>
+                                <option value="⚱" data-keywords="urn funeral">⚱ Funeral Urn</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <span class="group-label">Align:</span>
+                        <button class="toolbar-btn" onclick="formatText('justifyLeft')" id="leftBtn" title="Align Left">⬅️</button>
+                        <button class="toolbar-btn" onclick="formatText('justifyCenter')" id="centerBtn" title="Align Center">⬆️</button>
+                        <button class="toolbar-btn" onclick="formatText('justifyRight')" id="rightBtn" title="Align Right">➡️</button>
+                    </div>
+                </div>
+
+                <!-- Row 4: Recent Colors -->
+                <div class="toolbar-row">
+                    <div class="toolbar-group full-width">
+                        <div style="display:flex;flex-direction:column;gap:0.5rem;width:100%;">
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <span class="group-label">Recent Colors:</span>
+                                <span style="font-size:0.75rem;color:var(--muted);font-style:italic;">Click to reuse as text color</span>
+                            </div>
+                            <div class="recent-colors" id="recentColors">
+                                <!-- Recent colors will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 5: Image Colors -->
+                <div class="toolbar-row" id="imageColorsRow" style="display:none;">
+                    <div class="toolbar-group full-width">
+                        <div style="display:flex;flex-direction:column;gap:0.5rem;width:100%;">
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <span class="group-label">Colors from Image:</span>
+                                <span style="font-size:0.75rem;color:var(--muted);font-style:italic;">Click to use color from your image</span>
+                                <span class="color-status" id="colorStatus"></span>
+                            </div>
+                            <div class="recent-colors" id="imageColors">
+                                <!-- Image colors will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 6: Image and Clear -->
+                <div class="toolbar-row">
+                    <div class="toolbar-group">
+                        <span class="group-label">Image:</span>
+                        <input type="text" id="imageUrl" class="url-input" placeholder="Enter image URL...">
+                        <button class="toolbar-btn" onclick="insertImage()" title="Insert Image">🖼️ Insert</button>
+                        <button class="toolbar-btn" onclick="insertPlaceholderImage()" title="Insert Placeholder Image">📷 Placeholder</button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <span class="group-label">Clear:</span>
+                        <button class="toolbar-btn" onclick="clearSelectedFormatting()" title="Remove formatting from selected text only">Clear Selected</button>
+                        <button class="toolbar-btn" onclick="clearAllFormatting()" title="Remove all formatting from entire document">Clear All</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bbcode-output-section">
+                <h3 style="margin-bottom:1.5rem;font-size:1.1rem">BBCode Output</h3>
+                <div class="bbcode-output" id="bbcodeOutput">BBCode will appear here...</div>
+                <button class="copy-btn" onclick="copyBBCode()">📋 Copy BBCode</button>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
+        </footer>
+    </div>
+
+    <script>
+        let currentMode = 'visual';
+        let visualEditor = document.getElementById('visualEditor');
+        let bbcodeInput = document.getElementById('bbcodeInput');
+        let recentColors = []; // Store recent colors
+        
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // Update button states
+            document.getElementById('visualModeBtn').classList.toggle('active', mode === 'visual');
+            document.getElementById('bbcodeModeBtn').classList.toggle('active', mode === 'bbcode');
+            
+            // Show/hide appropriate editor
+            if (mode === 'visual') {
+                visualEditor.style.display = 'block';
+                bbcodeInput.style.display = 'none';
+                document.getElementById('selectionInfo').style.display = 'block';
+                updateBBCodeOutput();
+            } else {
+                visualEditor.style.display = 'none';
+                bbcodeInput.style.display = 'block';
+                document.getElementById('selectionInfo').style.display = 'block';
+                // Convert visual content to BBCode for editing
+                bbcodeInput.value = document.getElementById('bbcodeOutput').textContent;
+                updateVisualEditor();
+            }
+        }
+
+        function handleEnterKey(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                
+                // Create a proper line break
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    
+                    // Create a div with a br inside for proper spacing
+                    const newLine = document.createElement('div');
+                    const br = document.createElement('br');
+                    newLine.appendChild(br);
+                    
+                    range.deleteContents();
+                    range.insertNode(newLine);
+                    
+                    // Position cursor at the beginning of the new line
+                    range.setStart(newLine, 0);
+                    range.setEnd(newLine, 0);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                
+                updateBBCodeOutput();
+            }
+        }
+
+        function transformCase(caseType) {
+            const selection = window.getSelection();
+            let selectionInfo = null;
+            
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (!range.collapsed) {
+                    // Save selection info
+                    selectionInfo = {
+                        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                    };
+                    
+                    // Create a tree walker to find all text nodes in the selection
+                    const walker = document.createTreeWalker(
+                        range.commonAncestorContainer,
+                        NodeFilter.SHOW_TEXT,
+                        {
+                            acceptNode: function(node) {
+                                return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+                            }
+                        }
+                    );
+                    
+                    const textNodes = [];
+                    let node;
+                    while (node = walker.nextNode()) {
+                        // Only include text nodes that are actually within our selection
+                        const nodeRange = document.createRange();
+                        nodeRange.selectNode(node);
+                        if (range.compareBoundaryPoints(Range.END_TO_START, nodeRange) <= 0 &&
+                            range.compareBoundaryPoints(Range.START_TO_END, nodeRange) >= 0) {
+                            textNodes.push(node);
+                        }
+                    }
+                    
+                    // Transform text in each text node
+                    textNodes.forEach(textNode => {
+                        if (textNode.textContent.trim()) {
+                            let transformedText;
+                            switch(caseType) {
+                                case 'uppercase':
+                                    transformedText = textNode.textContent.toUpperCase();
+                                    break;
+                                case 'lowercase':
+                                    transformedText = textNode.textContent.toLowerCase();
+                                    break;
+                                case 'propercase':
+                                    transformedText = textNode.textContent.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+                                    break;
+                                default:
+                                    transformedText = textNode.textContent;
+                            }
+                            textNode.textContent = transformedText;
+                        }
+                    });
+                    
+                    updateBBCodeOutput();
+                    
+                    // Restore selection
+                    try {
+                        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                        if (newRange) {
+                            selection.removeAllRanges();
+                            selection.addRange(newRange);
+                        } else {
+                            visualEditor.focus();
+                        }
+                    } catch (e) {
+                        visualEditor.focus();
+                    }
+                } else {
+                    alert('Please select some text first to change its case.');
+                }
+            }
+            visualEditor.focus();
+        }
+
+        function applySubscript() {
+            const selection = window.getSelection();
+            let selectionInfo = null;
+            
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (!range.collapsed) {
+                    // Save selection info
+                    selectionInfo = {
+                        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                    };
+                    
+                    const sub = document.createElement('sub');
+                    
+                    try {
+                        range.surroundContents(sub);
+                    } catch (e) {
+                        const contents = range.extractContents();
+                        sub.appendChild(contents);
+                        range.insertNode(sub);
+                    }
+                    
+                    updateBBCodeOutput();
+                    
+                    // Restore selection
+                    try {
+                        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                        if (newRange) {
+                            selection.removeAllRanges();
+                            selection.addRange(newRange);
+                        } else {
+                            visualEditor.focus();
+                        }
+                    } catch (e) {
+                        visualEditor.focus();
+                    }
+                } else {
+                    alert('Please select some text first to make it subscript.');
+                }
+            }
+            visualEditor.focus();
+        }
+
+        function applySuperscript() {
+            const selection = window.getSelection();
+            let selectionInfo = null;
+            
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (!range.collapsed) {
+                    // Save selection info
+                    selectionInfo = {
+                        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                    };
+                    
+                    const sup = document.createElement('sup');
+                    
+                    try {
+                        range.surroundContents(sup);
+                    } catch (e) {
+                        const contents = range.extractContents();
+                        sup.appendChild(contents);
+                        range.insertNode(sup);
+                    }
+                    
+                    updateBBCodeOutput();
+                    
+                    // Restore selection
+                    try {
+                        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                        if (newRange) {
+                            selection.removeAllRanges();
+                            selection.addRange(newRange);
+                        } else {
+                            visualEditor.focus();
+                        }
+                    } catch (e) {
+                        visualEditor.focus();
+                    }
+                } else {
+                    alert('Please select some text first to make it superscript.');
+                }
+            }
+            visualEditor.focus();
+        }
+
+        function formatText(command) {
+            const selection = window.getSelection();
+            let selectionInfo = null;
+            
+            if (selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed) {
+                const range = selection.getRangeAt(0);
+                
+                // Save detailed selection info before making changes
+                selectionInfo = {
+                    startContainer: range.startContainer,
+                    startOffset: range.startOffset,
+                    endContainer: range.endContainer,
+                    endOffset: range.endOffset,
+                    selectedText: range.toString(),
+                    // Calculate text positions relative to the editor
+                    startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                    endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                };
+                
+                // Handle alignment commands specially to work with images
+                if (command.startsWith('justify')) {
+                    handleAlignment(command, range, selectionInfo);
+                    return;
+                }
+            }
+            
+            // Execute the formatting command for non-alignment commands
+            document.execCommand(command, false, null);
+            updateBBCodeOutput();
+            updateToolbarState();
+            
+            // Try to restore selection using text positions
+            if (selectionInfo) {
+                try {
+                    const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                    if (newRange) {
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    } else {
+                        visualEditor.focus();
+                    }
+                } catch (e) {
+                    visualEditor.focus();
+                }
+            } else {
+                visualEditor.focus();
+            }
+        }
+
+        function handleAlignment(command, range, selectionInfo) {
+            const selection = window.getSelection();
+            
+            // Extract the selected content
+            const selectedContent = range.extractContents();
+            
+            // Determine alignment style
+            let alignStyle = 'left';
+            if (command === 'justifyCenter') alignStyle = 'center';
+            else if (command === 'justifyRight') alignStyle = 'right';
+            
+            // Check if there are any images in the selection and fix their styling
+            const images = selectedContent.querySelectorAll('img');
+            
+            if (images.length > 0) {
+                images.forEach(img => {
+                    // Reset image styling to work with text-align
+                    if (alignStyle === 'center') {
+                        img.style.display = 'block';
+                        img.style.margin = '10px auto';
+                    } else if (alignStyle === 'right') {
+                        img.style.display = 'block';
+                        img.style.margin = '10px 0 10px auto';
+                    } else { // left
+                        img.style.display = 'block';
+                        img.style.margin = '10px auto 10px 0';
+                    }
+                });
+            }
+            
+            if (selectedContent.childNodes.length > 0) {
+                // Create a wrapper div with the appropriate alignment
+                const alignDiv = document.createElement('div');
+                alignDiv.style.textAlign = alignStyle;
+                alignDiv.appendChild(selectedContent);
+                
+                // Insert the aligned content
+                range.insertNode(alignDiv);
+            } else {
+                // If no content, just put it back
+                range.insertNode(selectedContent);
+            }
+            
+            updateBBCodeOutput();
+            updateToolbarState();
+            
+            // Restore selection
+            try {
+                const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                if (newRange) {
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                } else {
+                    visualEditor.focus();
+                }
+            } catch (e) {
+                visualEditor.focus();
+            }
+        }
+        
+        function getTextPosition(container, node, offset) {
+            let textPos = 0;
+            const walker = document.createTreeWalker(
+                container,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            let currentNode;
+            while (currentNode = walker.nextNode()) {
+                if (currentNode === node) {
+                    return textPos + offset;
+                }
+                textPos += currentNode.textContent.length;
+            }
+            return textPos;
+        }
+        
+        function createRangeFromTextPositions(container, startPos, endPos) {
+            let currentPos = 0;
+            let startNode = null, startOffset = 0;
+            let endNode = null, endOffset = 0;
+            
+            const walker = document.createTreeWalker(
+                container,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            let currentNode;
+            while (currentNode = walker.nextNode()) {
+                const nodeLength = currentNode.textContent.length;
+                
+                // Check if start position is in this node
+                if (startNode === null && currentPos + nodeLength >= startPos) {
+                    startNode = currentNode;
+                    startOffset = startPos - currentPos;
+                }
+                
+                // Check if end position is in this node
+                if (currentPos + nodeLength >= endPos) {
+                    endNode = currentNode;
+                    endOffset = endPos - currentPos;
+                    break;
+                }
+                
+                currentPos += nodeLength;
+            }
+            
+            if (startNode && endNode) {
+                const range = document.createRange();
+                range.setStart(startNode, startOffset);
+                range.setEnd(endNode, endOffset);
+                return range;
+            }
+            
+            return null;
+        }
+
+        function applyTextColor() {
+            const hexValue = document.getElementById('hexInput').value;
+            const colorValue = document.getElementById('colorPicker').value;
+            
+            // Use hex input if it's valid, otherwise use color picker
+            let color = colorValue;
+            if (hexValue && /^#[0-9A-F]{6}$/i.test(hexValue)) {
+                color = hexValue;
+            }
+            
+            // Add to recent colors
+            addToRecentColors(color);
+            
+            // Store current selection info
+            const selection = window.getSelection();
+            let selectionInfo = null;
+            
+            if (selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed) {
+                const range = selection.getRangeAt(0);
+                selectionInfo = {
+                    startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                    endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                };
+            }
+            
+            // Apply color using execCommand
+            document.execCommand('foreColor', false, color);
+            updateBBCodeOutput();
+            
+            // Restore selection to keep text selected for further editing
+            if (selectionInfo) {
+                try {
+                    const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                    if (newRange) {
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    } else {
+                        visualEditor.focus();
+                    }
+                } catch (e) {
+                    visualEditor.focus();
+                }
+            } else {
+                visualEditor.focus();
+            }
+        }
+
+        // Color interpolation function
+        function interpolateColor(color1, color2, factor) {
+            // Convert hex to RGB
+            const hex1 = color1.replace('#', '');
+            const hex2 = color2.replace('#', '');
+            
+            const r1 = parseInt(hex1.substring(0, 2), 16);
+            const g1 = parseInt(hex1.substring(2, 4), 16);
+            const b1 = parseInt(hex1.substring(4, 6), 16);
+            
+            const r2 = parseInt(hex2.substring(0, 2), 16);
+            const g2 = parseInt(hex2.substring(2, 4), 16);
+            const b2 = parseInt(hex2.substring(4, 6), 16);
+            
+            // Interpolate
+            const r = Math.round(r1 + (r2 - r1) * factor);
+            const g = Math.round(g1 + (g2 - g1) * factor);
+            const b = Math.round(b1 + (b2 - b1) * factor);
+            
+            // Convert back to hex
+            const rHex = r.toString(16).padStart(2, '0');
+            const gHex = g.toString(16).padStart(2, '0');
+            const bHex = b.toString(16).padStart(2, '0');
+            
+            return `#${rHex}${gHex}${bHex}`;
+        }
+
+        function applyGradient() {
+            const startColor = document.getElementById('gradientStart').value;
+            const endColor = document.getElementById('gradientEnd').value;
+            
+            const selection = window.getSelection();
+            
+            if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+                alert('Please select some text first to apply a gradient.');
+                return;
+            }
+            
+            const range = selection.getRangeAt(0);
+            
+            // Save selection info for restoration
+            const selectionInfo = {
+                startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+            };
+            
+            // Add gradient colors to recent colors
+            addToRecentColors(startColor);
+            addToRecentColors(endColor);
+            
+            // Extract contents while preserving structure
+            const selectedContents = range.extractContents();
+            
+            // Get all text content to calculate gradient positions
+            const allText = selectedContents.textContent;
+            const allLetters = allText.replace(/\s/g, ''); // Remove whitespace for color calculation
+            
+            if (!allLetters.trim()) {
+                alert('Please select some text first to apply a gradient.');
+                range.insertNode(selectedContents); // Put it back
+                return;
+            }
+            
+            let letterIndex = 0;
+            
+            // Function to process text nodes and apply gradient colors
+            function processTextNode(textNode) {
+                const text = textNode.textContent;
+                const fragment = document.createDocumentFragment();
+                
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+                    const span = document.createElement('span');
+                    span.textContent = char;
+                    
+                    if (char.trim()) {
+                        // This is a letter - calculate its color
+                        const factor = allLetters.length > 1 ? letterIndex / (allLetters.length - 1) : 0;
+                        const interpolatedColor = interpolateColor(startColor, endColor, factor);
+                        
+                        span.style.color = interpolatedColor;
+                        span.setAttribute('data-gradient-letter', interpolatedColor);
+                        letterIndex++;
+                    }
+                    
+                    fragment.appendChild(span);
+                }
+                
+                return fragment;
+            }
+            
+            // Walk through all nodes and process text nodes
+            function processNode(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    if (node.textContent.trim()) {
+                        const processedFragment = processTextNode(node);
+                        node.parentNode.replaceChild(processedFragment, node);
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    // Process child nodes
+                    const children = Array.from(node.childNodes);
+                    children.forEach(child => processNode(child));
+                }
+            }
+            
+            // Process all nodes in the selection
+            const walker = document.createTreeWalker(
+                selectedContents,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            const textNodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                textNodes.push(node);
+            }
+            
+            // Process each text node
+            textNodes.forEach(textNode => {
+                if (textNode.textContent.trim()) {
+                    const processedFragment = processTextNode(textNode);
+                    textNode.parentNode.replaceChild(processedFragment, textNode);
+                }
+            });
+            
+            // Create container and insert the processed content
+            const gradientContainer = document.createElement('span');
+            gradientContainer.setAttribute('data-gradient-container', 'true');
+            gradientContainer.appendChild(selectedContents);
+            
+            // Insert the gradient container back into the document
+            range.insertNode(gradientContainer);
+            
+            // Update BBCode output first
+            updateBBCodeOutput();
+            
+            // Restore selection to keep text selected
+            try {
+                const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                if (newRange) {
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                } else {
+                    // Fallback: select the gradient container
+                    const containerRange = document.createRange();
+                    containerRange.selectNodeContents(gradientContainer);
+                    selection.removeAllRanges();
+                    selection.addRange(containerRange);
+                }
+            } catch (e) {
+                // Fallback: try to select the container
+                try {
+                    const containerRange = document.createRange();
+                    containerRange.selectNodeContents(gradientContainer);
+                    selection.removeAllRanges();
+                    selection.addRange(containerRange);
+                } catch (e2) {
+                    visualEditor.focus();
+                }
+            }
+            
+            visualEditor.focus();
+        }
+
+        function filterSymbols() {
+            const searchTerm = document.getElementById('symbolSearch').value.toLowerCase();
+            const symbolPicker = document.getElementById('symbolPicker');
+            const options = symbolPicker.querySelectorAll('option');
+            const optgroups = symbolPicker.querySelectorAll('optgroup');
+            
+            // If search is empty, show all
+            if (!searchTerm) {
+                options.forEach(option => option.style.display = '');
+                optgroups.forEach(group => group.style.display = '');
+                return;
+            }
+            
+            // Hide all optgroups initially
+            optgroups.forEach(group => group.style.display = 'none');
+            
+            // Show matching options and their groups
+            options.forEach(option => {
+                if (option.value === '') {
+                    // Keep the "Choose Symbol..." option visible
+                    option.style.display = '';
+                    return;
+                }
+                
+                const keywords = option.dataset.keywords || '';
+                const text = option.textContent.toLowerCase();
+                const value = option.value.toLowerCase();
+                
+                const matches = keywords.includes(searchTerm) || 
+                               text.includes(searchTerm) || 
+                               value.includes(searchTerm);
+                
+                if (matches) {
+                    option.style.display = '';
+                    // Show the parent optgroup
+                    const parentGroup = option.closest('optgroup');
+                    if (parentGroup) {
+                        parentGroup.style.display = '';
+                    }
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        }
+
+        function insertSymbol() {
+            const symbol = document.getElementById('symbolPicker').value;
+            if (symbol) {
+                const selection = window.getSelection();
+                
+                // Focus the visual editor first
+                visualEditor.focus();
+                
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    
+                    // Delete any selected content first
+                    range.deleteContents();
+                    
+                    // Create a text node with the symbol
+                    const textNode = document.createTextNode(symbol);
+                    range.insertNode(textNode);
+                    
+                    // Position cursor after the inserted symbol
+                    range.setStartAfter(textNode);
+                    range.setEndAfter(textNode);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                } else {
+                    // If no selection, insert at the end
+                    const range = document.createRange();
+                    range.selectNodeContents(visualEditor);
+                    range.collapse(false);
+                    
+                    const textNode = document.createTextNode(symbol);
+                    range.insertNode(textNode);
+                    
+                    range.setStartAfter(textNode);
+                    range.setEndAfter(textNode);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                
+                updateBBCodeOutput();
+                
+                // Reset dropdown
+                setTimeout(() => {
+                    document.getElementById('symbolPicker').value = '';
+                }, 100);
+            }
+            visualEditor.focus();
+        }
+
+        function applyFontFamily() {
+            const fontFamily = document.getElementById('fontFamily').value;
+            if (fontFamily) {
+                const selection = window.getSelection();
+                let selectionInfo = null;
+                
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    if (!range.collapsed) {
+                        // Save selection info
+                        selectionInfo = {
+                            startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                            endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                        };
+                        
+                        // First, remove any existing font formatting in the selection
+                        const contents = range.extractContents();
+                        
+                        // Remove existing font spans from the extracted content
+                        function removeFontSpans(node) {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                if (node.tagName === 'SPAN' && (node.style.fontFamily || node.getAttribute('data-font-family'))) {
+                                    // Replace span with its contents
+                                    const fragment = document.createDocumentFragment();
+                                    while (node.firstChild) {
+                                        fragment.appendChild(node.firstChild);
+                                    }
+                                    return fragment;
+                                } else {
+                                    // Process children
+                                    const children = Array.from(node.childNodes);
+                                    children.forEach(child => {
+                                        const replacement = removeFontSpans(child);
+                                        if (replacement && replacement !== child) {
+                                            node.replaceChild(replacement, child);
+                                        }
+                                    });
+                                }
+                            }
+                            return node;
+                        }
+                        
+                        // Process all nodes in contents
+                        const walker = document.createTreeWalker(
+                            contents,
+                            NodeFilter.SHOW_ELEMENT,
+                            null,
+                            false
+                        );
+                        
+                        const elementsToProcess = [];
+                        let node;
+                        while (node = walker.nextNode()) {
+                            elementsToProcess.push(node);
+                        }
+                        
+                        elementsToProcess.forEach(element => {
+                            if (element.tagName === 'SPAN' && (element.style.fontFamily || element.getAttribute('data-font-family'))) {
+                                // Replace with contents
+                                const parent = element.parentNode;
+                                if (parent) {
+                                    while (element.firstChild) {
+                                        parent.insertBefore(element.firstChild, element);
+                                    }
+                                    parent.removeChild(element);
+                                }
+                            }
+                        });
+                        
+                        // Create new font span
+                        const span = document.createElement('span');
+                        span.style.fontFamily = fontFamily;
+                        span.setAttribute('data-font-family', fontFamily);
+                        span.appendChild(contents);
+                        
+                        // Insert the new span
+                        range.insertNode(span);
+                        
+                        updateBBCodeOutput();
+                        
+                        // Restore selection
+                        try {
+                            const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                            if (newRange) {
+                                selection.removeAllRanges();
+                                selection.addRange(newRange);
+                            } else {
+                                visualEditor.focus();
+                            }
+                        } catch (e) {
+                            visualEditor.focus();
+                        }
+                        
+                        // Don't reset dropdown immediately - let the user see the selection
+                        setTimeout(() => {
+                            // Only reset if no text is currently selected
+                            const currentSelection = window.getSelection();
+                            if (!currentSelection.rangeCount || currentSelection.getRangeAt(0).collapsed) {
+                                document.getElementById('fontFamily').value = '';
+                            }
+                        }, 100);
+                    } else {
+                        alert('Please select some text first to change its font.');
+                        document.getElementById('fontFamily').value = ''; // Reset dropdown
+                    }
+                } else {
+                    alert('Please select some text first to change its font.');
+                    document.getElementById('fontFamily').value = ''; // Reset dropdown
+                }
+            }
+            visualEditor.focus();
+        }
+
+        function applyFontSize() {
+            const size = document.getElementById('fontSize').value;
+            if (size) {
+                const selection = window.getSelection();
+                let selectionInfo = null;
+                
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    if (!range.collapsed) {
+                        // Save selection info
+                        selectionInfo = {
+                            startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                            endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+                        };
+                        
+                        // First, remove any existing font size formatting in the selection
+                        const contents = range.extractContents();
+                        
+                        // Process all nodes in contents to remove existing font size spans
+                        const walker = document.createTreeWalker(
+                            contents,
+                            NodeFilter.SHOW_ELEMENT,
+                            null,
+                            false
+                        );
+                        
+                        const elementsToProcess = [];
+                        let node;
+                        while (node = walker.nextNode()) {
+                            elementsToProcess.push(node);
+                        }
+                        
+                        elementsToProcess.forEach(element => {
+                            if (element.tagName === 'SPAN' && element.style.fontSize) {
+                                // Replace with contents
+                                const parent = element.parentNode;
+                                if (parent) {
+                                    while (element.firstChild) {
+                                        parent.insertBefore(element.firstChild, element);
+                                    }
+                                    parent.removeChild(element);
+                                }
+                            }
+                        });
+                        
+                        // Create new font size span
+                        const span = document.createElement('span');
+                        span.style.fontSize = size + 'px';
+                        span.setAttribute('data-font-size', size);
+                        span.appendChild(contents);
+                        
+                        // Insert the new span
+                        range.insertNode(span);
+                        
+                        updateBBCodeOutput();
+                        
+                        // Restore selection
+                        try {
+                            const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                            if (newRange) {
+                                selection.removeAllRanges();
+                                selection.addRange(newRange);
+                            } else {
+                                visualEditor.focus();
+                            }
+                        } catch (e) {
+                            visualEditor.focus();
+                        }
+                        
+                        // Don't reset dropdown immediately - let the user see the selection
+                        setTimeout(() => {
+                            // Only reset if no text is currently selected
+                            const currentSelection = window.getSelection();
+                            if (!currentSelection.rangeCount || currentSelection.getRangeAt(0).collapsed) {
+                                document.getElementById('fontSize').value = '';
+                            }
+                        }, 100);
+                    } else {
+                        alert('Please select some text first to change its font size.');
+                        document.getElementById('fontSize').value = ''; // Reset dropdown
+                    }
+                } else {
+                    alert('Please select some text first to change its font size.');
+                    document.getElementById('fontSize').value = ''; // Reset dropdown
+                }
+            }
+            visualEditor.focus();
+        }
+
+        function insertImage() {
+            const url = document.getElementById('imageUrl').value.trim();
+            if (!url) {
+                alert('Please enter an image URL first.');
+                return;
+            }
+
+            // Create image element
+            const img = document.createElement('img');
+            img.src = url;
+            // Remove crossOrigin to avoid CORS issues that prevent color extraction
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            img.style.margin = '10px auto 10px 0';
+            img.style.border = '1px solid #e2e8f0';
+            img.style.borderRadius = '8px';
+            
+            img.onerror = function() {
+                alert('Failed to load image. Please check the URL.');
+                this.remove();
+                updateBBCodeOutput();
+            };
+
+            img.onload = function() {
+                updateBBCodeOutput();
+                // Extract colors from the image
+                extractImageColors(this);
+            };
+
+            // Focus the visual editor first to ensure we're working with it
+            visualEditor.focus();
+            
+            // Get current selection or create one at the end
+            const selection = window.getSelection();
+            let range;
+            
+            if (selection.rangeCount > 0 && selection.getRangeAt(0).commonAncestorContainer.closest && 
+                selection.getRangeAt(0).commonAncestorContainer.closest('.visual-editor')) {
+                // Use existing selection if it's in the visual editor
+                range = selection.getRangeAt(0);
+            } else {
+                // Create a new range at the end of the visual editor
+                range = document.createRange();
+                range.selectNodeContents(visualEditor);
+                range.collapse(false); // Collapse to end
+            }
+            
+            // Clear any existing selection
+            range.deleteContents();
+            
+            // Insert the image directly without alignment wrapper
+            range.insertNode(img);
+            
+            // Create a new line after the image for continued typing
+            const newLine = document.createElement('div');
+            newLine.innerHTML = '<br>';
+            range.setStartAfter(img);
+            range.insertNode(newLine);
+            
+            // Position cursor in the new line
+            range.setStart(newLine, 0);
+            range.setEnd(newLine, 0);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // Clear the input and update
+            document.getElementById('imageUrl').value = '';
+            updateBBCodeOutput();
+            visualEditor.focus();
+        }
+
+        function insertPlaceholderImage() {
+            // Set the placeholder URL
+            const placeholderUrl = 'https://placehold.co/500x200';
+            
+            // Create image element
+            const img = document.createElement('img');
+            img.src = placeholderUrl;
+            // Remove crossOrigin to avoid CORS issues
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            img.style.margin = '10px auto 10px 0';
+            img.style.border = '1px solid #e2e8f0';
+            img.style.borderRadius = '8px';
+            
+            img.onerror = function() {
+                alert('Failed to load placeholder image.');
+                this.remove();
+                updateBBCodeOutput();
+            };
+
+            img.onload = function() {
+                updateBBCodeOutput();
+                // Extract colors from the placeholder image
+                extractImageColors(this);
+            };
+
+            // Focus the visual editor first
+            visualEditor.focus();
+            
+            // Get current selection or create one at the end
+            const selection = window.getSelection();
+            let range;
+            
+            if (selection.rangeCount > 0 && selection.getRangeAt(0).commonAncestorContainer.closest && 
+                selection.getRangeAt(0).commonAncestorContainer.closest('.visual-editor')) {
+                range = selection.getRangeAt(0);
+            } else {
+                range = document.createRange();
+                range.selectNodeContents(visualEditor);
+                range.collapse(false);
+            }
+            
+            range.deleteContents();
+            
+            // Insert the image
+            range.insertNode(img);
+            
+            // Create new line after image
+            const newLine = document.createElement('div');
+            newLine.innerHTML = '<br>';
+            range.setStartAfter(img);
+            range.insertNode(newLine);
+            
+            // Position cursor
+            range.setStart(newLine, 0);
+            range.setEnd(newLine, 0);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            updateBBCodeOutput();
+            visualEditor.focus();
+        }
+
+        // Fixed extractImageColors function with CORS workaround
+        async function extractImageColors(img) {
+            console.log('Extracting colors from image:', img.src);
+            setColorStatus('Extracting colors...');
+            
+            try {
+                // First try direct extraction (works for same-origin images)
+                const colors = await tryDirectExtraction(img);
+                if (colors && colors.length > 0) {
+                    displayImageColors(colors);
+                    setColorStatus('✓ Colors extracted');
+                    return;
+                }
+            } catch (e) {
+                console.log('Direct extraction failed, trying CORS proxy...');
+            }
+
+            // If direct fails, try with CORS proxy
+            try {
+                const colors = await tryProxyExtraction(img.src);
+                if (colors && colors.length > 0) {
+                    displayImageColors(colors);
+                    setColorStatus('✓ Colors extracted via proxy');
+                    return;
+                }
+            } catch (e) {
+                console.log('Proxy extraction failed:', e);
+            }
+
+            // Final fallback
+            console.log('All extraction methods failed, using themed fallback colors');
+            setColorStatus('Using default colors (CORS blocked)');
+            displayImageColors(getThemeBasedColors(img.src));
+        }
+
+        // Direct extraction for same-origin or CORS-enabled images
+        function tryDirectExtraction(img) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Check if image loaded properly
+                    if (!img.naturalWidth || !img.naturalHeight) {
+                        reject(new Error('Image not loaded'));
+                        return;
+                    }
+                    
+                    // Set canvas size (smaller for performance)
+                    const maxSize = 100;
+                    const ratio = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
+                    canvas.width = img.naturalWidth * ratio;
+                    canvas.height = img.naturalHeight * ratio;
+                    
+                    // Draw image to canvas
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    // Try to get image data (this is where CORS errors happen)
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const colors = extractColorsFromImageData(imageData);
+                    
+                    resolve(colors);
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
+
+        // Try extraction with CORS proxy
+        async function tryProxyExtraction(originalUrl) {
+            const proxies = [
+                'https://api.allorigins.win/raw?url=',
+                'https://corsproxy.io/?',
+                'https://api.codetabs.com/v1/proxy?quest='
+            ];
+
+            for (const proxy of proxies) {
+                try {
+                    const proxyUrl = proxy + encodeURIComponent(originalUrl);
+                    
+                    // Create a new image with the proxy URL
+                    const proxyImg = new Image();
+                    proxyImg.crossOrigin = 'anonymous';
+                    
+                    const colors = await new Promise((resolve, reject) => {
+                        proxyImg.onload = () => {
+                            try {
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                
+                                const maxSize = 100;
+                                const ratio = Math.min(maxSize / proxyImg.naturalWidth, maxSize / proxyImg.naturalHeight);
+                                canvas.width = proxyImg.naturalWidth * ratio;
+                                canvas.height = proxyImg.naturalHeight * ratio;
+                                
+                                ctx.drawImage(proxyImg, 0, 0, canvas.width, canvas.height);
+                                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                                const extractedColors = extractColorsFromImageData(imageData);
+                                
+                                resolve(extractedColors);
+                            } catch (e) {
+                                reject(e);
+                            }
+                        };
+                        
+                        proxyImg.onerror = () => reject(new Error('Proxy image load failed'));
+                        
+                        // Set timeout
+                        setTimeout(() => reject(new Error('Proxy timeout')), 5000);
+                    });
+                    
+                    proxyImg.src = proxyUrl;
+                    
+                    if (colors && colors.length > 0) {
+                        return colors;
+                    }
+                    
+                } catch (e) {
+                    console.log(`Proxy ${proxy} failed:`, e.message);
+                    continue;
+                }
+            }
+            
+            throw new Error('All proxies failed');
+        }
+
+        // Extract colors from image data
+        function extractColorsFromImageData(imageData) {
+            const data = imageData.data;
+            const colors = new Map();
+            
+            // Extract colors (sample every 10th pixel for performance)
+            for (let i = 0; i < data.length; i += 40) { // 40 = 4 (RGBA) * 10 (every 10th pixel)
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const a = data[i + 3];
+                
+                // Skip transparent or very transparent pixels
+                if (a < 200) continue;
+                
+                // Skip very dark or very light colors
+                const brightness = (r + g + b) / 3;
+                if (brightness < 20 || brightness > 235) continue;
+                
+                // Convert to hex
+                const hex = '#' + [r, g, b].map(x => {
+                    const hex = x.toString(16);
+                    return hex.length === 1 ? '0' + hex : hex;
+                }).join('');
+                
+                // Count color frequency
+                colors.set(hex, (colors.get(hex) || 0) + 1);
+            }
+            
+            if (colors.size === 0) {
+                return [];
+            }
+            
+            // Get most frequent colors
+            const sortedColors = Array.from(colors.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 12)
+                .map(([color]) => color.toUpperCase());
+            
+            // Filter out very similar colors
+            const distinctColors = [];
+            for (const color of sortedColors) {
+                const rgb = hexToRgb(color);
+                const isDistinct = distinctColors.every(existingColor => {
+                    const existingRgb = hexToRgb(existingColor);
+                    const distance = Math.sqrt(
+                        Math.pow(rgb.r - existingRgb.r, 2) +
+                        Math.pow(rgb.g - existingRgb.g, 2) +
+                        Math.pow(rgb.b - existingRgb.b, 2)
+                    );
+                    return distance > 40;
+                });
+                
+                if (isDistinct) {
+                    distinctColors.push(color);
+                }
+                
+                if (distinctColors.length >= 8) break;
+            }
+            
+            return distinctColors;
+        }
+
+        // Generate theme-based colors based on URL patterns
+        function getThemeBasedColors(url) {
+            const urlLower = url.toLowerCase();
+            
+            if (urlLower.includes('sunset') || urlLower.includes('orange')) {
+                return ['#FF6B35', '#F7931E', '#FFD23F', '#FF8C42', '#C73E1D', '#FFA500'];
+            } else if (urlLower.includes('ocean') || urlLower.includes('blue') || urlLower.includes('water')) {
+                return ['#006BA6', '#0496FF', '#FFBC42', '#6BCF7F', '#4D194D', '#87CEEB'];
+            } else if (urlLower.includes('forest') || urlLower.includes('green') || urlLower.includes('nature')) {
+                return ['#2D5016', '#61A63F', '#8FBC8F', '#228B22', '#6B8E23', '#32CD32'];
+            } else if (urlLower.includes('space') || urlLower.includes('galaxy') || urlLower.includes('star')) {
+                return ['#1B1B2F', '#162447', '#1F4068', '#E43F5A', '#E27D00', '#8A2BE2'];
+            } else if (urlLower.includes('fire') || urlLower.includes('red')) {
+                return ['#DC143C', '#FF4500', '#FF6347', '#FF1493', '#B22222', '#8B0000'];
+            } else if (urlLower.includes('purple') || urlLower.includes('violet')) {
+                return ['#9370DB', '#8A2BE2', '#6A0DAD', '#4B0082', '#9932CC', '#DDA0DD'];
+            } else {
+                // General vibrant palette
+                return ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#74B9FF', '#FD79A8'];
+            }
+        }
+
+        function setColorStatus(message) {
+            const statusElement = document.getElementById('colorStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+            }
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function displayImageColors(colors) {
+            const container = document.getElementById('imageColors');
+            const row = document.getElementById('imageColorsRow');
+            
+            if (colors.length === 0) {
+                row.style.display = 'none';
+                return;
+            }
+            
+            container.innerHTML = '';
+            row.style.display = 'flex';
+            
+            colors.forEach(color => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'recent-color';
+                colorDiv.onclick = () => applyImageColor(color);
+                
+                const swatch = document.createElement('div');
+                swatch.className = 'recent-color-swatch';
+                swatch.style.backgroundColor = color;
+                
+                const hex = document.createElement('div');
+                hex.className = 'recent-color-hex';
+                hex.textContent = color;
+                
+                colorDiv.appendChild(swatch);
+                colorDiv.appendChild(hex);
+                container.appendChild(colorDiv);
+            });
+        }
+
+        function applyImageColor(color) {
+            // Set the color picker and hex input
+            document.getElementById('hexInput').value = color;
+            document.getElementById('colorPicker').value = color.toLowerCase();
+            
+            // Add to recent colors
+            addToRecentColors(color);
+            
+            // Apply the color immediately (this will preserve selection)
+            applyTextColor();
+        }
+
+        function updateToolbarState() {
+            document.getElementById('boldBtn').classList.toggle('active', document.queryCommandState('bold'));
+            document.getElementById('italicBtn').classList.toggle('active', document.queryCommandState('italic'));
+            document.getElementById('underlineBtn').classList.toggle('active', document.queryCommandState('underline'));
+            document.getElementById('strikeBtn').classList.toggle('active', document.queryCommandState('strikeThrough'));
+            document.getElementById('subBtn').classList.toggle('active', document.queryCommandState('subscript'));
+            document.getElementById('supBtn').classList.toggle('active', document.queryCommandState('superscript'));
+            
+            document.getElementById('leftBtn').classList.toggle('active', document.queryCommandState('justifyLeft'));
+            document.getElementById('centerBtn').classList.toggle('active', document.queryCommandState('justifyCenter'));
+            document.getElementById('rightBtn').classList.toggle('active', document.queryCommandState('justifyRight'));
+            
+            // Update font and size dropdowns based on current selection
+            updateCurrentFormatting();
+        }
+
+        function updateCurrentFormatting() {
+            const selection = window.getSelection();
+            
+            // Reset dropdowns to default
+            document.getElementById('fontFamily').value = '';
+            document.getElementById('fontSize').value = '';
+            
+            // Only check formatting if there's an actual text selection
+            if (selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed) {
+                const range = selection.getRangeAt(0);
+                
+                // Make sure the selection is within our editor
+                if (!visualEditor.contains(range.commonAncestorContainer) && 
+                    range.commonAncestorContainer !== visualEditor) {
+                    return;
+                }
+                
+                // Get the common ancestor container
+                let container = range.commonAncestorContainer;
+                if (container.nodeType === Node.TEXT_NODE) {
+                    container = container.parentElement;
+                }
+                
+                // Look for font family and size
+                let currentElement = container;
+                let fontFamily = null;
+                let fontSize = null;
+                
+                // Walk up the DOM tree to find font formatting
+                while (currentElement && currentElement !== visualEditor) {
+                    if (currentElement.nodeType === Node.ELEMENT_NODE) {
+                        // Check for font family
+                        if (!fontFamily) {
+                            const dataFont = currentElement.getAttribute('data-font-family');
+                            const styleFont = currentElement.style.fontFamily;
+                            if (dataFont || styleFont) {
+                                fontFamily = dataFont || styleFont;
+                            }
+                        }
+                        
+                        // Check for font size
+                        if (!fontSize) {
+                            const dataSize = currentElement.getAttribute('data-font-size');
+                            const styleSize = currentElement.style.fontSize;
+                            if (dataSize) {
+                                fontSize = dataSize;
+                            } else if (styleSize && styleSize.includes('px')) {
+                                fontSize = styleSize.replace('px', '');
+                            }
+                        }
+                        
+                        // If we found both, we can stop
+                        if (fontFamily && fontSize) break;
+                    }
+                    currentElement = currentElement.parentElement;
+                }
+                
+                // Also check if the selection spans elements with consistent formatting
+                if (!fontFamily || !fontSize) {
+                    const walker = document.createTreeWalker(
+                        range.commonAncestorContainer,
+                        NodeFilter.SHOW_ELEMENT,
+                        {
+                            acceptNode: function(node) {
+                                return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+                            }
+                        }
+                    );
+                    
+                    let node;
+                    while (node = walker.nextNode()) {
+                        if (!fontFamily) {
+                            const dataFont = node.getAttribute('data-font-family');
+                            const styleFont = node.style.fontFamily;
+                            if (dataFont || styleFont) {
+                                fontFamily = dataFont || styleFont;
+                            }
+                        }
+                        
+                        if (!fontSize) {
+                            const dataSize = node.getAttribute('data-font-size');
+                            const styleSize = node.style.fontSize;
+                            if (dataSize) {
+                                fontSize = dataSize;
+                            } else if (styleSize && styleSize.includes('px')) {
+                                fontSize = styleSize.replace('px', '');
+                            }
+                        }
+                        
+                        if (fontFamily && fontSize) break;
+                    }
+                }
+                
+                // Update the dropdowns if we found formatting
+                if (fontFamily) {
+                    // Try to match the font family to one of our options
+                    const fontSelect = document.getElementById('fontFamily');
+                    for (let option of fontSelect.options) {
+                        if (option.value === fontFamily) {
+                            fontSelect.value = fontFamily;
+                            break;
+                        }
+                    }
+                }
+                
+                if (fontSize) {
+                    const sizeSelect = document.getElementById('fontSize');
+                    for (let option of sizeSelect.options) {
+                        if (option.value === fontSize) {
+                            sizeSelect.value = fontSize;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        function htmlToBBCode(html) {
+            let bbcode = html;
+            
+            // Handle images first
+            bbcode = bbcode.replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, '[img]$1[/img]');
+            
+            // Handle individual gradient letters FIRST (before other span processing)
+            bbcode = bbcode.replace(/<span[^>]*data-gradient-letter="([^"]*)"[^>]*>([^<]*)<\/span>/gi, '[color=$1]$2[/color]');
+            
+            // Handle gradient containers (remove the wrapper but keep the content)
+            bbcode = bbcode.replace(/<span[^>]*data-gradient-container="true"[^>]*>(.*?)<\/span>/gi, '$1');
+            
+            // Handle alignment
+            bbcode = bbcode.replace(/<div style="text-align:\s*center[^"]*"[^>]*>(.*?)<\/div>/gi, '[center]$1[/center]');
+            bbcode = bbcode.replace(/<div style="text-align:\s*left[^"]*"[^>]*>(.*?)<\/div>/gi, '[left]$1[/left]');
+            bbcode = bbcode.replace(/<div style="text-align:\s*right[^"]*"[^>]*>(.*?)<\/div>/gi, '[right]$1[/right]');
+            
+            // Handle font families (both ways)
+            bbcode = bbcode.replace(/<span[^>]*data-font-family="([^"]*)"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
+                const fontMap = {
+                    'Arial, sans-serif': 'Arial',
+                    "'Times New Roman', serif": 'Times New Roman',
+                    'Georgia, serif': 'Georgia',
+                    'Verdana, sans-serif': 'Verdana',
+                    'Tahoma, sans-serif': 'Tahoma',
+                    "'Trebuchet MS', sans-serif": 'Trebuchet MS',
+                    "'Comic Sans MS', cursive": 'Comic Sans MS',
+                    "'Courier New', monospace": 'Courier New',
+                    'Monaco, monospace': 'Monaco',
+                    "'Lucida Console', monospace": 'Lucida Console',
+                    'Impact, sans-serif': 'Impact',
+                    "'Book Antiqua', serif": 'Book Antiqua'
+                };
+                const simpleName = fontMap[fontFamily] || fontFamily.replace(/['"]/g, '');
+                return `[font=${simpleName}]${text}[/font]`;
+            });
+            
+            bbcode = bbcode.replace(/<span style="font-family:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
+                const fontMap = {
+                    'Arial, sans-serif': 'Arial',
+                    "'Times New Roman', serif": 'Times New Roman',
+                    'Georgia, serif': 'Georgia',
+                    'Verdana, sans-serif': 'Verdana',
+                    'Tahoma, sans-serif': 'Tahoma',
+                    "'Trebuchet MS', sans-serif": 'Trebuchet MS',
+                    "'Comic Sans MS', cursive": 'Comic Sans MS',
+                    "'Courier New', monospace": 'Courier New',
+                    'Monaco, monospace': 'Monaco',
+                    "'Lucida Console', monospace": 'Lucida Console',
+                    'Impact, sans-serif': 'Impact',
+                    "'Book Antiqua', serif": 'Book Antiqua'
+                };
+                const simpleName = fontMap[fontFamily] || fontFamily.replace(/['"]/g, '');
+                return `[font=${simpleName}]${text}[/font]`;
+            });
+            
+            // Handle individual colored spans (for non-gradient colored text)
+            bbcode = bbcode.replace(/<span style="color:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, '[color=$1]$2[/color]');
+            bbcode = bbcode.replace(/<font color="([^"]*)"[^>]*>(.*?)<\/font>/gi, '[color=$1]$2[/color]');
+            
+            // Handle font sizes (both ways)
+            bbcode = bbcode.replace(/<span[^>]*data-font-size="([^"]*)"[^>]*>(.*?)<\/span>/gi, '[size=$1]$2[/size]');
+            bbcode = bbcode.replace(/<span style="font-size:\s*(\d+)px[^"]*"[^>]*>(.*?)<\/span>/gi, '[size=$1]$2[/size]');
+            
+            // Basic formatting
+            bbcode = bbcode.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '[b]$1[/b]');
+            bbcode = bbcode.replace(/<b[^>]*>(.*?)<\/b>/gi, '[b]$1[/b]');
+            bbcode = bbcode.replace(/<em[^>]*>(.*?)<\/em>/gi, '[i]$1[/i]');
+            bbcode = bbcode.replace(/<i[^>]*>(.*?)<\/i>/gi, '[i]$1[/i]');
+            bbcode = bbcode.replace(/<u[^>]*>(.*?)<\/u>/gi, '[u]$1[/u]');
+            bbcode = bbcode.replace(/<s[^>]*>(.*?)<\/s>/gi, '[s]$1[/s]');
+            bbcode = bbcode.replace(/<strike[^>]*>(.*?)<\/strike>/gi, '[s]$1[/s]');
+            bbcode = bbcode.replace(/<sub[^>]*>(.*?)<\/sub>/gi, '[sub]$1[/sub]');
+            bbcode = bbcode.replace(/<sup[^>]*>(.*?)<\/sup>/gi, '[sup]$1[/sup]');
+            
+            // Clean up remaining HTML
+            bbcode = bbcode.replace(/<div[^>]*>/gi, '');
+            bbcode = bbcode.replace(/<\/div>/gi, '\n');
+            bbcode = bbcode.replace(/<br[^>]*>/gi, '\n');
+            bbcode = bbcode.replace(/<[^>]*>/g, '');
+            
+            // Clean up extra whitespace but preserve intentional line breaks
+            bbcode = bbcode.replace(/\n{3,}/g, '\n\n').trim();
+            
+            return bbcode;
+        }
+
+        function bbcodeToHtml(bbcode) {
+            return bbcode
+                .replace(/\[img\](.*?)\[\/img\]/gi, '<div><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px 0;border:1px solid #e2e8f0;border-radius:8px;"></div>')
+                .replace(/\[font=([^\]]*)\](.*?)\[\/font\]/gi, function(match, fontName, text) {
+                    // Convert BBCode font names back to CSS font families
+                    const fontMap = {
+                        'Arial': 'Arial, sans-serif',
+                        'Times New Roman': "'Times New Roman', serif",
+                        'Georgia': 'Georgia, serif',
+                        'Verdana': 'Verdana, sans-serif',
+                        'Tahoma': 'Tahoma, sans-serif',
+                        'Trebuchet MS': "'Trebuchet MS', sans-serif",
+                        'Comic Sans MS': "'Comic Sans MS', cursive",
+                        'Courier New': "'Courier New', monospace",
+                        'Monaco': 'Monaco, monospace',
+                        'Lucida Console': "'Lucida Console', monospace",
+                        'Impact': 'Impact, sans-serif',
+                        'Book Antiqua': "'Book Antiqua', serif"
+                    };
+                    const cssFont = fontMap[fontName] || fontName;
+                    return `<span style="font-family:${cssFont}">${text}</span>`;
+                })
+                .replace(/\[b\](.*?)\[\/b\]/gi, '<strong>$1</strong>')
+                .replace(/\[i\](.*?)\[\/i\]/gi, '<em>$1</em>')
+                .replace(/\[u\](.*?)\[\/u\]/gi, '<u>$1</u>')
+                .replace(/\[s\](.*?)\[\/s\]/gi, '<s>$1</s>')
+                .replace(/\[sub\](.*?)\[\/sub\]/gi, '<sub>$1</sub>')
+                .replace(/\[sup\](.*?)\[\/sup\]/gi, '<sup>$1</sup>')
+                .replace(/\[color=([^\]]*)\](.*?)\[\/color\]/gi, '<span style="color:$1">$2</span>')
+                .replace(/\[size=([^\]]*)\](.*?)\[\/size\]/gi, '<span style="font-size:$1px">$2</span>')
+                .replace(/\[center\](.*?)\[\/center\]/gi, '<div style="text-align:center">$1</div>')
+                .replace(/\[left\](.*?)\[\/left\]/gi, '<div style="text-align:left">$1</div>')
+                .replace(/\[right\](.*?)\[\/right\]/gi, '<div style="text-align:right">$1</div>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function updateBBCodeOutput() {
+            const htmlContent = visualEditor.innerHTML;
+            const bbcode = htmlToBBCode(htmlContent);
+            document.getElementById('bbcodeOutput').textContent = bbcode || 'BBCode will appear here...';
+        }
+
+        function updateVisualEditor() {
+            const bbcode = bbcodeInput.value;
+            const htmlContent = bbcodeToHtml(bbcode);
+            visualEditor.innerHTML = htmlContent;
+            document.getElementById('bbcodeOutput').textContent = bbcode || 'BBCode will appear here...';
+        }
+
+        function clearAllFormatting() {
+            // Get the text content (automatically handles line breaks)
+            const allText = visualEditor.innerText || visualEditor.textContent || '';
+            
+            // Replace everything with plain text
+            if (allText.trim()) {
+                visualEditor.innerHTML = allText.replace(/\n/g, '<br>');
+            } else {
+                visualEditor.innerHTML = '<br>';
+            }
+            
+            // Also clear the image colors section
+            const imageColorsRow = document.getElementById('imageColorsRow');
+            const imageColorsContainer = document.getElementById('imageColors');
+            if (imageColorsRow && imageColorsContainer) {
+                imageColorsRow.style.display = 'none';
+                imageColorsContainer.innerHTML = '';
+            }
+            
+            updateBBCodeOutput();
+            visualEditor.focus();
+        }
+
+        function clearSelectedFormatting() {
+            const selection = window.getSelection();
+            if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+                alert('Please select some text first to remove formatting from it.');
+                return;
+            }
+
+            // Simply use browser's removeFormat - works for most formatting
+            document.execCommand('removeFormat');
+            
+            updateBBCodeOutput();
+            visualEditor.focus();
+        }
+
+        async function copyBBCode() {
+            const bbcode = document.getElementById('bbcodeOutput').textContent;
+            if (bbcode === 'BBCode will appear here...') return;
+
+            try {
+                await navigator.clipboard.writeText(bbcode);
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                const textArea = document.createElement('textarea');
+                textArea.value = bbcode;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('BBCode copied to clipboard!');
+            }
+        }
+
+        // Color picker sync functions
+        function updateColorFromHex() {
+            const hex = document.getElementById('hexInput').value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                document.getElementById('colorPicker').value = hex.toLowerCase();
+            }
+        }
+
+        function updateHexFromColor() {
+            const color = document.getElementById('colorPicker').value;
+            document.getElementById('hexInput').value = color.toUpperCase();
+        }
+
+        function updateGradientStartFromHex() {
+            const hex = document.getElementById('gradientStartHex').value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                document.getElementById('gradientStart').value = hex.toLowerCase();
+            }
+        }
+
+        function updateGradientStartHex() {
+            const color = document.getElementById('gradientStart').value;
+            document.getElementById('gradientStartHex').value = color.toUpperCase();
+        }
+
+        function updateGradientEndFromHex() {
+            const hex = document.getElementById('gradientEndHex').value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                document.getElementById('gradientEnd').value = hex.toLowerCase();
+            }
+        }
+
+        function updateGradientEndHex() {
+            const color = document.getElementById('gradientEnd').value;
+            document.getElementById('gradientEndHex').value = color.toUpperCase();
+        }
+
+        function swapGradientColors() {
+            // Get current values
+            const startHex = document.getElementById('gradientStartHex').value;
+            const startColor = document.getElementById('gradientStart').value;
+            const endHex = document.getElementById('gradientEndHex').value;
+            const endColor = document.getElementById('gradientEnd').value;
+            
+            // Swap them
+            document.getElementById('gradientStartHex').value = endHex;
+            document.getElementById('gradientStart').value = endColor;
+            document.getElementById('gradientEndHex').value = startHex;
+            document.getElementById('gradientEnd').value = startColor;
+        }
+
+        function addToRecentColors(color) {
+            // Normalize color to uppercase hex
+            if (!color.startsWith('#')) color = '#' + color;
+            color = color.toUpperCase();
+            
+            // Remove if already exists
+            recentColors = recentColors.filter(c => c !== color);
+            
+            // Add to beginning
+            recentColors.unshift(color);
+            
+            // Keep only last 8 colors
+            if (recentColors.length > 8) {
+                recentColors = recentColors.slice(0, 8);
+            }
+            
+            updateRecentColorsDisplay();
+        }
+
+        function updateRecentColorsDisplay() {
+            const container = document.getElementById('recentColors');
+            container.innerHTML = '';
+            
+            recentColors.forEach(color => {
+                const recentColor = document.createElement('div');
+                recentColor.className = 'recent-color';
+                recentColor.onclick = () => applyRecentColor(color);
+                
+                const swatch = document.createElement('div');
+                swatch.className = 'recent-color-swatch';
+                swatch.style.backgroundColor = color;
+                
+                const hex = document.createElement('div');
+                hex.className = 'recent-color-hex';
+                hex.textContent = color;
+                
+                recentColor.appendChild(swatch);
+                recentColor.appendChild(hex);
+                container.appendChild(recentColor);
+            });
+        }
+
+        function applyRecentColor(color) {
+            // Set the color picker and hex input
+            document.getElementById('hexInput').value = color;
+            document.getElementById('colorPicker').value = color.toLowerCase();
+            
+            // Apply the color immediately (this will preserve selection)
+            applyTextColor();
+        }
+
+        // Initialize
+        visualEditor.focus();
+        updateBBCodeOutput();
+        
+        // Initialize hex inputs with default colors
+        document.getElementById('hexInput').value = '#000000';
+        document.getElementById('gradientStartHex').value = '#FF0000';
+        document.getElementById('gradientEndHex').value = '#0000FF';
+        
+        // Listen for selection changes to update toolbar state
+        document.addEventListener('selectionchange', function() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                // Only update if selection is within our visual editor
+                if (visualEditor.contains(range.commonAncestorContainer) || 
+                    range.commonAncestorContainer === visualEditor) {
+                    updateToolbarState();
+                }
+            }
+        });
+        
+        // Allow Enter key in image URL input
+        document.getElementById('imageUrl').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                insertImage();
+            }
+        });
+    </script>
+</body>
+</html>
