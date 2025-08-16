@@ -28,6 +28,12 @@
           gap:2rem;
         }
         
+        .header-buttons {
+          display:flex;
+          align-items:center;
+          flex-shrink:0;
+        }
+        
         .header > div {
           flex: 1;
         }
@@ -57,6 +63,39 @@
         .home-link:hover{background:#cbd5e1;transform:translateY(-1px)}
         .home-link .icon{font-size:1em;line-height:1;}
         .home-link:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+
+        /* ---------- Ko-fi Button ---------- */
+        .kofi-btn{
+          background:var(--accent);border:none;padding:.75rem;border-radius:1.5rem;
+          font-weight:500;cursor:pointer;transition:all .2s ease;
+          display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:#fff;
+          font-size:0.9rem;width:44px;height:44px;position:relative;
+          flex-shrink:0;margin-right:0.75rem;
+        }
+        .kofi-btn:hover{background:#3730a3;transform:translateY(-1px);color:#fff}
+        .kofi-btn:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+        
+        .kofi-btn::after {
+          content: "Buy me a coffee";
+          position: absolute;
+          bottom: -2.5rem;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(0,0,0,0.8);
+          color: white;
+          padding: 0.5rem 0.75rem;
+          border-radius: 6px;
+          font-size: 0.75rem;
+          white-space: nowrap;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s ease;
+          z-index: 1000;
+        }
+        
+        .kofi-btn:hover::after {
+          opacity: 1;
+        }
 
         /* ---------- Tokens ---------- */
         :root{
@@ -276,8 +315,11 @@
             font-size:2rem;
           }
           
-          .home-link{
-            align-self:flex-start;
+          .header-buttons{
+            align-self:flex-end;
+            width:100%;
+            display:flex;
+            justify-content:flex-end;
           }
           
           .toolbar{padding:1rem;}
@@ -303,10 +345,15 @@
                     Visual editor for easy signatures!
                 </p>
             </div>
-            <a href="../index.html" class="home-link">
-                <span class="icon">🏠</span>
-                Home
-            </a>
+            <div class="header-buttons">
+                <a href="https://ko-fi.com/N4N81JRSGT" class="kofi-btn" target="_blank" rel="noopener">
+                    ☕
+                </a>
+                <a href="../index.html" class="home-link">
+                    <span class="icon">🏠</span>
+                    Home
+                </a>
+            </div>
         </header>
         
         <div class="card">
