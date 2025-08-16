@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BBCode Formatter - PW Tools</title>
+    <title>Signature Formatter</title>
     <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
     <style>
         /* ---------- Base reset ---------- */
@@ -170,18 +170,18 @@
         /* ---------- Toolbar ---------- */
         .toolbar{
           background:#f8fafc;border:1px solid var(--border);border-radius:12px;
-          padding:1.5rem;margin-bottom:2rem;display:grid;gap:1rem;
+          padding:1rem;margin-bottom:2rem;display:grid;gap:0.75rem;
         }
 
         .toolbar-row{
-          display:flex;gap:1rem;align-items:center;flex-wrap:wrap;
+          display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;
         }
 
         .toolbar-group{
-          display:flex;align-items:center;gap:0.75rem;
-          padding:0.75rem 1rem;border-radius:8px;background:#fff;
+          display:flex;align-items:center;gap:0.5rem;
+          padding:0.5rem 0.75rem;border-radius:6px;background:#fff;
           border:1px solid rgba(226,232,240,.5);
-          min-height:60px;
+          min-height:48px;
         }
 
         .toolbar-group.full-width{
@@ -199,7 +199,7 @@
         .toolbar-btn:disabled{opacity:0.5;cursor:not-allowed}
 
         .color-input{
-          width:40px;height:40px;border:2px solid var(--border);border-radius:6px;
+          width:36px;height:36px;border:2px solid var(--border);border-radius:6px;
           cursor:pointer;transition:all 0.2s ease;
         }
         .color-input:hover{border-color:var(--accent)}
@@ -211,28 +211,28 @@
         }
 
         .url-input{
-          border:1px solid var(--border);border-radius:6px;padding:0.6rem;
-          background:#fff;font-size:0.8rem;width:200px;
+          border:1px solid var(--border);border-radius:6px;padding:0.5rem;
+          background:#fff;font-size:0.8rem;width:180px;
         }
 
         .size-select{
-          border:1px solid var(--border);border-radius:6px;padding:0.6rem;
-          background:#fff;cursor:pointer;font-size:0.85rem;min-width:100px;
+          border:1px solid var(--border);border-radius:6px;padding:0.5rem;
+          background:#fff;cursor:pointer;font-size:0.8rem;min-width:90px;
         }
 
         .font-select{
-          border:1px solid var(--border);border-radius:6px;padding:0.6rem;
-          background:#fff;cursor:pointer;font-size:0.85rem;min-width:130px;
+          border:1px solid var(--border);border-radius:6px;padding:0.5rem;
+          background:#fff;cursor:pointer;font-size:0.8rem;min-width:120px;
         }
 
         .symbol-search{
-          border:1px solid var(--border);border-radius:6px;padding:0.6rem;
-          background:#fff;font-size:0.85rem;width:140px;margin-right:0.5rem;
+          border:1px solid var(--border);border-radius:6px;padding:0.5rem;
+          background:#fff;font-size:0.8rem;width:120px;margin-right:0.5rem;
         }
 
         .symbol-select{
-          border:1px solid var(--border);border-radius:6px;padding:0.6rem;
-          background:#fff;cursor:pointer;font-size:0.85rem;min-width:150px;
+          border:1px solid var(--border);border-radius:6px;padding:0.5rem;
+          background:#fff;cursor:pointer;font-size:0.8rem;min-width:140px;
           font-family: inherit;
         }
 
@@ -269,9 +269,9 @@
 
         .swap-btn{
           background:#f8fafc;border:1px solid var(--border);border-radius:4px;
-          padding:0.3rem;cursor:pointer;transition:all 0.2s ease;
-          font-size:0.75rem;display:flex;align-items:center;justify-content:center;
-          width:30px;height:30px;
+          padding:0.25rem;cursor:pointer;transition:all 0.2s ease;
+          font-size:0.7rem;display:flex;align-items:center;justify-content:center;
+          width:26px;height:26px;
         }
         .swap-btn:hover{background:#f1f5f9;border-color:var(--accent)}
 
@@ -322,17 +322,17 @@
             justify-content:flex-end;
           }
           
-          .toolbar{padding:1rem;}
+          .toolbar{padding:0.75rem;}
           .toolbar-row{flex-direction:column;align-items:stretch;}
-          .toolbar-group{justify-content:center;min-height:auto;flex-wrap:wrap;gap:0.5rem;}
+          .toolbar-group{justify-content:center;min-height:auto;flex-wrap:wrap;gap:0.25rem;}
           .toolbar-group.full-width{flex-direction:column;align-items:stretch;}
           .color-controls{justify-content:center;flex-wrap:wrap;}
           .container{padding:1.5rem 1rem;}
-          .url-input{width:150px;}
-          .hex-input{width:60px;}
-          .font-select{min-width:120px;}
-          .symbol-select{min-width:140px;}
-          .symbol-search{width:120px;}
+          .url-input{width:140px;}
+          .hex-input{width:55px;}
+          .font-select{min-width:110px;}
+          .symbol-select{min-width:130px;}
+          .symbol-search{width:110px;}
         }
     </style>
 </head>
@@ -342,7 +342,7 @@
             <div>
                 <h1 class="title">Signature Formatter</h1>
                 <p class="subtitle">
-                    Visual editor for easy signatures!
+                    Visual editor for signatures with letter-by-letter gradients that work in BBCode!
                 </p>
             </div>
             <div class="header-buttons">
@@ -357,7 +357,7 @@
         </header>
         
         <div class="card">
-            <p class="card-desc">Style text with formatting, colors, gradients, fonts, and case options. Choose from 80+ searchable symbols and add aligned images. Generates clean BBCode instantly!</p>
+            <p class="card-desc">Style text with formatting, colors, letter-by-letter gradients, fonts, and case options. Choose from 80+ searchable symbols and add aligned images. Generates clean BBCode instantly!</p>
             
             <div class="mode-toggle">
                 <button class="mode-btn active" onclick="setMode('visual')" id="visualModeBtn">✨ Visual Editor</button>
@@ -365,7 +365,6 @@
             </div>
 
             <div class="editor-container">
-                <label class="editor-label" id="editorLabel">Your Text</label>
                 <div class="visual-editor" id="visualEditor" contenteditable="true" 
                     oninput="updateBBCodeOutput()" onmouseup="updateToolbarState()" onkeyup="updateToolbarState()" onkeydown="handleEnterKey(event)"></div>
                 <textarea class="bbcode-input" id="bbcodeInput" 
@@ -417,21 +416,46 @@
                         <span class="group-label">Font:</span>
                         <select id="fontFamily" class="font-select" onchange="applyFontFamily()">
                             <option value="">Default</option>
-                            <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial</option>
-                            <option value="'Times New Roman', serif" style="font-family: 'Times New Roman', serif;">Times New Roman</option>
-                            <option value="Georgia, serif" style="font-family: Georgia, serif;">Georgia</option>
-                            <option value="Verdana, sans-serif" style="font-family: Verdana, sans-serif;">Verdana</option>
-                            <option value="Tahoma, sans-serif" style="font-family: Tahoma, sans-serif;">Tahoma</option>
-                            <option value="'Trebuchet MS', sans-serif" style="font-family: 'Trebuchet MS', sans-serif;">Trebuchet MS</option>
-                            <option value="'Comic Sans MS', cursive" style="font-family: 'Comic Sans MS', cursive;">Comic Sans MS</option>
-                            <option value="'Courier New', monospace" style="font-family: 'Courier New', monospace;">Courier New</option>
-                            <option value="Monaco, monospace" style="font-family: Monaco, monospace;">Monaco</option>
-                            <option value="'Lucida Console', monospace" style="font-family: 'Lucida Console', monospace;">Lucida Console</option>
-                            <option value="Impact, sans-serif" style="font-family: Impact, sans-serif;">Impact</option>
-                            <option value="'Book Antiqua', serif" style="font-family: 'Book Antiqua', serif;">Book Antiqua</option>
+                            <option value="Arial, sans-serif">Arial</option>
+                            <option value="'Times New Roman', serif">Times New Roman</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="Verdana, sans-serif">Verdana</option>
+                            <option value="Tahoma, sans-serif">Tahoma</option>
+                            <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                            <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                            <option value="'Courier New', monospace">Courier New</option>
+                            <option value="Monaco, monospace">Monaco</option>
+                            <option value="'Lucida Console', monospace">Lucida Console</option>
+                            <option value="Impact, sans-serif">Impact</option>
+                            <option value="'Book Antiqua', serif">Book Antiqua</option>
                         </select>
                     </div>
+                </div>
 
+                <!-- Row 2: Colors -->
+                <div class="toolbar-row">
+                    <div class="toolbar-group full-width">
+                        <div class="color-controls">
+                            <span class="group-label">Text Color:</span>
+                            <input type="text" id="hexInput" class="hex-input" placeholder="#000000" maxlength="7" oninput="updateColorFromHex()">
+                            <input type="color" id="colorPicker" class="color-input" value="#000000" onchange="updateHexFromColor()">
+                            <button class="toolbar-btn" onclick="applyTextColor()" title="Apply Color">🎨 Apply</button>
+                        </div>
+                        
+                        <div class="color-controls">
+                            <span class="group-label">Gradient:</span>
+                            <input type="text" id="gradientStartHex" class="hex-input" placeholder="#ff0000" maxlength="7" oninput="updateGradientStartFromHex()">
+                            <input type="color" id="gradientStart" class="color-input" value="#ff0000" onchange="updateGradientStartHex()" title="Start Color">
+                            <button class="swap-btn" onclick="swapGradientColors()" title="Swap gradient colors">⇄</button>
+                            <input type="text" id="gradientEndHex" class="hex-input" placeholder="#0000ff" maxlength="7" oninput="updateGradientEndFromHex()">
+                            <input type="color" id="gradientEnd" class="color-input" value="#0000ff" onchange="updateGradientEndHex()" title="End Color">
+                            <button class="toolbar-btn" onclick="applyGradient()" title="Apply Letter-by-Letter Gradient">🌈 Apply</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Symbols and Alignment -->
+                <div class="toolbar-row">
                     <div class="toolbar-group">
                         <span class="group-label">Symbols:</span>
                         <input type="text" id="symbolSearch" class="symbol-search" placeholder="Search symbols..." oninput="filterSymbols()">
@@ -601,28 +625,6 @@
                     </div>
                 </div>
 
-                <!-- Row 2: Colors -->
-                <div class="toolbar-row">
-                    <div class="toolbar-group full-width">
-                        <div class="color-controls">
-                            <span class="group-label">Text Color:</span>
-                            <input type="text" id="hexInput" class="hex-input" placeholder="#000000" maxlength="7" oninput="updateColorFromHex()">
-                            <input type="color" id="colorPicker" class="color-input" value="#000000" onchange="updateHexFromColor()">
-                            <button class="toolbar-btn" onclick="applyTextColor()" title="Apply Color">🎨 Apply</button>
-                        </div>
-                        
-                        <div class="color-controls">
-                            <span class="group-label">Gradient:</span>
-                            <input type="text" id="gradientStartHex" class="hex-input" placeholder="#ff0000" maxlength="7" oninput="updateGradientStartFromHex()">
-                            <input type="color" id="gradientStart" class="color-input" value="#ff0000" onchange="updateGradientStartHex()" title="Start Color">
-                            <button class="swap-btn" onclick="swapGradientColors()" title="Swap gradient colors">⇄</button>
-                            <input type="text" id="gradientEndHex" class="hex-input" placeholder="#0000ff" maxlength="7" oninput="updateGradientEndFromHex()">
-                            <input type="color" id="gradientEnd" class="color-input" value="#0000ff" onchange="updateGradientEndHex()" title="End Color">
-                            <button class="toolbar-btn" onclick="applyGradient()" title="Apply Gradient">🌈 Apply</button>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Row 4: Recent Colors -->
                 <div class="toolbar-row">
                     <div class="toolbar-group full-width">
@@ -645,7 +647,6 @@
                             <div style="display:flex;align-items:center;gap:0.5rem;">
                                 <span class="group-label">Colors from Image:</span>
                                 <span style="font-size:0.75rem;color:var(--muted);font-style:italic;">Click to use color from your image</span>
-
                             </div>
                             <div class="recent-colors" id="imageColors">
                                 <!-- Image colors will be populated here -->
@@ -661,13 +662,6 @@
                         <input type="text" id="imageUrl" class="url-input" placeholder="Enter image URL...">
                         <button class="toolbar-btn" onclick="insertImage()" title="Insert Image">🖼️ Insert</button>
                         <button class="toolbar-btn" onclick="insertPlaceholderImage()" title="Insert Placeholder Image">📷 Placeholder</button>
-                    </div>
-
-                    <div class="toolbar-group">
-                        <span class="group-label">Image Align:</span>
-                        <button class="toolbar-btn" onclick="setImageAlignment('left')" id="imageLeftBtn" title="Align Image Left">⬅️</button>
-                        <button class="toolbar-btn" onclick="setImageAlignment('center')" id="imageCenterBtn" title="Center Image" style="background:var(--accent);color:#fff;">⬆️</button>
-                        <button class="toolbar-btn" onclick="setImageAlignment('right')" id="imageRightBtn" title="Align Image Right">➡️</button>
                     </div>
                     
                     <div class="toolbar-group">
@@ -695,7 +689,6 @@
         let visualEditor = document.getElementById('visualEditor');
         let bbcodeInput = document.getElementById('bbcodeInput');
         let recentColors = []; // Store recent colors
-        let imageAlignment = 'center'; // Default image alignment
         
         function setMode(mode) {
             currentMode = mode;
@@ -708,13 +701,11 @@
             if (mode === 'visual') {
                 visualEditor.style.display = 'block';
                 bbcodeInput.style.display = 'none';
-                document.getElementById('editorLabel').textContent = 'Visual Editor';
                 document.getElementById('selectionInfo').style.display = 'block';
                 updateBBCodeOutput();
             } else {
                 visualEditor.style.display = 'none';
                 bbcodeInput.style.display = 'block';
-                document.getElementById('editorLabel').textContent = 'BBCode Input';
                 document.getElementById('selectionInfo').style.display = 'block';
                 // Convert visual content to BBCode for editing
                 bbcodeInput.value = document.getElementById('bbcodeOutput').textContent;
@@ -828,36 +819,6 @@
             visualEditor.focus();
         }
 
-        function handleEnterKey(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                
-                // Create a proper line break
-                const selection = window.getSelection();
-                if (selection.rangeCount > 0) {
-                    const range = selection.getRangeAt(0);
-                    
-                    // Create a div with a br inside for proper spacing
-                    const newLine = document.createElement('div');
-                    const br = document.createElement('br');
-                    newLine.appendChild(br);
-                    
-                    range.deleteContents();
-                    range.insertNode(newLine);
-                    
-                    // Position cursor at the beginning of the new line
-                    range.setStart(newLine, 0);
-                    range.setEnd(newLine, 0);
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-                
-                updateBBCodeOutput();
-            }
-        }
-
-
-
         function applySubscript() {
             const selection = window.getSelection();
             let selectionInfo = null;
@@ -964,9 +925,15 @@
                     startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
                     endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
                 };
+                
+                // Handle alignment commands specially to work with images
+                if (command.startsWith('justify')) {
+                    handleAlignment(command, range, selectionInfo);
+                    return;
+                }
             }
             
-            // Execute the formatting command
+            // Execute the formatting command for non-alignment commands
             document.execCommand(command, false, null);
             updateBBCodeOutput();
             updateToolbarState();
@@ -985,6 +952,66 @@
                     visualEditor.focus();
                 }
             } else {
+                visualEditor.focus();
+            }
+        }
+
+        function handleAlignment(command, range, selectionInfo) {
+            const selection = window.getSelection();
+            
+            // Extract the selected content
+            const selectedContent = range.extractContents();
+            
+            // Determine alignment style
+            let alignStyle = 'left';
+            if (command === 'justifyCenter') alignStyle = 'center';
+            else if (command === 'justifyRight') alignStyle = 'right';
+            
+            // Check if there are any images in the selection and fix their styling
+            const images = selectedContent.querySelectorAll('img');
+            
+            if (images.length > 0) {
+                images.forEach(img => {
+                    // Reset image styling to work with text-align
+                    if (alignStyle === 'center') {
+                        img.style.display = 'block';
+                        img.style.margin = '10px auto';
+                    } else if (alignStyle === 'right') {
+                        img.style.display = 'block';
+                        img.style.margin = '10px 0 10px auto';
+                    } else { // left
+                        img.style.display = 'block';
+                        img.style.margin = '10px auto 10px 0';
+                    }
+                });
+            }
+            
+            if (selectedContent.childNodes.length > 0) {
+                // Create a wrapper div with the appropriate alignment
+                const alignDiv = document.createElement('div');
+                alignDiv.style.textAlign = alignStyle;
+                alignDiv.appendChild(selectedContent);
+                
+                // Insert the aligned content
+                range.insertNode(alignDiv);
+            } else {
+                // If no content, just put it back
+                range.insertNode(selectedContent);
+            }
+            
+            updateBBCodeOutput();
+            updateToolbarState();
+            
+            // Restore selection
+            try {
+                const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                if (newRange) {
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                } else {
+                    visualEditor.focus();
+                }
+            } catch (e) {
                 visualEditor.focus();
             }
         }
@@ -1079,7 +1106,7 @@
             document.execCommand('foreColor', false, color);
             updateBBCodeOutput();
             
-            // Restore selection
+            // Restore selection to keep text selected for further editing
             if (selectionInfo) {
                 try {
                     const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
@@ -1095,6 +1122,172 @@
             } else {
                 visualEditor.focus();
             }
+        }
+
+        // Color interpolation function
+        function interpolateColor(color1, color2, factor) {
+            // Convert hex to RGB
+            const hex1 = color1.replace('#', '');
+            const hex2 = color2.replace('#', '');
+            
+            const r1 = parseInt(hex1.substring(0, 2), 16);
+            const g1 = parseInt(hex1.substring(2, 4), 16);
+            const b1 = parseInt(hex1.substring(4, 6), 16);
+            
+            const r2 = parseInt(hex2.substring(0, 2), 16);
+            const g2 = parseInt(hex2.substring(2, 4), 16);
+            const b2 = parseInt(hex2.substring(4, 6), 16);
+            
+            // Interpolate
+            const r = Math.round(r1 + (r2 - r1) * factor);
+            const g = Math.round(g1 + (g2 - g1) * factor);
+            const b = Math.round(b1 + (b2 - b1) * factor);
+            
+            // Convert back to hex
+            const rHex = r.toString(16).padStart(2, '0');
+            const gHex = g.toString(16).padStart(2, '0');
+            const bHex = b.toString(16).padStart(2, '0');
+            
+            return `#${rHex}${gHex}${bHex}`;
+        }
+
+        function applyGradient() {
+            const startColor = document.getElementById('gradientStart').value;
+            const endColor = document.getElementById('gradientEnd').value;
+            
+            const selection = window.getSelection();
+            
+            if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+                alert('Please select some text first to apply a gradient.');
+                return;
+            }
+            
+            const range = selection.getRangeAt(0);
+            
+            // Save selection info for restoration
+            const selectionInfo = {
+                startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+                endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+            };
+            
+            // Add gradient colors to recent colors
+            addToRecentColors(startColor);
+            addToRecentColors(endColor);
+            
+            // Extract contents while preserving structure
+            const selectedContents = range.extractContents();
+            
+            // Get all text content to calculate gradient positions
+            const allText = selectedContents.textContent;
+            const allLetters = allText.replace(/\s/g, ''); // Remove whitespace for color calculation
+            
+            if (!allLetters.trim()) {
+                alert('Please select some text first to apply a gradient.');
+                range.insertNode(selectedContents); // Put it back
+                return;
+            }
+            
+            let letterIndex = 0;
+            
+            // Function to process text nodes and apply gradient colors
+            function processTextNode(textNode) {
+                const text = textNode.textContent;
+                const fragment = document.createDocumentFragment();
+                
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+                    const span = document.createElement('span');
+                    span.textContent = char;
+                    
+                    if (char.trim()) {
+                        // This is a letter - calculate its color
+                        const factor = allLetters.length > 1 ? letterIndex / (allLetters.length - 1) : 0;
+                        const interpolatedColor = interpolateColor(startColor, endColor, factor);
+                        
+                        span.style.color = interpolatedColor;
+                        span.setAttribute('data-gradient-letter', interpolatedColor);
+                        letterIndex++;
+                    }
+                    
+                    fragment.appendChild(span);
+                }
+                
+                return fragment;
+            }
+            
+            // Walk through all nodes and process text nodes
+            function processNode(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    if (node.textContent.trim()) {
+                        const processedFragment = processTextNode(node);
+                        node.parentNode.replaceChild(processedFragment, node);
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    // Process child nodes
+                    const children = Array.from(node.childNodes);
+                    children.forEach(child => processNode(child));
+                }
+            }
+            
+            // Process all nodes in the selection
+            const walker = document.createTreeWalker(
+                selectedContents,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            const textNodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                textNodes.push(node);
+            }
+            
+            // Process each text node
+            textNodes.forEach(textNode => {
+                if (textNode.textContent.trim()) {
+                    const processedFragment = processTextNode(textNode);
+                    textNode.parentNode.replaceChild(processedFragment, textNode);
+                }
+            });
+            
+            // Create container and insert the processed content
+            const gradientContainer = document.createElement('span');
+            gradientContainer.setAttribute('data-gradient-container', 'true');
+            gradientContainer.appendChild(selectedContents);
+            
+            // Insert the gradient container back into the document
+            range.insertNode(gradientContainer);
+            
+            // Update BBCode output first
+            updateBBCodeOutput();
+            
+            // Restore selection to keep text selected
+            try {
+                const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+                if (newRange) {
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                } else {
+                    // Fallback: select the gradient container
+                    const containerRange = document.createRange();
+                    containerRange.selectNodeContents(gradientContainer);
+                    selection.removeAllRanges();
+                    selection.addRange(containerRange);
+                }
+            } catch (e) {
+                // Fallback: try to select the container
+                try {
+                    const containerRange = document.createRange();
+                    containerRange.selectNodeContents(gradientContainer);
+                    selection.removeAllRanges();
+                    selection.addRange(containerRange);
+                } catch (e2) {
+                    visualEditor.focus();
+                }
+            }
+            
+            visualEditor.focus();
         }
 
         function filterSymbols() {
@@ -1205,16 +1398,68 @@
                             endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
                         };
                         
+                        // First, remove any existing font formatting in the selection
+                        const contents = range.extractContents();
+                        
+                        // Remove existing font spans from the extracted content
+                        function removeFontSpans(node) {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                if (node.tagName === 'SPAN' && (node.style.fontFamily || node.getAttribute('data-font-family'))) {
+                                    // Replace span with its contents
+                                    const fragment = document.createDocumentFragment();
+                                    while (node.firstChild) {
+                                        fragment.appendChild(node.firstChild);
+                                    }
+                                    return fragment;
+                                } else {
+                                    // Process children
+                                    const children = Array.from(node.childNodes);
+                                    children.forEach(child => {
+                                        const replacement = removeFontSpans(child);
+                                        if (replacement && replacement !== child) {
+                                            node.replaceChild(replacement, child);
+                                        }
+                                    });
+                                }
+                            }
+                            return node;
+                        }
+                        
+                        // Process all nodes in contents
+                        const walker = document.createTreeWalker(
+                            contents,
+                            NodeFilter.SHOW_ELEMENT,
+                            null,
+                            false
+                        );
+                        
+                        const elementsToProcess = [];
+                        let node;
+                        while (node = walker.nextNode()) {
+                            elementsToProcess.push(node);
+                        }
+                        
+                        elementsToProcess.forEach(element => {
+                            if (element.tagName === 'SPAN' && (element.style.fontFamily || element.getAttribute('data-font-family'))) {
+                                // Replace with contents
+                                const parent = element.parentNode;
+                                if (parent) {
+                                    while (element.firstChild) {
+                                        parent.insertBefore(element.firstChild, element);
+                                    }
+                                    parent.removeChild(element);
+                                }
+                            }
+                        });
+                        
+                        // Create new font span
                         const span = document.createElement('span');
                         span.style.fontFamily = fontFamily;
+                        span.setAttribute('data-font-family', fontFamily);
+                        span.appendChild(contents);
                         
-                        try {
-                            range.surroundContents(span);
-                        } catch (e) {
-                            const contents = range.extractContents();
-                            span.appendChild(contents);
-                            range.insertNode(span);
-                        }
+                        // Insert the new span
+                        range.insertNode(span);
                         
                         updateBBCodeOutput();
                         
@@ -1231,9 +1476,13 @@
                             visualEditor.focus();
                         }
                         
-                        // Reset dropdown for visual feedback
+                        // Don't reset dropdown immediately - let the user see the selection
                         setTimeout(() => {
-                            document.getElementById('fontFamily').value = '';
+                            // Only reset if no text is currently selected
+                            const currentSelection = window.getSelection();
+                            if (!currentSelection.rangeCount || currentSelection.getRangeAt(0).collapsed) {
+                                document.getElementById('fontFamily').value = '';
+                            }
                         }, 100);
                     } else {
                         alert('Please select some text first to change its font.');
@@ -1262,16 +1511,44 @@
                             endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
                         };
                         
+                        // First, remove any existing font size formatting in the selection
+                        const contents = range.extractContents();
+                        
+                        // Process all nodes in contents to remove existing font size spans
+                        const walker = document.createTreeWalker(
+                            contents,
+                            NodeFilter.SHOW_ELEMENT,
+                            null,
+                            false
+                        );
+                        
+                        const elementsToProcess = [];
+                        let node;
+                        while (node = walker.nextNode()) {
+                            elementsToProcess.push(node);
+                        }
+                        
+                        elementsToProcess.forEach(element => {
+                            if (element.tagName === 'SPAN' && element.style.fontSize) {
+                                // Replace with contents
+                                const parent = element.parentNode;
+                                if (parent) {
+                                    while (element.firstChild) {
+                                        parent.insertBefore(element.firstChild, element);
+                                    }
+                                    parent.removeChild(element);
+                                }
+                            }
+                        });
+                        
+                        // Create new font size span
                         const span = document.createElement('span');
                         span.style.fontSize = size + 'px';
+                        span.setAttribute('data-font-size', size);
+                        span.appendChild(contents);
                         
-                        try {
-                            range.surroundContents(span);
-                        } catch (e) {
-                            const contents = range.extractContents();
-                            span.appendChild(contents);
-                            range.insertNode(span);
-                        }
+                        // Insert the new span
+                        range.insertNode(span);
                         
                         updateBBCodeOutput();
                         
@@ -1288,9 +1565,13 @@
                             visualEditor.focus();
                         }
                         
-                        // Reset dropdown for visual feedback
+                        // Don't reset dropdown immediately - let the user see the selection
                         setTimeout(() => {
-                            document.getElementById('fontSize').value = '';
+                            // Only reset if no text is currently selected
+                            const currentSelection = window.getSelection();
+                            if (!currentSelection.rangeCount || currentSelection.getRangeAt(0).collapsed) {
+                                document.getElementById('fontSize').value = '';
+                            }
                         }, 100);
                     } else {
                         alert('Please select some text first to change its font size.');
@@ -1299,108 +1580,6 @@
                 } else {
                     alert('Please select some text first to change its font size.');
                     document.getElementById('fontSize').value = ''; // Reset dropdown
-                }
-            }
-            visualEditor.focus();
-        }
-
-        function applyGradient() {
-            const startColor = document.getElementById('gradientStart').value;
-            const endColor = document.getElementById('gradientEnd').value;
-            
-            const selection = window.getSelection();
-            let selectionInfo = null;
-            
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                if (!range.collapsed) {
-                    // Save selection info
-                    selectionInfo = {
-                        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
-                        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
-                    };
-                    
-                    // Add gradient colors to recent colors
-                    addToRecentColors(startColor);
-                    addToRecentColors(endColor);
-                    
-                    // Check if selection spans multiple block elements
-                    const contents = range.cloneContents();
-                    const hasBlockElements = contents.querySelector('div, p, br') !== null;
-                    
-                    if (hasBlockElements) {
-                        // Multi-line selection - apply gradient to each text node individually
-                        const walker = document.createTreeWalker(
-                            range.commonAncestorContainer,
-                            NodeFilter.SHOW_TEXT,
-                            {
-                                acceptNode: function(node) {
-                                    return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
-                                }
-                            }
-                        );
-                        
-                        const textNodes = [];
-                        let node;
-                        while (node = walker.nextNode()) {
-                            // Check if this text node is actually selected
-                            const nodeRange = document.createRange();
-                            nodeRange.selectNode(node);
-                            if (range.compareBoundaryPoints(Range.END_TO_START, nodeRange) <= 0 &&
-                                range.compareBoundaryPoints(Range.START_TO_END, nodeRange) >= 0) {
-                                textNodes.push(node);
-                            }
-                        }
-                        
-                        // Apply gradient to each text node
-                        textNodes.forEach(textNode => {
-                            if (textNode.textContent.trim()) {
-                                const span = document.createElement('span');
-                                span.style.background = `linear-gradient(90deg, ${startColor}, ${endColor})`;
-                                span.style.webkitBackgroundClip = 'text';
-                                span.style.backgroundClip = 'text';
-                                span.style.color = 'transparent';
-                                span.setAttribute('data-gradient', `${startColor},${endColor}`);
-                                
-                                textNode.parentNode.insertBefore(span, textNode);
-                                span.appendChild(textNode);
-                            }
-                        });
-                        
-                    } else {
-                        // Single line selection - use the original method
-                        const span = document.createElement('span');
-                        span.style.background = `linear-gradient(90deg, ${startColor}, ${endColor})`;
-                        span.style.webkitBackgroundClip = 'text';
-                        span.style.backgroundClip = 'text';
-                        span.style.color = 'transparent';
-                        span.setAttribute('data-gradient', `${startColor},${endColor}`);
-                        
-                        try {
-                            range.surroundContents(span);
-                        } catch (e) {
-                            const contents = range.extractContents();
-                            span.appendChild(contents);
-                            range.insertNode(span);
-                        }
-                    }
-                    
-                    updateBBCodeOutput();
-                    
-                    // Restore selection
-                    try {
-                        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
-                        if (newRange) {
-                            selection.removeAllRanges();
-                            selection.addRange(newRange);
-                        } else {
-                            visualEditor.focus();
-                        }
-                    } catch (e) {
-                        visualEditor.focus();
-                    }
-                } else {
-                    alert('Please select some text first to apply a gradient.');
                 }
             }
             visualEditor.focus();
@@ -1416,11 +1595,11 @@
             // Create image element
             const img = document.createElement('img');
             img.src = url;
-            img.crossOrigin = 'anonymous'; // Allow cross-origin access
+            // Remove crossOrigin to avoid CORS issues that prevent color extraction
             img.style.maxWidth = '100%';
             img.style.height = 'auto';
             img.style.display = 'block';
-            img.style.margin = '10px 0';
+            img.style.margin = '10px auto 10px 0';
             img.style.border = '1px solid #e2e8f0';
             img.style.borderRadius = '8px';
             
@@ -1478,6 +1657,224 @@
             visualEditor.focus();
         }
 
+        function insertPlaceholderImage() {
+            // Set the placeholder URL
+            const placeholderUrl = 'https://placehold.co/500x200';
+            
+            // Create image element
+            const img = document.createElement('img');
+            img.src = placeholderUrl;
+            // Remove crossOrigin to avoid CORS issues
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            img.style.margin = '10px auto 10px 0';
+            img.style.border = '1px solid #e2e8f0';
+            img.style.borderRadius = '8px';
+            
+            img.onerror = function() {
+                alert('Failed to load placeholder image.');
+                this.remove();
+                updateBBCodeOutput();
+            };
+
+            img.onload = function() {
+                updateBBCodeOutput();
+                // Extract colors from the placeholder image
+                extractImageColors(this);
+            };
+
+            // Focus the visual editor first
+            visualEditor.focus();
+            
+            // Get current selection or create one at the end
+            const selection = window.getSelection();
+            let range;
+            
+            if (selection.rangeCount > 0 && selection.getRangeAt(0).commonAncestorContainer.closest && 
+                selection.getRangeAt(0).commonAncestorContainer.closest('.visual-editor')) {
+                range = selection.getRangeAt(0);
+            } else {
+                range = document.createRange();
+                range.selectNodeContents(visualEditor);
+                range.collapse(false);
+            }
+            
+            range.deleteContents();
+            
+            // Insert the image
+            range.insertNode(img);
+            
+            // Create new line after image
+            const newLine = document.createElement('div');
+            newLine.innerHTML = '<br>';
+            range.setStartAfter(img);
+            range.insertNode(newLine);
+            
+            // Position cursor
+            range.setStart(newLine, 0);
+            range.setEnd(newLine, 0);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            updateBBCodeOutput();
+            visualEditor.focus();
+        }
+
+        function extractImageColors(img) {
+            console.log('Extracting colors from image:', img.src);
+            
+            try {
+                // Create a canvas to analyze the image
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Check if image has loaded properly
+                if (!img.naturalWidth || !img.naturalHeight) {
+                    console.log('Image not loaded properly, using fallback colors');
+                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+                    return;
+                }
+                
+                // Set canvas size (smaller for performance)
+                const maxSize = 100;
+                const ratio = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
+                canvas.width = img.naturalWidth * ratio;
+                canvas.height = img.naturalHeight * ratio;
+                
+                // Draw image to canvas
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // Try to get image data (this is where CORS errors happen)
+                let imageData;
+                try {
+                    imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                } catch (corsError) {
+                    console.log('CORS error when reading image data:', corsError.message);
+                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+                    return;
+                }
+                
+                const data = imageData.data;
+                
+                // Extract colors (sample every 10th pixel for performance)
+                const colors = new Map();
+                for (let i = 0; i < data.length; i += 40) { // 40 = 4 (RGBA) * 10 (every 10th pixel)
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    const a = data[i + 3];
+                    
+                    // Skip transparent or very transparent pixels
+                    if (a < 200) continue;
+                    
+                    // Skip very dark or very light colors (they're often not interesting)
+                    const brightness = (r + g + b) / 3;
+                    if (brightness < 20 || brightness > 235) continue;
+                    
+                    // Convert to hex
+                    const hex = '#' + [r, g, b].map(x => {
+                        const hex = x.toString(16);
+                        return hex.length === 1 ? '0' + hex : hex;
+                    }).join('');
+                    
+                    // Count color frequency
+                    colors.set(hex, (colors.get(hex) || 0) + 1);
+                }
+                
+                if (colors.size === 0) {
+                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+                    return;
+                }
+                
+                // Get most frequent colors
+                const sortedColors = Array.from(colors.entries())
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 12) // Top 12 colors
+                    .map(([color]) => color.toUpperCase());
+                
+                // Filter out very similar colors
+                const distinctColors = [];
+                for (const color of sortedColors) {
+                    const rgb = hexToRgb(color);
+                    const isDistinct = distinctColors.every(existingColor => {
+                        const existingRgb = hexToRgb(existingColor);
+                        const distance = Math.sqrt(
+                            Math.pow(rgb.r - existingRgb.r, 2) +
+                            Math.pow(rgb.g - existingRgb.g, 2) +
+                            Math.pow(rgb.b - existingRgb.b, 2)
+                        );
+                        return distance > 40; // Minimum distance threshold
+                    });
+                    
+                    if (isDistinct) {
+                        distinctColors.push(color);
+                    }
+                    
+                    if (distinctColors.length >= 8) break;
+                }
+                
+                // Display the colors
+                displayImageColors(distinctColors);
+                
+            } catch (e) {
+                console.log('Error extracting colors:', e.message);
+                displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+            }
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function displayImageColors(colors) {
+            const container = document.getElementById('imageColors');
+            const row = document.getElementById('imageColorsRow');
+            
+            if (colors.length === 0) {
+                row.style.display = 'none';
+                return;
+            }
+            
+            container.innerHTML = '';
+            row.style.display = 'flex';
+            
+            colors.forEach(color => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'recent-color';
+                colorDiv.onclick = () => applyImageColor(color);
+                
+                const swatch = document.createElement('div');
+                swatch.className = 'recent-color-swatch';
+                swatch.style.backgroundColor = color;
+                
+                const hex = document.createElement('div');
+                hex.className = 'recent-color-hex';
+                hex.textContent = color;
+                
+                colorDiv.appendChild(swatch);
+                colorDiv.appendChild(hex);
+                container.appendChild(colorDiv);
+            });
+        }
+
+        function applyImageColor(color) {
+            // Set the color picker and hex input
+            document.getElementById('hexInput').value = color;
+            document.getElementById('colorPicker').value = color.toLowerCase();
+            
+            // Add to recent colors
+            addToRecentColors(color);
+            
+            // Apply the color immediately (this will preserve selection)
+            applyTextColor();
+        }
+
         function updateToolbarState() {
             document.getElementById('boldBtn').classList.toggle('active', document.queryCommandState('bold'));
             document.getElementById('italicBtn').classList.toggle('active', document.queryCommandState('italic'));
@@ -1489,6 +1886,126 @@
             document.getElementById('leftBtn').classList.toggle('active', document.queryCommandState('justifyLeft'));
             document.getElementById('centerBtn').classList.toggle('active', document.queryCommandState('justifyCenter'));
             document.getElementById('rightBtn').classList.toggle('active', document.queryCommandState('justifyRight'));
+            
+            // Update font and size dropdowns based on current selection
+            updateCurrentFormatting();
+        }
+
+        function updateCurrentFormatting() {
+            const selection = window.getSelection();
+            
+            // Reset dropdowns to default
+            document.getElementById('fontFamily').value = '';
+            document.getElementById('fontSize').value = '';
+            
+            // Only check formatting if there's an actual text selection
+            if (selection.rangeCount > 0 && !selection.getRangeAt(0).collapsed) {
+                const range = selection.getRangeAt(0);
+                
+                // Make sure the selection is within our editor
+                if (!visualEditor.contains(range.commonAncestorContainer) && 
+                    range.commonAncestorContainer !== visualEditor) {
+                    return;
+                }
+                
+                // Get the common ancestor container
+                let container = range.commonAncestorContainer;
+                if (container.nodeType === Node.TEXT_NODE) {
+                    container = container.parentElement;
+                }
+                
+                // Look for font family and size
+                let currentElement = container;
+                let fontFamily = null;
+                let fontSize = null;
+                
+                // Walk up the DOM tree to find font formatting
+                while (currentElement && currentElement !== visualEditor) {
+                    if (currentElement.nodeType === Node.ELEMENT_NODE) {
+                        // Check for font family
+                        if (!fontFamily) {
+                            const dataFont = currentElement.getAttribute('data-font-family');
+                            const styleFont = currentElement.style.fontFamily;
+                            if (dataFont || styleFont) {
+                                fontFamily = dataFont || styleFont;
+                            }
+                        }
+                        
+                        // Check for font size
+                        if (!fontSize) {
+                            const dataSize = currentElement.getAttribute('data-font-size');
+                            const styleSize = currentElement.style.fontSize;
+                            if (dataSize) {
+                                fontSize = dataSize;
+                            } else if (styleSize && styleSize.includes('px')) {
+                                fontSize = styleSize.replace('px', '');
+                            }
+                        }
+                        
+                        // If we found both, we can stop
+                        if (fontFamily && fontSize) break;
+                    }
+                    currentElement = currentElement.parentElement;
+                }
+                
+                // Also check if the selection spans elements with consistent formatting
+                if (!fontFamily || !fontSize) {
+                    const walker = document.createTreeWalker(
+                        range.commonAncestorContainer,
+                        NodeFilter.SHOW_ELEMENT,
+                        {
+                            acceptNode: function(node) {
+                                return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+                            }
+                        }
+                    );
+                    
+                    let node;
+                    while (node = walker.nextNode()) {
+                        if (!fontFamily) {
+                            const dataFont = node.getAttribute('data-font-family');
+                            const styleFont = node.style.fontFamily;
+                            if (dataFont || styleFont) {
+                                fontFamily = dataFont || styleFont;
+                            }
+                        }
+                        
+                        if (!fontSize) {
+                            const dataSize = node.getAttribute('data-font-size');
+                            const styleSize = node.style.fontSize;
+                            if (dataSize) {
+                                fontSize = dataSize;
+                            } else if (styleSize && styleSize.includes('px')) {
+                                fontSize = styleSize.replace('px', '');
+                            }
+                        }
+                        
+                        if (fontFamily && fontSize) break;
+                    }
+                }
+                
+                // Update the dropdowns if we found formatting
+                if (fontFamily) {
+                    // Try to match the font family to one of our options
+                    const fontSelect = document.getElementById('fontFamily');
+                    for (let option of fontSelect.options) {
+                        if (option.value === fontFamily) {
+                            fontSelect.value = fontFamily;
+                            break;
+                        }
+                    }
+                }
+                
+                if (fontSize) {
+                    const sizeSelect = document.getElementById('fontSize');
+                    for (let option of sizeSelect.options) {
+                        if (option.value === fontSize) {
+                            sizeSelect.value = fontSize;
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         function htmlToBBCode(html) {
@@ -1497,20 +2014,19 @@
             // Handle images first
             bbcode = bbcode.replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, '[img]$1[/img]');
             
-            // Handle gradients
-            bbcode = bbcode.replace(/<span[^>]*data-gradient="([^"]*)"[^>]*>(.*?)<\/span>/gi, function(match, colors, text) {
-                const [start, end] = colors.split(',');
-                return `[gradient=${start},${end}]${text}[/gradient]`;
-            });
+            // Handle individual gradient letters FIRST (before other span processing)
+            bbcode = bbcode.replace(/<span[^>]*data-gradient-letter="([^"]*)"[^>]*>([^<]*)<\/span>/gi, '[color=$1]$2[/color]');
+            
+            // Handle gradient containers (remove the wrapper but keep the content)
+            bbcode = bbcode.replace(/<span[^>]*data-gradient-container="true"[^>]*>(.*?)<\/span>/gi, '$1');
             
             // Handle alignment
             bbcode = bbcode.replace(/<div style="text-align:\s*center[^"]*"[^>]*>(.*?)<\/div>/gi, '[center]$1[/center]');
             bbcode = bbcode.replace(/<div style="text-align:\s*left[^"]*"[^>]*>(.*?)<\/div>/gi, '[left]$1[/left]');
             bbcode = bbcode.replace(/<div style="text-align:\s*right[^"]*"[^>]*>(.*?)<\/div>/gi, '[right]$1[/right]');
             
-            // Handle font families
-            bbcode = bbcode.replace(/<span style="font-family:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
-                // Convert common font families to simpler BBCode names
+            // Handle font families (both ways)
+            bbcode = bbcode.replace(/<span[^>]*data-font-family="([^"]*)"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
                 const fontMap = {
                     'Arial, sans-serif': 'Arial',
                     "'Times New Roman', serif": 'Times New Roman',
@@ -1525,15 +2041,35 @@
                     'Impact, sans-serif': 'Impact',
                     "'Book Antiqua', serif": 'Book Antiqua'
                 };
-                const simpleName = fontMap[fontFamily] || fontFamily;
+                const simpleName = fontMap[fontFamily] || fontFamily.replace(/['"]/g, '');
                 return `[font=${simpleName}]${text}[/font]`;
             });
             
-            // Handle font colors
+            bbcode = bbcode.replace(/<span style="font-family:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
+                const fontMap = {
+                    'Arial, sans-serif': 'Arial',
+                    "'Times New Roman', serif": 'Times New Roman',
+                    'Georgia, serif': 'Georgia',
+                    'Verdana, sans-serif': 'Verdana',
+                    'Tahoma, sans-serif': 'Tahoma',
+                    "'Trebuchet MS', sans-serif": 'Trebuchet MS',
+                    "'Comic Sans MS', cursive": 'Comic Sans MS',
+                    "'Courier New', monospace": 'Courier New',
+                    'Monaco, monospace': 'Monaco',
+                    "'Lucida Console', monospace": 'Lucida Console',
+                    'Impact, sans-serif': 'Impact',
+                    "'Book Antiqua', serif": 'Book Antiqua'
+                };
+                const simpleName = fontMap[fontFamily] || fontFamily.replace(/['"]/g, '');
+                return `[font=${simpleName}]${text}[/font]`;
+            });
+            
+            // Handle individual colored spans (for non-gradient colored text)
             bbcode = bbcode.replace(/<span style="color:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, '[color=$1]$2[/color]');
             bbcode = bbcode.replace(/<font color="([^"]*)"[^>]*>(.*?)<\/font>/gi, '[color=$1]$2[/color]');
             
-            // Handle font sizes
+            // Handle font sizes (both ways)
+            bbcode = bbcode.replace(/<span[^>]*data-font-size="([^"]*)"[^>]*>(.*?)<\/span>/gi, '[size=$1]$2[/size]');
             bbcode = bbcode.replace(/<span style="font-size:\s*(\d+)px[^"]*"[^>]*>(.*?)<\/span>/gi, '[size=$1]$2[/size]');
             
             // Basic formatting
@@ -1561,11 +2097,7 @@
 
         function bbcodeToHtml(bbcode) {
             return bbcode
-                .replace(/\[center\]\[img\](.*?)\[\/img\]\[\/center\]/gi, '<div style="text-align:center"><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px auto;border:1px solid #e2e8f0;border-radius:8px;"></div>')
-                .replace(/\[left\]\[img\](.*?)\[\/img\]\[\/left\]/gi, '<div style="text-align:left"><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px 0;border:1px solid #e2e8f0;border-radius:8px;"></div>')
-                .replace(/\[right\]\[img\](.*?)\[\/img\]\[\/right\]/gi, '<div style="text-align:right"><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px 0;border:1px solid #e2e8f0;border-radius:8px;"></div>')
                 .replace(/\[img\](.*?)\[\/img\]/gi, '<div><img src="$1" style="max-width:100%;height:auto;display:block;margin:10px 0;border:1px solid #e2e8f0;border-radius:8px;"></div>')
-                .replace(/\[gradient=([^,]+),([^\]]+)\](.*?)\[\/gradient\]/gi, '<span style="background:linear-gradient(90deg,$1,$2);-webkit-background-clip:text;background-clip:text;color:transparent" data-gradient="$1,$2">$3</span>')
                 .replace(/\[font=([^\]]*)\](.*?)\[\/font\]/gi, function(match, fontName, text) {
                     // Convert BBCode font names back to CSS font families
                     const fontMap = {
@@ -1774,663 +2306,6 @@
             applyTextColor();
         }
 
-        function extractImageColors(img) {
-            console.log('Extracting colors from image:', img.src);
-            console.log('Image dimensions:', img.naturalWidth, 'x', img.naturalHeight);
-            console.log('Image crossOrigin:', img.crossOrigin);
-            
-            try {
-                // Create a canvas to analyze the image
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Check if image has loaded properly
-                if (!img.naturalWidth || !img.naturalHeight) {
-                    console.log('Image not loaded properly, using fallback colors');
-                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-                    return;
-                }
-                
-                // Set canvas size (smaller for performance)
-                const maxSize = 100;
-                const ratio = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
-                canvas.width = img.naturalWidth * ratio;
-                canvas.height = img.naturalHeight * ratio;
-                
-                console.log('Canvas size:', canvas.width, 'x', canvas.height);
-                
-                // Draw image to canvas
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                console.log('Image drawn to canvas');
-                
-                // Try to get image data (this is where CORS errors happen)
-                let imageData;
-                try {
-                    imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    console.log('Image data extracted successfully');
-                } catch (corsError) {
-                    console.log('CORS error when reading image data:', corsError.message);
-                    console.log('This image cannot be analyzed due to cross-origin restrictions');
-                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-                    return;
-                }
-                
-                const data = imageData.data;
-                
-                // Extract colors (sample every 10th pixel for performance)
-                const colors = new Map();
-                for (let i = 0; i < data.length; i += 40) { // 40 = 4 (RGBA) * 10 (every 10th pixel)
-                    const r = data[i];
-                    const g = data[i + 1];
-                    const b = data[i + 2];
-                    const a = data[i + 3];
-                    
-                    // Skip transparent or very transparent pixels
-                    if (a < 200) continue;
-                    
-                    // Skip very dark or very light colors (they're often not interesting)
-                    const brightness = (r + g + b) / 3;
-                    if (brightness < 20 || brightness > 235) continue;
-                    
-                    // Convert to hex
-                    const hex = '#' + [r, g, b].map(x => {
-                        const hex = x.toString(16);
-                        return hex.length === 1 ? '0' + hex : hex;
-                    }).join('');
-                    
-                    // Count color frequency
-                    colors.set(hex, (colors.get(hex) || 0) + 1);
-                }
-                
-                console.log('Found', colors.size, 'unique colors');
-                
-                if (colors.size === 0) {
-                    console.log('No colors found, using fallback');
-                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-                    return;
-                }
-                
-                // Get most frequent colors
-                const sortedColors = Array.from(colors.entries())
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 12) // Top 12 colors
-                    .map(([color]) => color.toUpperCase());
-                
-                // Filter out very similar colors
-                const distinctColors = [];
-                for (const color of sortedColors) {
-                    const rgb = hexToRgb(color);
-                    const isDistinct = distinctColors.every(existingColor => {
-                        const existingRgb = hexToRgb(existingColor);
-                        const distance = Math.sqrt(
-                            Math.pow(rgb.r - existingRgb.r, 2) +
-                            Math.pow(rgb.g - existingRgb.g, 2) +
-                            Math.pow(rgb.b - existingRgb.b, 2)
-                        );
-                        return distance > 40; // Minimum distance threshold
-                    });
-                    
-                    if (isDistinct) {
-                        distinctColors.push(color);
-                    }
-                    
-                    if (distinctColors.length >= 8) break;
-                }
-                
-                console.log('Distinct colors found:', distinctColors);
-                
-                // Display the colors
-                displayImageColors(distinctColors);
-                
-            } catch (e) {
-                console.log('Error extracting colors:', e.message);
-                console.log('Using fallback colors');
-                displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-            }
-        }
-
-        function hexToRgb(hex) {
-            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return result ? {
-                r: parseInt(result[1], 16),
-                g: parseInt(result[2], 16),
-                b: parseInt(result[3], 16)
-            } : null;
-        }
-
-        function displayImageColors(colors) {
-            console.log('Displaying image colors:', colors);
-            const container = document.getElementById('imageColors');
-            const row = document.getElementById('imageColorsRow');
-            
-            if (colors.length === 0) {
-                row.style.display = 'none';
-                return;
-            }
-            
-            container.innerHTML = '';
-            row.style.display = 'flex';
-            
-            colors.forEach(color => {
-                const colorDiv = document.createElement('div');
-                colorDiv.className = 'recent-color';
-                colorDiv.onclick = () => applyImageColor(color);
-                
-                const swatch = document.createElement('div');
-                swatch.className = 'recent-color-swatch';
-                swatch.style.backgroundColor = color;
-                
-                const hex = document.createElement('div');
-                hex.className = 'recent-color-hex';
-                hex.textContent = color;
-                
-                colorDiv.appendChild(swatch);
-                colorDiv.appendChild(hex);
-                container.appendChild(colorDiv);
-            });
-            
-            console.log('Image colors section should now be visible');
-        }
-
-        function setImageAlignment(align) {
-            imageAlignment = align;
-            
-            // Update button states
-            document.getElementById('imageLeftBtn').classList.remove('active');
-            document.getElementById('imageCenterBtn').classList.remove('active');
-            document.getElementById('imageRightBtn').classList.remove('active');
-            
-            // Set active state and update styles
-            const activeBtn = document.getElementById('image' + align.charAt(0).toUpperCase() + align.slice(1) + 'Btn');
-            activeBtn.classList.add('active');
-            
-            // Update all buttons to default style first
-            document.querySelectorAll('#imageLeftBtn, #imageCenterBtn, #imageRightBtn').forEach(btn => {
-                btn.style.background = '';
-                btn.style.color = '';
-            });
-            
-            // Apply active styling
-            activeBtn.style.background = 'var(--accent)';
-            activeBtn.style.color = '#fff';
-        }
-
-        function applyImageColor(color) {
-            // Set the color picker and hex input
-            document.getElementById('hexInput').value = color;
-            document.getElementById('colorPicker').value = color.toLowerCase();
-            
-            // Add to recent colors
-            addToRecentColors(color);
-            
-            // Apply the color immediately (this will preserve selection)
-            applyTextColor();
-        }
-
-        function insertPlaceholderImage() {
-            // Set the placeholder URL
-            const placeholderUrl = 'https://placehold.co/500x200';
-            
-            // Create image element
-            const img = document.createElement('img');
-            img.src = placeholderUrl;
-            img.crossOrigin = 'anonymous'; // Allow cross-origin access
-            img.style.maxWidth = '100%';
-            img.style.height = 'auto';
-            img.style.display = 'block';
-            img.style.margin = '10px 0';
-            img.style.border = '1px solid #e2e8f0';
-            img.style.borderRadius = '8px';
-            
-            img.onerror = function() {
-                alert('Failed to load placeholder image.');
-                this.remove();
-                updateBBCodeOutput();
-            };
-
-            img.onload = function() {
-                updateBBCodeOutput();
-                // Extract colors from the placeholder image
-                extractImageColors(this);
-            };
-
-            // Focus the visual editor first
-            visualEditor.focus();
-            
-            // Get current selection or create one at the end
-            const selection = window.getSelection();
-            let range;
-            
-            if (selection.rangeCount > 0 && selection.getRangeAt(0).commonAncestorContainer.closest && 
-                selection.getRangeAt(0).commonAncestorContainer.closest('.visual-editor')) {
-                range = selection.getRangeAt(0);
-            } else {
-                range = document.createRange();
-                range.selectNodeContents(visualEditor);
-                range.collapse(false);
-            }
-            
-            range.deleteContents();
-            
-            // Create wrapper and insert with alignment
-            const wrapper = document.createElement('div');
-            if (imageAlignment === 'center') {
-                wrapper.style.textAlign = 'center';
-            } else if (imageAlignment === 'left') {
-                wrapper.style.textAlign = 'left';
-            } else if (imageAlignment === 'right') {
-                wrapper.style.textAlign = 'right';
-            }
-            wrapper.appendChild(img);
-            range.insertNode(wrapper);
-            
-            // Create new line after image
-            const newLine = document.createElement('div');
-            newLine.innerHTML = '<br>';
-            range.setStartAfter(wrapper);
-            range.insertNode(newLine);
-            
-            // Position cursor
-            range.setStart(newLine, 0);
-            range.setEnd(newLine, 0);
-            selection.removeAllRanges();
-            selection.addRange(range);
-
-            updateBBCodeOutput();
-            visualEditor.focus();
-        }
-
-        async function copyBBCode() {
-            const bbcode = document.getElementById('bbcodeOutput').textContent;
-            if (bbcode === 'BBCode will appear here...') return;
-
-            try {
-                await navigator.clipboard.writeText(bbcode);
-                const btn = document.querySelector('.copy-btn');
-                const originalText = btn.textContent;
-                btn.textContent = '✅ Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            } catch (err) {
-                const textArea = document.createElement('textarea');
-                textArea.value = bbcode;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                alert('BBCode copied to clipboard!');
-            }
-        }
-
-        // Color picker sync functions
-        function updateColorFromHex() {
-            const hex = document.getElementById('hexInput').value;
-            if (/^#[0-9A-F]{6}$/i.test(hex)) {
-                document.getElementById('colorPicker').value = hex.toLowerCase();
-            }
-        }
-
-        function updateHexFromColor() {
-            const color = document.getElementById('colorPicker').value;
-            document.getElementById('hexInput').value = color.toUpperCase();
-        }
-
-        function updateGradientStartFromHex() {
-            const hex = document.getElementById('gradientStartHex').value;
-            if (/^#[0-9A-F]{6}$/i.test(hex)) {
-                document.getElementById('gradientStart').value = hex.toLowerCase();
-            }
-        }
-
-        function updateGradientStartHex() {
-            const color = document.getElementById('gradientStart').value;
-            document.getElementById('gradientStartHex').value = color.toUpperCase();
-        }
-
-        function updateGradientEndFromHex() {
-            const hex = document.getElementById('gradientEndHex').value;
-            if (/^#[0-9A-F]{6}$/i.test(hex)) {
-                document.getElementById('gradientEnd').value = hex.toLowerCase();
-            }
-        }
-
-        function updateGradientEndHex() {
-            const color = document.getElementById('gradientEnd').value;
-            document.getElementById('gradientEndHex').value = color.toUpperCase();
-        }
-
-        function swapGradientColors() {
-            // Get current values
-            const startHex = document.getElementById('gradientStartHex').value;
-            const startColor = document.getElementById('gradientStart').value;
-            const endHex = document.getElementById('gradientEndHex').value;
-            const endColor = document.getElementById('gradientEnd').value;
-            
-            // Swap them
-            document.getElementById('gradientStartHex').value = endHex;
-            document.getElementById('gradientStart').value = endColor;
-            document.getElementById('gradientEndHex').value = startHex;
-            document.getElementById('gradientEnd').value = startColor;
-        }
-
-        function addToRecentColors(color) {
-            // Normalize color to uppercase hex
-            if (!color.startsWith('#')) color = '#' + color;
-            color = color.toUpperCase();
-            
-            // Remove if already exists
-            recentColors = recentColors.filter(c => c !== color);
-            
-            // Add to beginning
-            recentColors.unshift(color);
-            
-            // Keep only last 8 colors
-            if (recentColors.length > 8) {
-                recentColors = recentColors.slice(0, 8);
-            }
-            
-            updateRecentColorsDisplay();
-        }
-
-        function updateRecentColorsDisplay() {
-            const container = document.getElementById('recentColors');
-            container.innerHTML = '';
-            
-            recentColors.forEach(color => {
-                const recentColor = document.createElement('div');
-                recentColor.className = 'recent-color';
-                recentColor.onclick = () => applyRecentColor(color);
-                
-                const swatch = document.createElement('div');
-                swatch.className = 'recent-color-swatch';
-                swatch.style.backgroundColor = color;
-                
-                const hex = document.createElement('div');
-                hex.className = 'recent-color-hex';
-                hex.textContent = color;
-                
-                recentColor.appendChild(swatch);
-                recentColor.appendChild(hex);
-                container.appendChild(recentColor);
-            });
-        }
-
-        function applyRecentColor(color) {
-            // Set the color picker and hex input
-            document.getElementById('hexInput').value = color;
-            document.getElementById('colorPicker').value = color.toLowerCase();
-            
-            // Apply the color immediately (this will preserve selection)
-            applyTextColor();
-        }
-
-        function extractImageColors(img) {
-            console.log('Extracting colors from image:', img.src);
-            console.log('Image dimensions:', img.naturalWidth, 'x', img.naturalHeight);
-            console.log('Image crossOrigin:', img.crossOrigin);
-            
-            try {
-                // Create a canvas to analyze the image
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Check if image has loaded properly
-                if (!img.naturalWidth || !img.naturalHeight) {
-                    console.log('Image not loaded properly, using fallback colors');
-                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-                    return;
-                }
-                
-                // Set canvas size (smaller for performance)
-                const maxSize = 100;
-                const ratio = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
-                canvas.width = img.naturalWidth * ratio;
-                canvas.height = img.naturalHeight * ratio;
-                
-                console.log('Canvas size:', canvas.width, 'x', canvas.height);
-                
-                // Draw image to canvas
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                console.log('Image drawn to canvas');
-                
-                // Try to get image data (this is where CORS errors happen)
-                let imageData;
-                try {
-                    imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    console.log('Image data extracted successfully');
-                } catch (corsError) {
-                    console.log('CORS error when reading image data:', corsError.message);
-                    console.log('This image cannot be analyzed due to cross-origin restrictions');
-                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-                    return;
-                }
-                
-                const data = imageData.data;
-                
-                // Extract colors (sample every 10th pixel for performance)
-                const colors = new Map();
-                for (let i = 0; i < data.length; i += 40) { // 40 = 4 (RGBA) * 10 (every 10th pixel)
-                    const r = data[i];
-                    const g = data[i + 1];
-                    const b = data[i + 2];
-                    const a = data[i + 3];
-                    
-                    // Skip transparent or very transparent pixels
-                    if (a < 200) continue;
-                    
-                    // Skip very dark or very light colors (they're often not interesting)
-                    const brightness = (r + g + b) / 3;
-                    if (brightness < 20 || brightness > 235) continue;
-                    
-                    // Convert to hex
-                    const hex = '#' + [r, g, b].map(x => {
-                        const hex = x.toString(16);
-                        return hex.length === 1 ? '0' + hex : hex;
-                    }).join('');
-                    
-                    // Count color frequency
-                    colors.set(hex, (colors.get(hex) || 0) + 1);
-                }
-                
-                console.log('Found', colors.size, 'unique colors');
-                
-                if (colors.size === 0) {
-                    console.log('No colors found, using fallback');
-                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-                    return;
-                }
-                
-                // Get most frequent colors
-                const sortedColors = Array.from(colors.entries())
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 12) // Top 12 colors
-                    .map(([color]) => color.toUpperCase());
-                
-                // Filter out very similar colors
-                const distinctColors = [];
-                for (const color of sortedColors) {
-                    const rgb = hexToRgb(color);
-                    const isDistinct = distinctColors.every(existingColor => {
-                        const existingRgb = hexToRgb(existingColor);
-                        const distance = Math.sqrt(
-                            Math.pow(rgb.r - existingRgb.r, 2) +
-                            Math.pow(rgb.g - existingRgb.g, 2) +
-                            Math.pow(rgb.b - existingRgb.b, 2)
-                        );
-                        return distance > 40; // Minimum distance threshold
-                    });
-                    
-                    if (isDistinct) {
-                        distinctColors.push(color);
-                    }
-                    
-                    if (distinctColors.length >= 8) break;
-                }
-                
-                console.log('Distinct colors found:', distinctColors);
-                
-                // Display the colors
-                displayImageColors(distinctColors);
-                
-            } catch (e) {
-                console.log('Error extracting colors:', e.message);
-                console.log('Using fallback colors');
-                displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-            }
-        }
-
-        function hexToRgb(hex) {
-            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return result ? {
-                r: parseInt(result[1], 16),
-                g: parseInt(result[2], 16),
-                b: parseInt(result[3], 16)
-            } : null;
-        }
-
-        function displayImageColors(colors) {
-            console.log('Displaying image colors:', colors);
-            const container = document.getElementById('imageColors');
-            const row = document.getElementById('imageColorsRow');
-            
-            if (colors.length === 0) {
-                row.style.display = 'none';
-                return;
-            }
-            
-            container.innerHTML = '';
-            row.style.display = 'flex';
-            
-            colors.forEach(color => {
-                const colorDiv = document.createElement('div');
-                colorDiv.className = 'recent-color';
-                colorDiv.onclick = () => applyImageColor(color);
-                
-                const swatch = document.createElement('div');
-                swatch.className = 'recent-color-swatch';
-                swatch.style.backgroundColor = color;
-                
-                const hex = document.createElement('div');
-                hex.className = 'recent-color-hex';
-                hex.textContent = color;
-                
-                colorDiv.appendChild(swatch);
-                colorDiv.appendChild(hex);
-                container.appendChild(colorDiv);
-            });
-            
-            console.log('Image colors section should now be visible');
-        }
-
-        function setImageAlignment(align) {
-            imageAlignment = align;
-            
-            // Update button states
-            document.getElementById('imageLeftBtn').classList.remove('active');
-            document.getElementById('imageCenterBtn').classList.remove('active');
-            document.getElementById('imageRightBtn').classList.remove('active');
-            
-            // Set active state and update styles
-            const activeBtn = document.getElementById('image' + align.charAt(0).toUpperCase() + align.slice(1) + 'Btn');
-            activeBtn.classList.add('active');
-            
-            // Update all buttons to default style first
-            document.querySelectorAll('#imageLeftBtn, #imageCenterBtn, #imageRightBtn').forEach(btn => {
-                btn.style.background = '';
-                btn.style.color = '';
-            });
-            
-            // Apply active styling
-            activeBtn.style.background = 'var(--accent)';
-            activeBtn.style.color = '#fff';
-        }
-
-        function applyImageColor(color) {
-            // Set the color picker and hex input
-            document.getElementById('hexInput').value = color;
-            document.getElementById('colorPicker').value = color.toLowerCase();
-            
-            // Add to recent colors
-            addToRecentColors(color);
-            
-            // Apply the color immediately (this will preserve selection)
-            applyTextColor();
-        }
-
-        function insertPlaceholderImage() {
-            // Set the placeholder URL
-            const placeholderUrl = 'https://placehold.co/500x200';
-            
-            // Create image element
-            const img = document.createElement('img');
-            img.src = placeholderUrl;
-            img.crossOrigin = 'anonymous'; // Allow cross-origin access
-            img.style.maxWidth = '100%';
-            img.style.height = 'auto';
-            img.style.display = 'block';
-            img.style.margin = '10px 0';
-            img.style.border = '1px solid #e2e8f0';
-            img.style.borderRadius = '8px';
-            
-            img.onerror = function() {
-                alert('Failed to load placeholder image.');
-                this.remove();
-                updateBBCodeOutput();
-            };
-
-            img.onload = function() {
-                updateBBCodeOutput();
-                // Extract colors from the placeholder image
-                extractImageColors(this);
-            };
-
-            // Focus the visual editor first
-            visualEditor.focus();
-            
-            // Get current selection or create one at the end
-            const selection = window.getSelection();
-            let range;
-            
-            if (selection.rangeCount > 0 && selection.getRangeAt(0).commonAncestorContainer.closest && 
-                selection.getRangeAt(0).commonAncestorContainer.closest('.visual-editor')) {
-                range = selection.getRangeAt(0);
-            } else {
-                range = document.createRange();
-                range.selectNodeContents(visualEditor);
-                range.collapse(false);
-            }
-            
-            range.deleteContents();
-            
-            // Create wrapper and insert with alignment
-            const wrapper = document.createElement('div');
-            if (imageAlignment === 'center') {
-                wrapper.style.textAlign = 'center';
-            } else if (imageAlignment === 'left') {
-                wrapper.style.textAlign = 'left';
-            } else if (imageAlignment === 'right') {
-                wrapper.style.textAlign = 'right';
-            }
-            wrapper.appendChild(img);
-            range.insertNode(wrapper);
-            
-            // Create new line after image
-            const newLine = document.createElement('div');
-            newLine.innerHTML = '<br>';
-            range.setStartAfter(wrapper);
-            range.insertNode(newLine);
-            
-            // Position cursor
-            range.setStart(newLine, 0);
-            range.setEnd(newLine, 0);
-            selection.removeAllRanges();
-            selection.addRange(range);
-
-            updateBBCodeOutput();
-            visualEditor.focus();
-        }
-
         // Initialize
         visualEditor.focus();
         updateBBCodeOutput();
@@ -2439,6 +2314,19 @@
         document.getElementById('hexInput').value = '#000000';
         document.getElementById('gradientStartHex').value = '#FF0000';
         document.getElementById('gradientEndHex').value = '#0000FF';
+        
+        // Listen for selection changes to update toolbar state
+        document.addEventListener('selectionchange', function() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                // Only update if selection is within our visual editor
+                if (visualEditor.contains(range.commonAncestorContainer) || 
+                    range.commonAncestorContainer === visualEditor) {
+                    updateToolbarState();
+                }
+            }
+        });
         
         // Allow Enter key in image URL input
         document.getElementById('imageUrl').addEventListener('keydown', function(e) {
