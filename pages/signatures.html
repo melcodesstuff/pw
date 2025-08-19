@@ -430,6 +430,19 @@
                             <option value="'Book Antiqua', serif">Book Antiqua</option>
                         </select>
                     </div>
+
+                    <div class="toolbar-group">
+                        <span class="group-label">Align:</span>
+                        <button class="toolbar-btn" onclick="formatText('justifyLeft')" id="leftBtn" title="Align Left">⬅️</button>
+                        <button class="toolbar-btn" onclick="formatText('justifyCenter')" id="centerBtn" title="Align Center">⬆️</button>
+                        <button class="toolbar-btn" onclick="formatText('justifyRight')" id="rightBtn" title="Align Right">➡️</button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <span class="group-label">Clear:</span>
+                        <button class="toolbar-btn" onclick="clearSelectedFormatting()" title="Remove formatting from selected text only">Clear Selected</button>
+                        <button class="toolbar-btn" onclick="clearAllFormatting()" title="Remove all formatting from entire document">Clear All</button>
+                    </div>
                 </div>
 
                 <!-- Row 2: Colors -->
@@ -454,8 +467,33 @@
                     </div>
                 </div>
 
+                  <!-- Row 4: Recent Colors -->
+                  <div class="toolbar-row">
+                    <div class="toolbar-group full-width">
+                        <div style="display:flex;flex-direction:column;gap:0.5rem;width:100%;">
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <span class="group-label">Recent Colors:</span>
+                                <span style="font-size:0.75rem;color:var(--muted);font-style:italic;">Click to reuse as text color</span>
+                            </div>
+                            <div class="recent-colors" id="recentColors">
+                                <!-- Recent colors will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Row 3: Symbols and Alignment -->
                 <div class="toolbar-row">
+
+                    <!-- Row 6: Image and Clear -->
+
+                    <div class="toolbar-group">
+                        <span class="group-label">Image:</span>
+                        <input type="text" id="imageUrl" class="url-input" placeholder="Enter image URL...">
+                        <button class="toolbar-btn" onclick="insertImage()" title="Insert Image">🖼️ Insert</button>
+                        <button class="toolbar-btn" onclick="insertPlaceholderImage()" title="Insert Placeholder Image">📷 Placeholder</button>
+                    </div>
+
                     <div class="toolbar-group">
                         <span class="group-label">Symbols:</span>
                         <input type="text" id="symbolSearch" class="symbol-search" placeholder="Search symbols..." oninput="filterSymbols()">
@@ -617,45 +655,11 @@
                         </select>
                     </div>
 
-                    <div class="toolbar-group">
-                        <span class="group-label">Align:</span>
-                        <button class="toolbar-btn" onclick="formatText('justifyLeft')" id="leftBtn" title="Align Left">⬅️</button>
-                        <button class="toolbar-btn" onclick="formatText('justifyCenter')" id="centerBtn" title="Align Center">⬆️</button>
-                        <button class="toolbar-btn" onclick="formatText('justifyRight')" id="rightBtn" title="Align Right">➡️</button>
-                    </div>
+                   
                 </div>
 
 
-                <!-- Row 5: Image Colors -->
-                <div class="toolbar-row" id="imageColorsRow" style="display:none;">
-                    <div class="toolbar-group full-width">
-                        <div style="display:flex;flex-direction:column;gap:0.5rem;width:100%;">
-                            <div style="display:flex;align-items:center;gap:0.5rem;">
-                                <span class="group-label">Colors from Image:</span>
-                                <span style="font-size:0.75rem;color:var(--muted);font-style:italic;">Click to use color from your image</span>
-                            </div>
-                            <div class="recent-colors" id="imageColors">
-                                <!-- Image colors will be populated here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Row 6: Image and Clear -->
-                <div class="toolbar-row">
-                    <div class="toolbar-group">
-                        <span class="group-label">Image:</span>
-                        <input type="text" id="imageUrl" class="url-input" placeholder="Enter image URL...">
-                        <button class="toolbar-btn" onclick="insertImage()" title="Insert Image">🖼️ Insert</button>
-                        <button class="toolbar-btn" onclick="insertPlaceholderImage()" title="Insert Placeholder Image">📷 Placeholder</button>
-                    </div>
-                    
-                    <div class="toolbar-group">
-                        <span class="group-label">Clear:</span>
-                        <button class="toolbar-btn" onclick="clearSelectedFormatting()" title="Remove formatting from selected text only">Clear Selected</button>
-                        <button class="toolbar-btn" onclick="clearAllFormatting()" title="Remove all formatting from entire document">Clear All</button>
-                    </div>
-                </div>
+                
             </div>
 
             <div class="bbcode-output-section">
