@@ -625,20 +625,6 @@
                     </div>
                 </div>
 
-                <!-- Row 4: Recent Colors -->
-                <div class="toolbar-row">
-                    <div class="toolbar-group full-width">
-                        <div style="display:flex;flex-direction:column;gap:0.5rem;width:100%;">
-                            <div style="display:flex;align-items:center;gap:0.5rem;">
-                                <span class="group-label">Recent Colors:</span>
-                                <span style="font-size:0.75rem;color:var(--muted);font-style:italic;">Click to reuse as text color</span>
-                            </div>
-                            <div class="recent-colors" id="recentColors">
-                                <!-- Recent colors will be populated here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Row 5: Image Colors -->
                 <div class="toolbar-row" id="imageColorsRow" style="display:none;">
@@ -1714,7 +1700,7 @@ async function tryDirectColorExtraction(img) {
             return false;
         }
         
-        const maxSize = 100;
+        const maxSize = 500;
         const ratio = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
         canvas.width = img.naturalWidth * ratio;
         canvas.height = img.naturalHeight * ratio;
@@ -1756,7 +1742,7 @@ async function tryProxyColorExtraction(originalImg) {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
                         
-                        const maxSize = 100;
+                        const maxSize = 500;
                         const ratio = Math.min(maxSize / this.naturalWidth, maxSize / this.naturalHeight);
                         canvas.width = this.naturalWidth * ratio;
                         canvas.height = this.naturalHeight * ratio;
@@ -1798,67 +1784,6 @@ async function tryProxyColorExtraction(originalImg) {
     displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
 }
 
-function extractColorsFromImageData(imageData) {
-    const data = imageData.data;
-    const colors = new Map();
-    
-    // Sample every 10th pixel for performance
-    for (let i = 0; i < data.length; i += 12) { // Every 3rd pixel
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const a = data[i + 3];
-        
-        // Skip transparent or very transparent pixels
-        if (a < 200) continue;
-        
-        // Skip very dark or very light colors
-        const brightness = (r + g + b) / 3;
-        if (brightness < 10 || brightness > 245) continue; // Was 20-235
-        
-        // Convert to hex
-        const hex = '#' + [r, g, b].map(x => {
-            const hex = x.toString(16);
-            return hex.length === 1 ? '0' + hex : hex;
-        }).join('');
-        
-        // Count color frequency
-        colors.set(hex, (colors.get(hex) || 0) + 1);
-    }
-    
-    if (colors.size === 0) {
-        return ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
-    }
-    
-    // Get most frequent colors
-    const sortedColors = Array.from(colors.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 12) // Top 12 colors
-        .map(([color]) => color.toUpperCase());
-    
-    // Filter out very similar colors
-    const distinctColors = [];
-    for (const color of sortedColors) {
-        const rgb = hexToRgb(color);
-        const isDistinct = distinctColors.every(existingColor => {
-            const existingRgb = hexToRgb(existingColor);
-            const distance = Math.sqrt(
-                Math.pow(rgb.r - existingRgb.r, 2) +
-                Math.pow(rgb.g - existingRgb.g, 2) +
-                Math.pow(rgb.b - existingRgb.b, 2)
-            );
-  return distance > 25; // Was 40
-        });
-        
-        if (isDistinct) {
-            distinctColors.push(color);
-        }
-        
-        if (distinctColors.length >= 8) break;
-    }
-    
-    return distinctColors;
-}
         function hexToRgb(hex) {
             const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
             return result ? {
