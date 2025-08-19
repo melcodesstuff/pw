@@ -1,1 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Bracket Creator</title>
+    <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
+    <style>
+        /* ---------- Base reset ---------- */
+        *{margin:0;padding:0;box-sizing:border-box}
 
+        /* ---------- Base layout/typography ---------- */
+        body{
+          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+          background:#f8fafc;
+          color:#0f172a;
+          line-height:1.6;
+          transition:all .3s ease;
+        }
+
+        .container{max-width:1200px;margin:0 auto;padding:2rem 1.5rem;min-height:100vh}
+
+        .header{
+          margin-bottom:2rem;
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:2rem;
+        }
+        
+        .header-buttons {
+          display:flex;
+          align-items:center;
+          flex-shrink:0;
+        }
+        
+        .header > div:first-child {
+          flex: 1;
+        }
+
+        .title{
+          font-size:2.5rem;font-weight:700;
+          background:linear-gradient(135deg,#4f46e5,#7c3aed);
+          -webkit-background-clip:text;background-clip:text;color:transparent;
+          margin-bottom:.5rem;line-height:1.2;
+        }
+        .subtitle{
+          color:#64748b;
+          font-size:1.1rem;
+          max-width:600px;
+          line-height:1.4;
+          margin:0;
+        }
+
+        /* ---------- Home Link ---------- */
+        .home-link{
+          background:#e2e8f0;border:none;padding:.75rem 1.25rem;border-radius:1.5rem;
+          font-weight:500;cursor:pointer;transition:all .2s ease;
+          display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;
+          font-size:0.9rem;
+          flex-shrink:0;
+        }
+        .home-link:hover{background:#cbd5e1;transform:translateY(-1px)}
+        .home-link .icon{font-size:1em;line-height:1;}
+        .home-link:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+
+        /* ---------- Ko-fi Button ---------- */
+        .kofi-btn{
+          background:var(--accent);border:none;padding:.75rem;border-radius:1.5rem;
+          font-weight:500;cursor:pointer;transition:all .2s ease;
+          display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:#fff;
+          font-size:0.9rem;width:44px;height:44px;position:relative;
+          flex-shrink:0;margin-right:0.75rem;
+        }
+        .kofi-btn:hover{background:#3730a3;transform:translateY(-1px);color:#fff}
+        .kofi-btn:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+        
+        .kofi-btn::after {
+          content: "Buy me a coffee";
+          position: absolute;
+          bottom: -2.5rem;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(0,0,0,0.8);
+          color: white;
+          padding: 0.5rem 0.75rem;
+          border-radius: 6px;
+          font-size: 0.75rem;
+          white-space: nowrap;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s ease;
+          z-index: 1000;
+        }
+        
+        .kofi-btn:hover::after {
+          opacity: 1;
+        }
+
+        /* ---------- Tokens ---------- */
+        :root{
+          --bg:#f8fafc;
+          --ink:#0f172a;
+          --panel:#ffffff;
+          --border:rgba(226,232,240,.7);
+          --muted:#64748b;
+          --accent:#4f46e5;
+        }
+
+        /* ---------- Cards ---------- */
+        .card{
+          background:#fff;border:1px solid rgba(226,232,240,.7);border-radius:1rem;padding:2rem;
+          box-shadow:0 1px 3px rgba(0,0,0,.1);transition:all .3s ease;
+          margin-bottom:1.5rem;
+        }
+        .card:hover{box-shadow:0 10px 25px rgba(0,0,0,.1)}
+        .card-desc{font-size:.95rem;color:#64748b;margin-bottom:2rem;text-align:center}
+
+        /* ---------- Buttons ---------- */
+        .btn{
+          background:var(--accent);color:#fff;border:none;padding:.75rem 1.5rem;
+          border-radius:8px;font-size:0.9rem;cursor:pointer;
+          transition:all 0.2s ease;font-weight:500;
+          display:inline-flex;align-items:center;gap:0.5rem;
+        }
+        .btn:hover{
+          background:#3730a3;transform:translateY(-1px);
+        }
+        .btn:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+
+        .btn-secondary{
+          background:#f1f5f9;color:var(--ink);border:1px solid var(--border);
+        }
+        .btn-secondary:hover{
+          background:#e2e8f0;color:var(--ink);
+        }
+
+        /* ---------- Form Elements ---------- */
+        .form-group{
+          margin-bottom:1.5rem;
+        }
+
+        .form-label{
+          display:block;font-weight:500;color:var(--ink);
+          margin-bottom:.75rem;font-size:.9rem;
+        }
+
+        .form-input{
+          background:#fff;border:1px solid var(--border);border-radius:8px;
+          padding:0.75rem 1rem;font-family:inherit;font-size:1rem;
+          transition:all .2s ease;width:100%;color:var(--ink);
+        }
+        .form-input:focus{
+          outline:2px solid rgba(79,70,229,.5);outline-offset:2px;
+          border-color:var(--accent);
+        }
+
+        .form-select{
+          background:#fff;border:1px solid var(--border);border-radius:8px;
+          padding:0.75rem 1rem;font-family:inherit;font-size:1rem;
+          transition:all .2s ease;width:100%;color:var(--ink);cursor:pointer;
+        }
+        .form-select:focus{
+          outline:2px solid rgba(79,70,229,.5);outline-offset:2px;
+          border-color:var(--accent);
+        }
+
+        /* ---------- Help Text ---------- */
+        .help-text{
+          font-size:0.8rem;
+          color:var(--muted);
+          margin-top:0.5rem;
+          line-height:1.4;
+        }
+
+        .help-text strong{
+          color:var(--ink);
+        }
+
+        .help-examples{
+          background:#f8fafc;
+          border:1px solid #e2e8f0;
+          border-radius:6px;
+          padding:0.75rem;
+          margin-top:0.75rem;
+          font-family:monospace;
+          font-size:0.75rem;
+          color:#475569;
+        }
+
+        /* ---------- Tournament Setup ---------- */
+        .setup-grid{
+          display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;
+        }
+
+        .participants-preview{
+          background:#f8fafc;border:1px solid var(--border);border-radius:8px;
+          padding:1rem;
+        }
+
+        .participant-item{
+          display:flex;align-items:center;gap:0.75rem;padding:0.5rem;
+          border-radius:6px;transition:background 0.2s ease;
+        }
+        .participant-item:hover{background:#f1f5f9}
+
+        .participant-number{
+          background:var(--accent);color:#fff;width:24px;height:24px;
+          border-radius:50%;display:flex;align-items:center;justify-content:center;
+          font-size:0.75rem;font-weight:600;flex-shrink:0;
+        }
+
+        .participant-name{
+          font-size:0.9rem;color:var(--ink);
+        }
+
+        .error-message{
+          color:#dc2626;font-size:0.85rem;margin-top:0.5rem;
+          padding:0.5rem;background:#fef2f2;border:1px solid #fecaca;
+          border-radius:6px;display:none;
+        }
+
+        /* ---------- Bracket Styles ---------- */
+        .bracket-container{
+          background:#fff;border:1px solid var(--border);border-radius:1rem;
+          padding:2rem;overflow-x:auto;min-height:400px;
+        }
+
+        .bracket{
+          display:flex;gap:3rem;min-width:max-content;align-items:center;
+          justify-content:center;
+        }
+
+        .round{
+          display:flex;flex-direction:column;gap:2rem;min-width:180px;
+        }
+
+        .round-title{
+          text-align:center;font-weight:600;color:var(--accent);
+          margin-bottom:1rem;font-size:0.9rem;text-transform:uppercase;
+          letter-spacing:0.5px;
+        }
+
+        .match{
+          background:#f8fafc;border:1px solid var(--border);border-radius:8px;
+          padding:0;overflow:hidden;min-height:80px;display:flex;flex-direction:column;
+        }
+
+        .match.completed{
+          border-color:var(--accent);
+        }
+
+        .match.rps-resolved{
+          border-color:#10b981;
+          background:#f0fdf4;
+        }
+
+        .match.rps-tie{
+          border-color:#dc2626;
+          background:#fef2f2;
+        }
+
+        .match.manually-resolved{
+          border-color:#8b5cf6;
+          background:#f3f4f6;
+        }
+
+        .match.bye-match{
+          border-color:#10b981;
+          background:#f0fdf4;
+        }
+
+        .participant{
+          padding:0.75rem;border-bottom:1px solid var(--border);
+          cursor:pointer;transition:all 0.2s ease;display:flex;
+          align-items:center;justify-content:space-between;
+          min-height:40px;
+        }
+
+        .participant:last-child{
+          border-bottom:none;
+        }
+
+        .participant:hover{
+          background:#f1f5f9;
+        }
+
+        .participant.winner{
+          background:#dcfce7;color:#16a34a;font-weight:600;
+        }
+
+        .match.completed .participant:not(.winner):not(.bye){
+          background:#f1f5f9;color:#64748b;
+        }
+
+        .participant.bye{
+          background:#f9fafb;color:var(--muted);font-style:italic;
+        }
+
+        .participant-name{
+          font-size:0.9rem;
+        }
+
+        .winner-indicator{
+          color:var(--accent);font-weight:bold;
+        }
+
+        /* ---------- Controls ---------- */
+        .controls{
+          display:flex;gap:1rem;flex-wrap:wrap;align-items:center;
+          justify-content:center;margin-bottom:2rem;
+        }
+
+        /* ---------- Footer ---------- */
+        .footer{
+          font-size:.875rem;color:#94a3b8;border-top:1px solid rgba(226,232,240,.6);
+          padding-top:2rem;margin-top:2rem;text-align:center;
+        }
+
+        /* ---------- Mobile Responsive ---------- */
+        @media (max-width:768px){
+          .header{
+            flex-direction:column;
+            align-items:flex-start;
+            gap:1rem;
+          }
+          
+          .title{
+            font-size:2rem;
+          }
+          
+          .header > div:last-child{
+            align-self:flex-end;
+            width:100%;
+            display:flex;
+            justify-content:flex-end;
+          }
+          
+          .container{padding:1.5rem 1rem;max-width:100%;}
+          .setup-grid{grid-template-columns:1fr;}
+          .bracket{gap:1.5rem;}
+          .round{min-width:140px;}
+          .round-title{font-size:0.8rem;}
+          .participant-name{font-size:0.8rem;}
+        }
+
+        /* ---------- Animations ---------- */
+        .bracket-container.generating{
+          opacity:0.7;
+          pointer-events:none;
+        }
+
+        .match{
+          transform:scale(0.95);
+          opacity:0;
+          animation:fadeInScale 0.3s ease forwards;
+        }
+
+        @keyframes fadeInScale{
+          to{
+            transform:scale(1);
+            opacity:1;
+          }
+        }
+
+        .round:nth-child(1) .match{animation-delay:0s;}
+        .round:nth-child(2) .match{animation-delay:0.1s;}
+        .round:nth-child(3) .match{animation-delay:0.2s;}
+        .round:nth-child(4) .match{animation-delay:0.3s;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div>
+                <h1 class="title">Tournament Bracket Creator</h1>
+                <p class="subtitle">
+                    Create elimination tournament brackets for 3-30 participants with automatic round generation and winner tracking.
+                </p>
+            </div>
+            <div class="header-buttons">
+                <a href="https://ko-fi.com/N4N81JRSGT" class="kofi-btn" target="_blank" rel="noopener">
+                    ☕
+                </a>
+                <a href="../index.html" class="home-link">
+                    <span class="icon">🏰</span>
+                    Home
+                </a>
+            </div>
+        </header>
+        
+        <div class="card">
+            <p class="card-desc">Set up your tournament by entering participant names with RPS sequences for automatic resolution!</p>
+            
+            <div class="setup-grid">
+                <div>
+                    <div class="form-group">
+                        <label class="form-label">Participants with RPS Sequences <span id="participantCount" style="color:var(--accent);font-weight:600;">(0)</span></label>
+                        <textarea id="participantsList" class="form-input" 
+                                  style="min-height:200px;font-family:inherit;" 
+                                  placeholder="Click here to start entering participants with RPS sequences..."
+                                  oninput="updateParticipantCount()"
+                                  onfocus="clearPlaceholderText()"
+                                  onblur="restorePlaceholderText()"></textarea>
+                        
+                        <div class="help-text">
+                            <strong>Required Format:</strong><br>
+                            • <strong>Name (sequence1, sequence2, sequence3)</strong><br>
+                            • Use R (Rock), P (Paper), S (Scissors)<br>
+                            • <strong>Order matters:</strong> 1st sequence = Round 1, 2nd = Round 2, etc.<br><br>
+                            
+                            <strong>Battle Resolution:</strong><br>
+                            • Each round compares move-by-move until someone wins<br>
+                            • <strong>First win advances</strong> (not most wins)<br>
+                            • Example: RPRR vs RRPP<br>
+                            &nbsp;&nbsp;Move 1: R vs R = tie<br>
+                            &nbsp;&nbsp;Move 2: P vs R = P wins → RPRR player advances<br>
+                            • Identical sequences = tie (manual resolution required)
+                        </div>
+                        
+                        <div class="help-examples">
+<strong>Examples (each participant needs RPS sequences):</strong><br>
+Harry (RRRRR, PPPPP, SSSSS)<br>
+Ron (SSSPP, PRSPR, SRSRP)<br>
+Hermione (PPPSR, SSSRR, PRPRS)<br>
+Neville (RRRR, PPPP, SSSS)<br>
+Luna (PRSP, SRPR, PSRP)<br>
+Draco (RRR, PPP, SSS)</div>
+                        
+                        <div style="font-size:0.8rem;color:var(--muted);margin-top:0.5rem;">
+                            Enter 3-30 participants. Required format: "Name (RPS1, RPS2, RPS3)"
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label">Preview</label>
+                    <div class="participants-preview" id="participantsPreview">
+                        <div style="text-align:center;color:var(--muted);padding:2rem;font-style:italic;">
+                            Start typing participant names to see preview...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="generateBracket()">🎲 Generate & Auto-Resolve Bracket</button>
+                <button class="btn btn-secondary" onclick="resetBracket()">🔄 Reset</button>
+                <button class="btn btn-secondary" onclick="exportBracket()">📋 Export Results</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="bracket-container" id="bracketContainer">
+                <div class="bracket" id="bracket">
+                    <div style="text-align:center;color:var(--muted);padding:3rem;">
+                        Click "Generate Bracket" to create your tournament structure
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
+        </footer>
+    </div>
+
+    <script>
+        let participants = [];
+        let participantData = []; // Store full participant data including RPS
+        let bracket = [];
+        let currentTournament = null;
+        let isPlaceholderShowing = true;
+
+        // Handle placeholder text behavior
+        function clearPlaceholderText() {
+            const textarea = document.getElementById('participantsList');
+            if (isPlaceholderShowing && textarea.value === '') {
+                isPlaceholderShowing = false;
+            }
+        }
+
+        function restorePlaceholderText() {
+            const textarea = document.getElementById('participantsList');
+            if (textarea.value.trim() === '') {
+                isPlaceholderShowing = true;
+            }
+        }
+
+        // Parse participant entries with optional RPS sequences
+        function parseParticipantEntry(line) {
+            const trimmed = line.trim();
+            if (!trimmed) return null;
+            
+            // Check if line has RPS sequences in parentheses
+            const match = trimmed.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+            
+            if (match) {
+                const name = match[1].trim();
+                const rpsContent = match[2].trim();
+                
+                // Extract RPS sequences (remove spaces, commas, and filter to only R, P, S)
+                const rpsSequences = rpsContent.split(',')
+                    .map(seq => seq.replace(/[^RPS]/gi, '').toUpperCase())
+                    .filter(seq => seq.length > 0);
+                
+                return {
+                    name: name,
+                    rpsSequences: rpsSequences
+                };
+            } else {
+                // Just a name without RPS
+                return {
+                    name: trimmed,
+                    rpsSequences: []
+                };
+            }
+        }
+
+        // Rock Paper Scissors Logic
+        function rpsWinner(move1, move2) {
+            move1 = move1.toUpperCase();
+            move2 = move2.toUpperCase();
+            
+            if (move1 === move2) return 'tie';
+            
+            if ((move1 === 'R' && move2 === 'S') ||
+                (move1 === 'S' && move2 === 'P') ||
+                (move1 === 'P' && move2 === 'R')) {
+                return 'player1';
+            }
+            
+            return 'player2';
+        }
+
+        // Compare two RPS sequences and determine overall winner
+        function compareRPSSequences(seq1, seq2) {
+            if (!seq1 || !seq2) return null;
+            
+            // If sequences are identical, it's automatically a tie
+            if (seq1 === seq2) return 'tie';
+            
+            const maxLength = Math.max(seq1.length, seq2.length);
+            
+            // First win advances (not most wins)
+            for (let i = 0; i < maxLength; i++) {
+                const move1 = seq1[i] || seq1[seq1.length - 1]; // Repeat last move if sequence is shorter
+                const move2 = seq2[i] || seq2[seq2.length - 1];
+                
+                const result = rpsWinner(move1, move2);
+                if (result === 'player1') return 'player1';
+                if (result === 'player2') return 'player2';
+                // If tie, continue to next move
+            }
+            
+            // If we get through all moves without a winner, it's a tie
+            return 'tie';
+        }
+
+        // Get participant data by name
+        function getParticipantData(name) {
+            return participantData.find(p => p.name === name);
+        }
+
+        function autoResolveRPS() {
+            alert('RPS sequences are now automatically resolved when generating the bracket!');
+        }
+
+        function updateParticipantCount() {
+            const textarea = document.getElementById('participantsList');
+            const countElement = document.getElementById('participantCount');
+            const previewElement = document.getElementById('participantsPreview');
+            
+            // Parse participants from textarea
+            const lines = textarea.value.split('\n');
+            const parsedParticipants = [];
+            
+            lines.forEach(line => {
+                const parsed = parseParticipantEntry(line);
+                if (parsed) {
+                    parsedParticipants.push(parsed);
+                }
+            });
+            
+            participants = parsedParticipants.map(p => p.name);
+            participantData = parsedParticipants;
+            
+            // Update count
+            const count = participants.length;
+            countElement.textContent = `(${count})`;
+            
+            // Update count color based on validity
+            const participantsWithoutRPS = parsedParticipants.filter(p => p.rpsSequences.length === 0);
+            if (count >= 3 && count <= 30 && participantsWithoutRPS.length === 0) {
+                countElement.style.color = 'var(--accent)';
+            } else {
+                countElement.style.color = '#dc2626';
+            }
+            
+            // Update preview
+            if (parsedParticipants.length === 0) {
+                previewElement.innerHTML = `
+                    <div style="text-align:center;color:var(--muted);padding:2rem;font-style:italic;">
+                        Start typing participant names to see preview...
+                    </div>
+                `;
+            } else {
+                previewElement.innerHTML = parsedParticipants.map((participant, index) => {
+                    let rpsDisplay = '';
+                    let missingRPS = false;
+                    
+                    if (participant.rpsSequences.length > 0) {
+                        rpsDisplay = participant.rpsSequences.map((seq, roundIndex) => 
+                            `<div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">
+                                Round ${roundIndex + 1}: ${seq}
+                            </div>`
+                        ).join('');
+                    } else {
+                        missingRPS = true;
+                        rpsDisplay = `<div style="font-size:0.75rem;color:#dc2626;margin-top:2px;font-weight:500;">
+                            ⚠️ Missing RPS sequences
+                        </div>`;
+                    }
+                    
+                    return `
+                        <div class="participant-item" style="${missingRPS ? 'background:#fef2f2;border:1px solid #fecaca;border-radius:6px;' : ''}">
+                            <div class="participant-number" style="${missingRPS ? 'background:#dc2626;' : ''}">${index + 1}</div>
+                            <div style="flex:1;">
+                                <div class="participant-name" style="${missingRPS ? 'color:#dc2626;' : ''}">${participant.name}</div>
+                                ${rpsDisplay}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Add error message if count is invalid or participants missing RPS
+                const participantsWithoutRPS = parsedParticipants.filter(p => p.rpsSequences.length === 0);
+                if (count < 3 || count > 30 || participantsWithoutRPS.length > 0) {
+                    let errorMsg = '';
+                    if (count < 3) {
+                        errorMsg = 'Need at least 3 participants for a tournament';
+                    } else if (count > 30) {
+                        errorMsg = 'Maximum 30 participants allowed';
+                    } else if (participantsWithoutRPS.length > 0) {
+                        errorMsg = `${participantsWithoutRPS.length} participant(s) missing RPS sequences`;
+                    }
+                    
+                    previewElement.innerHTML += `
+                        <div class="error-message" style="display:block;margin-top:1rem;">
+                            ⚠️ ${errorMsg}
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array]; // Create a copy to avoid modifying original
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function generateBracket() {
+            const count = participants.length;
+            
+            if (count < 3 || count > 30) {
+                alert('Please enter between 3 and 30 participants.');
+                return;
+            }
+            
+            if (participants.some(name => !name.trim())) {
+                alert('Please make sure all participant names are filled in.');
+                return;
+            }
+            
+            // Check that all participants have RPS sequences
+            const participantsWithoutRPS = participantData.filter(p => p.rpsSequences.length === 0);
+            if (participantsWithoutRPS.length > 0) {
+                alert(`All participants must have RPS sequences. Missing sequences for: ${participantsWithoutRPS.map(p => p.name).join(', ')}`);
+                return;
+            }
+            
+            const container = document.getElementById('bracketContainer');
+            container.classList.add('generating');
+            
+            setTimeout(() => {
+                // Shuffle participants randomly for fair bracket seeding
+                const shuffledParticipants = shuffleArray(participants);
+                const bracketData = createBracketStructure(shuffledParticipants);
+                renderBracket(bracketData);
+                container.classList.remove('generating');
+            }, 300);
+        }
+
+        function createBracketStructure(players) {
+            const numPlayers = players.length;
+            const rounds = [];
+            
+            // For 3 players, create a special structure
+            if (numPlayers === 3) {
+                // Round 1: Two players play, one gets a bye
+                const round1 = [
+                    {
+                        type: 'match',
+                        participants: [
+                            { name: players[0], isBye: false },
+                            { name: players[1], isBye: false }
+                        ]
+                    },
+                    {
+                        type: 'bye',
+                        participants: [
+                            { name: players[2], isBye: false },
+                            { name: 'BYE', isBye: true }
+                        ]
+                    }
+                ];
+                
+                // Round 2: Final (winner of match vs bye winner)
+                const round2 = [
+                    {
+                        type: 'match',
+                        participants: [
+                            { name: 'TBD', isBye: false },
+                            { name: 'TBD', isBye: false }
+                        ]
+                    }
+                ];
+                
+                rounds.push(round1, round2);
+                return rounds;
+            }
+            
+            // For 4+ players, use the existing logic
+            let round1 = [];
+            let playersInRound1 = [...players];
+            
+            if (numPlayers % 2 === 1) {
+                // Odd number - one player gets a bye
+                const byePlayer = playersInRound1.pop(); // Last player gets bye
+                
+                // Create matches for pairs
+                for (let i = 0; i < playersInRound1.length; i += 2) {
+                    round1.push({
+                        type: 'match',
+                        participants: [
+                            { name: playersInRound1[i], isBye: false },
+                            { name: playersInRound1[i + 1], isBye: false }
+                        ]
+                    });
+                }
+                
+                // Add bye
+                round1.push({
+                    type: 'bye',
+                    participants: [
+                        { name: byePlayer, isBye: false },
+                        { name: 'BYE', isBye: true }
+                    ]
+                });
+            } else {
+                // Even number - all matches
+                for (let i = 0; i < playersInRound1.length; i += 2) {
+                    round1.push({
+                        type: 'match',
+                        participants: [
+                            { name: playersInRound1[i], isBye: false },
+                            { name: playersInRound1[i + 1], isBye: false }
+                        ]
+                    });
+                }
+            }
+            
+            rounds.push(round1);
+            
+            // Calculate remaining rounds
+            let winnersCount = round1.length; // Each match/bye produces one winner
+            
+            while (winnersCount > 1) {
+                const nextRound = [];
+                
+                for (let i = 0; i < winnersCount; i += 2) {
+                    if (i + 1 < winnersCount) {
+                        // Regular match
+                        nextRound.push({
+                            type: 'match',
+                            participants: [
+                                { name: 'TBD', isBye: false },
+                                { name: 'TBD', isBye: false }
+                            ]
+                        });
+                    } else {
+                        // Odd number of winners - bye
+                        nextRound.push({
+                            type: 'bye',
+                            participants: [
+                                { name: 'TBD', isBye: false },
+                                { name: 'BYE', isBye: true }
+                            ]
+                        });
+                    }
+                }
+                
+                rounds.push(nextRound);
+                winnersCount = nextRound.length;
+            }
+            
+            return rounds;
+        }
+
+        function renderBracket(rounds) {
+            const bracketEl = document.getElementById('bracket');
+            const roundNames = ['Round 1', 'Round 2', 'Round 3', 'Round 4', 'Round 5', 'Quarterfinals', 'Semifinals', 'Finals'];
+            
+            bracketEl.innerHTML = rounds.map((round, roundIndex) => {
+                let roundName = roundNames[roundIndex] || `Round ${roundIndex + 1}`;
+                
+                // Special naming for final rounds
+                if (roundIndex === rounds.length - 1) {
+                    roundName = 'Finals';
+                } else if (roundIndex === rounds.length - 2 && rounds.length > 2) {
+                    roundName = 'Semifinals';
+                } else if (roundIndex === rounds.length - 3 && rounds.length > 3) {
+                    roundName = 'Quarterfinals';
+                }
+                
+                return `
+                    <div class="round">
+                        <div class="round-title">${roundName}</div>
+                        ${round.map((match, matchIndex) => {
+                            const participant1 = match.participants[0];
+                            const participant2 = match.participants[1];
+                            
+                            return `
+                                <div class="match ${match.type === 'bye' ? 'bye-match' : ''}" data-round="${roundIndex}" data-match="${matchIndex}">
+                                    <div class="participant ${participant1.isBye ? 'bye' : ''}" 
+                                         onclick="${participant1.isBye ? '' : `selectWinner(${roundIndex}, ${matchIndex}, 0)`}">
+                                        <span class="participant-name">${participant1.name}</span>
+                                        <span class="winner-indicator" style="display:none;">✓</span>
+                                    </div>
+                                    <div class="participant ${participant2.isBye ? 'bye' : ''}" 
+                                         onclick="${participant2.isBye ? '' : `selectWinner(${roundIndex}, ${matchIndex}, 1)`}">
+                                        <span class="participant-name">${participant2.name}</span>
+                                        <span class="winner-indicator" style="display:none;">✓</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }).join('');
+            
+            // Auto-advance byes first
+            autoAdvanceByes(rounds);
+            
+            // Then auto-resolve RPS matches
+            setTimeout(() => {
+                autoResolveAllMatches();
+            }, 1000);
+        }
+
+        function autoResolveAllMatches() {
+            const rounds = document.querySelectorAll('.round');
+            let totalDelay = 0;
+            
+            rounds.forEach((round, roundIndex) => {
+                const matches = round.querySelectorAll('.match:not(.completed)');
+                
+                matches.forEach((match, matchIndex) => {
+                    const participants = match.querySelectorAll('.participant:not(.bye)');
+                    if (participants.length === 2) {
+                        const name1 = participants[0].querySelector('.participant-name').textContent;
+                        const name2 = participants[1].querySelector('.participant-name').textContent;
+                        
+                        // Skip if either participant is "TBD"
+                        if (name1 === 'TBD' || name2 === 'TBD') return;
+                        
+                        const participant1Data = getParticipantData(name1);
+                        const participant2Data = getParticipantData(name2);
+                        
+                        if (participant1Data && participant2Data && 
+                            participant1Data.rpsSequences.length > roundIndex && 
+                            participant2Data.rpsSequences.length > roundIndex) {
+                            
+                            const seq1 = participant1Data.rpsSequences[roundIndex];
+                            const seq2 = participant2Data.rpsSequences[roundIndex];
+                            
+                            setTimeout(() => {
+                                const result = compareRPSSequences(seq1, seq2);
+                                const actualMatchIndex = Array.from(round.querySelectorAll('.match')).indexOf(match);
+                                
+                                if (result === 'tie') {
+                                    // Mark as tied but complete the match
+                                    match.classList.add('rps-tie', 'completed');
+                                    match.title = `TIED: Round ${roundIndex + 1}: ${name1} (${seq1}) vs ${name2} (${seq2}) - Click to resolve`;
+                                    
+                                    // Add a subtle tie indicator by modifying the border style
+                                    match.style.borderStyle = 'dashed';
+                                    match.style.borderWidth = '2px';
+                                    
+                                    // Add "TIED" text to the round title if not already there
+                                    const roundTitle = round.querySelector('.round-title');
+                                    if (roundTitle && !roundTitle.textContent.includes('(TIES)')) {
+                                        roundTitle.textContent += ' (TIES)';
+                                        roundTitle.style.color = '#dc2626';
+                                    }
+                                    
+                                    // Make both participants clickable for manual resolution
+                                    participants[0].onclick = () => {
+                                        selectWinner(roundIndex, actualMatchIndex, 0);
+                                        match.classList.remove('rps-tie');
+                                        match.classList.add('manually-resolved');
+                                        match.title = `Manually resolved: ${name1} defeats ${name2}`;
+                                        match.style.borderStyle = 'solid';
+                                        match.style.borderWidth = '1px';
+                                    };
+                                    participants[1].onclick = () => {
+                                        selectWinner(roundIndex, actualMatchIndex, 1);
+                                        match.classList.remove('rps-tie');
+                                        match.classList.add('manually-resolved');
+                                        match.title = `Manually resolved: ${name2} defeats ${name1}`;
+                                        match.style.borderStyle = 'solid';
+                                        match.style.borderWidth = '1px';
+                                    };
+                                    
+                                    // Don't advance anyone - keep next round as TBD
+                                    
+                                } else if (result === 'player1') {
+                                    selectWinner(roundIndex, actualMatchIndex, 0);
+                                    match.classList.add('rps-resolved');
+                                    match.title = `Round ${roundIndex + 1}: ${name1} (${seq1}) vs ${name2} (${seq2}) - ${name1} wins`;
+                                } else {
+                                    selectWinner(roundIndex, actualMatchIndex, 1);
+                                    match.classList.add('rps-resolved');
+                                    match.title = `Round ${roundIndex + 1}: ${name1} (${seq1}) vs ${name2} (${seq2}) - ${name2} wins`;
+                                }
+                                
+                            }, totalDelay);
+                            
+                            totalDelay += 500; // Stagger animations
+                        }
+                    }
+                });
+            });
+        }
+
+        function autoAdvanceByes(rounds) {
+            // Auto-advance players facing byes in any round
+            rounds.forEach((round, roundIndex) => {
+                round.forEach((match, matchIndex) => {
+                    if (match.type === 'bye') {
+                        // Find the non-bye participant and advance them
+                        const nonByeParticipant = match.participants.find(p => !p.isBye);
+                        if (nonByeParticipant) {
+                            setTimeout(() => {
+                                const participantIndex = match.participants.indexOf(nonByeParticipant);
+                                selectWinner(roundIndex, matchIndex, participantIndex);
+                            }, 500 + (roundIndex * 200)); // Stagger auto-advances
+                        }
+                    }
+                });
+            });
+        }
+
+        function selectWinner(roundIndex, matchIndex, participantIndex) {
+            const rounds = getCurrentBracketData();
+            if (!rounds || roundIndex >= rounds.length) return;
+            
+            const matchEl = document.querySelector(`[data-round="${roundIndex}"][data-match="${matchIndex}"]`);
+            if (!matchEl) return;
+            
+            // Clear previous winners in this match
+            matchEl.querySelectorAll('.participant').forEach(p => {
+                p.classList.remove('winner');
+                const indicator = p.querySelector('.winner-indicator');
+                if (indicator) indicator.style.display = 'none';
+            });
+            
+            // Set new winner
+            const participants = matchEl.querySelectorAll('.participant');
+            if (participants[participantIndex]) {
+                const participant = participants[participantIndex];
+                
+                // Don't allow selecting bye participants as winners
+                if (participant.classList.contains('bye')) return;
+                
+                participant.classList.add('winner');
+                const indicator = participant.querySelector('.winner-indicator');
+                if (indicator) {
+                    indicator.style.display = 'inline';
+                }
+                matchEl.classList.add('completed');
+                
+                // Get winner name and advance to next round
+                const winnerName = participant.querySelector('.participant-name').textContent;
+                advanceWinner(winnerName, roundIndex, matchIndex);
+            }
+        }
+
+        function advanceWinner(winnerName, roundIndex, matchIndex) {
+            const nextRoundIndex = roundIndex + 1;
+            
+            // In elimination tournaments, the next match position is calculated differently
+            // Each pair of matches feeds into one match in the next round
+            const nextMatchIndex = Math.floor(matchIndex / 2);
+            const nextParticipantIndex = matchIndex % 2;
+            
+            const nextMatchEl = document.querySelector(`[data-round="${nextRoundIndex}"][data-match="${nextMatchIndex}"]`);
+            if (nextMatchEl) {
+                const nextParticipants = nextMatchEl.querySelectorAll('.participant');
+                if (nextParticipants[nextParticipantIndex]) {
+                    const nameEl = nextParticipants[nextParticipantIndex].querySelector('.participant-name');
+                    if (nameEl) {
+                        nameEl.textContent = winnerName;
+                        
+                        // Clear any previous winner status in the next match
+                        nextMatchEl.classList.remove('completed', 'rps-resolved', 'rps-tie', 'manually-resolved');
+                        nextParticipants.forEach(p => {
+                            p.classList.remove('winner');
+                            const indicator = p.querySelector('.winner-indicator');
+                            if (indicator) indicator.style.display = 'none';
+                            // Reset onclick handlers
+                            p.onclick = () => {};
+                        });
+                        
+                        // Check if this creates a bye situation in the next round
+                        const otherParticipant = nextParticipants[1 - nextParticipantIndex];
+                        if (otherParticipant && otherParticipant.classList.contains('bye')) {
+                            // Auto-advance this winner since they're facing a bye
+                            setTimeout(() => {
+                                selectWinner(nextRoundIndex, nextMatchIndex, nextParticipantIndex);
+                            }, 300);
+                        } else {
+                            // Check if both participants are now set and can be resolved with RPS
+                            const name1 = nextParticipants[0].querySelector('.participant-name').textContent;
+                            const name2 = nextParticipants[1].querySelector('.participant-name').textContent;
+                            
+                            if (name1 !== 'TBD' && name2 !== 'TBD' && name1 !== 'BYE' && name2 !== 'BYE') {
+                                setTimeout(() => {
+                                    const participant1Data = getParticipantData(name1);
+                                    const participant2Data = getParticipantData(name2);
+                                    
+                                    if (participant1Data && participant2Data && 
+                                        participant1Data.rpsSequences.length > nextRoundIndex && 
+                                        participant2Data.rpsSequences.length > nextRoundIndex) {
+                                        
+                                        const seq1 = participant1Data.rpsSequences[nextRoundIndex];
+                                        const seq2 = participant2Data.rpsSequences[nextRoundIndex];
+                                        
+                                        const result = compareRPSSequences(seq1, seq2);
+                                        
+                                        if (result === 'tie') {
+                                            // Mark as tied but complete the match - don't advance anyone
+                                            nextMatchEl.classList.add('rps-tie', 'completed');
+                                            nextMatchEl.title = `TIED: Round ${nextRoundIndex + 1}: ${name1} (${seq1}) vs ${name2} (${seq2}) - Click to resolve`;
+                                            
+                                            // Add a subtle tie indicator by modifying the border style
+                                            nextMatchEl.style.borderStyle = 'dashed';
+                                            nextMatchEl.style.borderWidth = '2px';
+                                            
+                                            // Add "TIED" text to the round title if not already there
+                                            const nextRound = nextMatchEl.closest('.round');
+                                            const roundTitle = nextRound.querySelector('.round-title');
+                                            if (roundTitle && !roundTitle.textContent.includes('(TIES)')) {
+                                                roundTitle.textContent += ' (TIES)';
+                                                roundTitle.style.color = '#dc2626';
+                                            }
+                                            
+                                            // Make both participants clickable for manual resolution
+                                            nextParticipants[0].onclick = () => {
+                                                selectWinner(nextRoundIndex, nextMatchIndex, 0);
+                                                nextMatchEl.classList.remove('rps-tie');
+                                                nextMatchEl.classList.add('manually-resolved');
+                                                nextMatchEl.title = `Manually resolved: ${name1} defeats ${name2}`;
+                                                nextMatchEl.style.borderStyle = 'solid';
+                                                nextMatchEl.style.borderWidth = '1px';
+                                            };
+                                            nextParticipants[1].onclick = () => {
+                                                selectWinner(nextRoundIndex, nextMatchIndex, 1);
+                                                nextMatchEl.classList.remove('rps-tie');
+                                                nextMatchEl.classList.add('manually-resolved');
+                                                nextMatchEl.title = `Manually resolved: ${name2} defeats ${name1}`;
+                                                nextMatchEl.style.borderStyle = 'solid';
+                                                nextMatchEl.style.borderWidth = '1px';
+                                            };
+                                            
+                                        } else if (result === 'player1') {
+                                            selectWinner(nextRoundIndex, nextMatchIndex, 0);
+                                            nextMatchEl.classList.add('rps-resolved');
+                                            nextMatchEl.title = `Round ${nextRoundIndex + 1}: ${name1} (${seq1}) vs ${name2} (${seq2}) - ${name1} wins`;
+                                        } else {
+                                            selectWinner(nextRoundIndex, nextMatchIndex, 1);
+                                            nextMatchEl.classList.add('rps-resolved');
+                                            nextMatchEl.title = `Round ${nextRoundIndex + 1}: ${name1} (${seq1}) vs ${name2} (${seq2}) - ${name2} wins`;
+                                        }
+                                    }
+                                }, 800);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function getCurrentBracketData() {
+            // This would normally store the bracket data structure
+            // For now, we'll work with the DOM directly
+            return true;
+        }
+
+        function resetBracket() {
+            const bracketEl = document.getElementById('bracket');
+            bracketEl.innerHTML = `
+                <div style="text-align:center;color:var(--muted);padding:3rem;">
+                    Click "Generate Bracket" to create your tournament structure
+                </div>
+            `;
+        }
+
+        function exportBracket() {
+            const matches = document.querySelectorAll('.match.completed');
+            if (matches.length === 0) {
+                alert('No completed matches to export yet!');
+                return;
+            }
+            
+            let results = 'Tournament Results:\n\n';
+            
+            // Add participant list with RPS sequences
+            if (participantData.length > 0) {
+                results += `Participants (${participantData.length}):\n`;
+                participantData.forEach((participant, index) => {
+                    results += `${index + 1}. ${participant.name}`;
+                    if (participant.rpsSequences.length > 0) {
+                        results += ` (${participant.rpsSequences.join(', ')})`;
+                    }
+                    results += '\n';
+                });
+                results += '\n';
+            }
+            
+            // Find the winner (last completed match in final round)
+            const finalMatch = document.querySelector('[data-round] .match.completed:last-of-type .winner .participant-name');
+            if (finalMatch) {
+                results += `🏆 CHAMPION: ${finalMatch.textContent}\n\n`;
+            }
+            
+            // Check for unresolved ties
+            const tiedMatches = document.querySelectorAll('.match.rps-tie');
+            if (tiedMatches.length > 0) {
+                results += `⚠️ UNRESOLVED TIES: ${tiedMatches.length} match(es) still tied\n\n`;
+            }
+            
+            results += 'Match Results:\n';
+            matches.forEach((match, index) => {
+                const winner = match.querySelector('.winner .participant-name');
+                const participants = Array.from(match.querySelectorAll('.participant-name')).map(p => p.textContent);
+                const loser = participants.find(p => p !== winner.textContent && p !== 'BYE');
+                
+                if (loser) {
+                    let resultLine = `${index + 1}. ${winner.textContent} defeats ${loser}`;
+                    
+                    // Add resolution method information
+                    if (match.classList.contains('rps-resolved')) {
+                        resultLine += ' (RPS Auto-Resolved)';
+                    } else if (match.classList.contains('manually-resolved')) {
+                        resultLine += ' (Manually Resolved - was tied)';
+                    }
+                    
+                    results += resultLine + '\n';
+                }
+            });
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(results).then(() => {
+                alert('Tournament results copied to clipboard!');
+            }).catch(() => {
+                // Fallback
+                const textArea = document.createElement('textarea');
+                textArea.value = results;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Tournament results copied to clipboard!');
+            });
+        }
+
+        // Initialize with empty state - no pre-filled participants
+        updateParticipantCount();
+    </script>
+</body>
+</html>
