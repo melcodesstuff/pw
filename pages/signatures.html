@@ -136,7 +136,7 @@
         .visual-editor{
           background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 24px;
           font-family:inherit;font-size:1rem;transition:all .2s ease;width:100%;
-          color:var(--ink);min-height:200px;line-height:1.6;
+          color:var(--ink);min-height:200px;line-height:1.1;
           outline:none;overflow-y:auto;
         }
         .visual-editor:focus{
@@ -148,7 +148,7 @@
         }
 
         .visual-editor img{
-          max-width:100%;height:auto;display:block;margin:10px 0;
+          max-width:100%;height:auto;display:block;margin: 1px 0;
           border:1px solid #e2e8f0;border-radius:8px;
         }
 
@@ -350,7 +350,7 @@
                     ☕
                 </a>
                 <a href="../index.html" class="home-link">
-                    <span class="icon">🏠</span>
+                    <span class="icon">🏰</span>
                     Home
                 </a>
             </div>
@@ -975,7 +975,7 @@
                     // Reset image styling to work with text-align
                     if (alignStyle === 'center') {
                         img.style.display = 'block';
-                        img.style.margin = '10px auto';
+                        img.style.margin = '0px auto';
                     } else if (alignStyle === 'right') {
                         img.style.display = 'block';
                         img.style.margin = '10px 0 10px auto';
@@ -1152,144 +1152,108 @@
         }
 
         function applyGradient() {
-            const startColor = document.getElementById('gradientStart').value;
-            const endColor = document.getElementById('gradientEnd').value;
+    const startColor = document.getElementById('gradientStart').value;
+    const endColor = document.getElementById('gradientEnd').value;
+    
+    const selection = window.getSelection();
+    
+    if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
+        alert('Please select some text first to apply a gradient.');
+        return;
+    }
+    
+    const range = selection.getRangeAt(0);
+    
+    // Get the plain text for color calculation
+    const plainText = range.toString();
+    const allLetters = plainText.replace(/\s/g, '');
+    
+    if (!allLetters.trim()) {
+        alert('Please select some text first to apply a gradient.');
+        return;
+    }
+    
+    // Save selection info for restoration
+    const selectionInfo = {
+        startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
+        endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
+    };
+    
+    // Add gradient colors to recent colors
+    addToRecentColors(startColor);
+    addToRecentColors(endColor);
+    
+    // Extract contents while preserving structure
+    const selectedContents = range.extractContents();
+    
+    let letterIndex = 0;
+    
+    // Function to process text nodes and apply gradient colors
+    function processTextNode(textNode) {
+        const text = textNode.textContent;
+        const fragment = document.createDocumentFragment();
+        
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const span = document.createElement('span');
+            span.textContent = char;
             
-            const selection = window.getSelection();
-            
-            if (!selection.rangeCount || selection.getRangeAt(0).collapsed) {
-                alert('Please select some text first to apply a gradient.');
-                return;
-            }
-            
-            const range = selection.getRangeAt(0);
-            
-            // Save selection info for restoration
-            const selectionInfo = {
-                startTextPos: getTextPosition(visualEditor, range.startContainer, range.startOffset),
-                endTextPos: getTextPosition(visualEditor, range.endContainer, range.endOffset)
-            };
-            
-            // Add gradient colors to recent colors
-            addToRecentColors(startColor);
-            addToRecentColors(endColor);
-            
-            // Extract contents while preserving structure
-            const selectedContents = range.extractContents();
-            
-            // Get all text content to calculate gradient positions
-            const allText = selectedContents.textContent;
-            const allLetters = allText.replace(/\s/g, ''); // Remove whitespace for color calculation
-            
-            if (!allLetters.trim()) {
-                alert('Please select some text first to apply a gradient.');
-                range.insertNode(selectedContents); // Put it back
-                return;
-            }
-            
-            let letterIndex = 0;
-            
-            // Function to process text nodes and apply gradient colors
-            function processTextNode(textNode) {
-                const text = textNode.textContent;
-                const fragment = document.createDocumentFragment();
+            if (char.trim()) {
+                // Calculate color for this letter
+                const factor = allLetters.length > 1 ? letterIndex / (allLetters.length - 1) : 0;
+                const interpolatedColor = interpolateColor(startColor, endColor, factor);
                 
-                for (let i = 0; i < text.length; i++) {
-                    const char = text[i];
-                    const span = document.createElement('span');
-                    span.textContent = char;
-                    
-                    if (char.trim()) {
-                        // This is a letter - calculate its color
-                        const factor = allLetters.length > 1 ? letterIndex / (allLetters.length - 1) : 0;
-                        const interpolatedColor = interpolateColor(startColor, endColor, factor);
-                        
-                        span.style.color = interpolatedColor;
-                        span.setAttribute('data-gradient-letter', interpolatedColor);
-                        letterIndex++;
-                    }
-                    
-                    fragment.appendChild(span);
-                }
-                
-                return fragment;
+                span.style.color = interpolatedColor;
+                span.setAttribute('data-gradient-letter', interpolatedColor);
+                letterIndex++;
             }
             
-            // Walk through all nodes and process text nodes
-            function processNode(node) {
-                if (node.nodeType === Node.TEXT_NODE) {
-                    if (node.textContent.trim()) {
-                        const processedFragment = processTextNode(node);
-                        node.parentNode.replaceChild(processedFragment, node);
-                    }
-                } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    // Process child nodes
-                    const children = Array.from(node.childNodes);
-                    children.forEach(child => processNode(child));
-                }
-            }
-            
-            // Process all nodes in the selection
-            const walker = document.createTreeWalker(
-                selectedContents,
-                NodeFilter.SHOW_TEXT,
-                null,
-                false
-            );
-            
-            const textNodes = [];
-            let node;
-            while (node = walker.nextNode()) {
-                textNodes.push(node);
-            }
-            
-            // Process each text node
-            textNodes.forEach(textNode => {
-                if (textNode.textContent.trim()) {
-                    const processedFragment = processTextNode(textNode);
-                    textNode.parentNode.replaceChild(processedFragment, textNode);
-                }
-            });
-            
-            // Create container and insert the processed content
-            const gradientContainer = document.createElement('span');
-            gradientContainer.setAttribute('data-gradient-container', 'true');
-            gradientContainer.appendChild(selectedContents);
-            
-            // Insert the gradient container back into the document
-            range.insertNode(gradientContainer);
-            
-            // Update BBCode output first
-            updateBBCodeOutput();
-            
-            // Restore selection to keep text selected
-            try {
-                const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
-                if (newRange) {
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                } else {
-                    // Fallback: select the gradient container
-                    const containerRange = document.createRange();
-                    containerRange.selectNodeContents(gradientContainer);
-                    selection.removeAllRanges();
-                    selection.addRange(containerRange);
-                }
-            } catch (e) {
-                // Fallback: try to select the container
-                try {
-                    const containerRange = document.createRange();
-                    containerRange.selectNodeContents(gradientContainer);
-                    selection.removeAllRanges();
-                    selection.addRange(containerRange);
-                } catch (e2) {
-                    visualEditor.focus();
-                }
-            }
-            
-            visualEditor.focus();
+            fragment.appendChild(span);
         }
-
+        
+        return fragment;
+    }
+    
+    // Walk through all text nodes in the selection and process them
+    const walker = document.createTreeWalker(
+        selectedContents,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+    );
+    
+    const textNodes = [];
+    let node;
+    while (node = walker.nextNode()) {
+        textNodes.push(node);
+    }
+    
+    // Process each text node (replace with gradient spans)
+    textNodes.forEach(textNode => {
+        if (textNode.textContent.trim()) {
+            const processedFragment = processTextNode(textNode);
+            textNode.parentNode.replaceChild(processedFragment, textNode);
+        }
+    });
+    
+    // Insert the processed content back (preserving the bold/italic/etc structure)
+    range.insertNode(selectedContents);
+    
+    updateBBCodeOutput();
+    
+    // Try to restore selection
+    try {
+        const newRange = createRangeFromTextPositions(visualEditor, selectionInfo.startTextPos, selectionInfo.endTextPos);
+        if (newRange) {
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+        }
+    } catch (e) {
+        visualEditor.focus();
+    }
+    
+    visualEditor.focus();
+}
         function filterSymbols() {
             const searchTerm = document.getElementById('symbolSearch').value.toLowerCase();
             const symbolPicker = document.getElementById('symbolPicker');
@@ -1599,7 +1563,7 @@
             img.style.maxWidth = '100%';
             img.style.height = 'auto';
             img.style.display = 'block';
-            img.style.margin = '10px auto 10px 0';
+            img.style.margin = '1px auto 1px 0';
             img.style.border = '1px solid #e2e8f0';
             img.style.borderRadius = '8px';
             
@@ -1668,7 +1632,7 @@
             img.style.maxWidth = '100%';
             img.style.height = 'auto';
             img.style.display = 'block';
-            img.style.margin = '10px auto 10px 0';
+            img.style.margin = '1px auto 1px 0';
             img.style.border = '1px solid #e2e8f0';
             img.style.borderRadius = '8px';
             
@@ -1721,108 +1685,180 @@
             visualEditor.focus();
         }
 
-        function extractImageColors(img) {
-            console.log('Extracting colors from image:', img.src);
-            
-            try {
-                // Create a canvas to analyze the image
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Check if image has loaded properly
-                if (!img.naturalWidth || !img.naturalHeight) {
-                    console.log('Image not loaded properly, using fallback colors');
-                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-                    return;
-                }
-                
-                // Set canvas size (smaller for performance)
-                const maxSize = 100;
-                const ratio = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
-                canvas.width = img.naturalWidth * ratio;
-                canvas.height = img.naturalHeight * ratio;
-                
-                // Draw image to canvas
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                // Try to get image data (this is where CORS errors happen)
-                let imageData;
-                try {
-                    imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                } catch (corsError) {
-                    console.log('CORS error when reading image data:', corsError.message);
-                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-                    return;
-                }
-                
-                const data = imageData.data;
-                
-                // Extract colors (sample every 10th pixel for performance)
-                const colors = new Map();
-                for (let i = 0; i < data.length; i += 40) { // 40 = 4 (RGBA) * 10 (every 10th pixel)
-                    const r = data[i];
-                    const g = data[i + 1];
-                    const b = data[i + 2];
-                    const a = data[i + 3];
-                    
-                    // Skip transparent or very transparent pixels
-                    if (a < 200) continue;
-                    
-                    // Skip very dark or very light colors (they're often not interesting)
-                    const brightness = (r + g + b) / 3;
-                    if (brightness < 20 || brightness > 235) continue;
-                    
-                    // Convert to hex
-                    const hex = '#' + [r, g, b].map(x => {
-                        const hex = x.toString(16);
-                        return hex.length === 1 ? '0' + hex : hex;
-                    }).join('');
-                    
-                    // Count color frequency
-                    colors.set(hex, (colors.get(hex) || 0) + 1);
-                }
-                
-                if (colors.size === 0) {
-                    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-                    return;
-                }
-                
-                // Get most frequent colors
-                const sortedColors = Array.from(colors.entries())
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 12) // Top 12 colors
-                    .map(([color]) => color.toUpperCase());
-                
-                // Filter out very similar colors
-                const distinctColors = [];
-                for (const color of sortedColors) {
-                    const rgb = hexToRgb(color);
-                    const isDistinct = distinctColors.every(existingColor => {
-                        const existingRgb = hexToRgb(existingColor);
-                        const distance = Math.sqrt(
-                            Math.pow(rgb.r - existingRgb.r, 2) +
-                            Math.pow(rgb.g - existingRgb.g, 2) +
-                            Math.pow(rgb.b - existingRgb.b, 2)
-                        );
-                        return distance > 40; // Minimum distance threshold
-                    });
-                    
-                    if (isDistinct) {
-                        distinctColors.push(color);
-                    }
-                    
-                    if (distinctColors.length >= 8) break;
-                }
-                
-                // Display the colors
-                displayImageColors(distinctColors);
-                
-            } catch (e) {
-                console.log('Error extracting colors:', e.message);
-                displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
-            }
-        }
+// This is the exact version that was working for you - CORS fix that got the purple and black colors:
 
+async function extractImageColors(img) {
+    console.log('Extracting colors from image:', img.src);
+    
+    try {
+        // First try direct access (works for same-origin images)
+        const directSuccess = await tryDirectColorExtraction(img);
+        if (directSuccess) return;
+        
+        // If direct fails, try CORS proxy approach
+        await tryProxyColorExtraction(img);
+        
+    } catch (e) {
+        console.log('All color extraction methods failed:', e.message);
+        displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+    }
+}
+
+async function tryDirectColorExtraction(img) {
+    try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!img.naturalWidth || !img.naturalHeight) {
+            console.log('Image not loaded properly');
+            return false;
+        }
+        
+        const maxSize = 500;
+        const ratio = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
+        canvas.width = img.naturalWidth * ratio;
+        canvas.height = img.naturalHeight * ratio;
+        
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Try to get image data (this will throw CORS error for external images)
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        
+        // If we get here, no CORS error occurred
+        const colors = extractColorsFromImageData(imageData);
+        displayImageColors(colors);
+        return true;
+        
+    } catch (corsError) {
+        console.log('Direct access failed (CORS):', corsError.message);
+        return false;
+    }
+}
+
+async function tryProxyColorExtraction(originalImg) {
+    // List of free CORS proxy services
+    const corsProxies = [
+        'https://api.allorigins.win/raw?url=',
+        'https://cors-anywhere.herokuapp.com/',
+        'https://thingproxy.freeboard.io/fetch/'
+    ];
+    
+    for (const proxy of corsProxies) {
+        try {
+            console.log(`Trying proxy: ${proxy}`);
+            const proxyUrl = proxy + encodeURIComponent(originalImg.src);
+            
+            const success = await new Promise((resolve, reject) => {
+                const proxyImg = new Image();
+                
+                proxyImg.onload = function() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        const maxSize = 500;
+                        const ratio = Math.min(maxSize / this.naturalWidth, maxSize / this.naturalHeight);
+                        canvas.width = this.naturalWidth * ratio;
+                        canvas.height = this.naturalHeight * ratio;
+                        
+                        ctx.drawImage(this, 0, 0, canvas.width, canvas.height);
+                        
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const colors = extractColorsFromImageData(imageData);
+                        displayImageColors(colors);
+                        resolve(true);
+                        
+                    } catch (e) {
+                        reject(e);
+                    }
+                };
+                
+                proxyImg.onerror = function() {
+                    reject(new Error(`Proxy ${proxy} failed to load image`));
+                };
+                
+                // Set crossOrigin before src for proxy requests
+                proxyImg.crossOrigin = 'anonymous';
+                proxyImg.src = proxyUrl;
+                
+                // Timeout after 10 seconds
+                setTimeout(() => reject(new Error('Proxy timeout')), 10000);
+            });
+            
+            if (success) return; // Success with this proxy
+            
+        } catch (e) {
+            console.log(`Proxy ${proxy} failed:`, e.message);
+            continue; // Try next proxy
+        }
+    }
+    
+    // If all proxies fail, show fallback colors
+    console.log('All proxies failed, using fallback colors');
+    displayImageColors(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']);
+}
+
+function extractColorsFromImageData(imageData) {
+    const data = imageData.data;
+    const colors = new Map();
+    
+    // Sample every 10th pixel for performance
+    for (let i = 0; i < data.length; i += 12) { // Every 3rd pixel
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const a = data[i + 3];
+        
+        // Skip transparent or very transparent pixels
+        if (a < 200) continue;
+        
+        // Skip very dark or very light colors
+        const brightness = (r + g + b) / 3;
+        if (brightness < 10 || brightness > 245) continue; // Was 20-235
+        
+        // Convert to hex
+        const hex = '#' + [r, g, b].map(x => {
+            const hex = x.toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        }).join('');
+        
+        // Count color frequency
+        colors.set(hex, (colors.get(hex) || 0) + 1);
+    }
+    
+    if (colors.size === 0) {
+        return ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
+    }
+    
+    // Get most frequent colors
+    const sortedColors = Array.from(colors.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 12) // Top 12 colors
+        .map(([color]) => color.toUpperCase());
+    
+    // Filter out very similar colors
+    const distinctColors = [];
+    for (const color of sortedColors) {
+        const rgb = hexToRgb(color);
+        const isDistinct = distinctColors.every(existingColor => {
+            const existingRgb = hexToRgb(existingColor);
+            const distance = Math.sqrt(
+                Math.pow(rgb.r - existingRgb.r, 2) +
+                Math.pow(rgb.g - existingRgb.g, 2) +
+                Math.pow(rgb.b - existingRgb.b, 2)
+            );
+  return distance > 25; // Was 40
+        });
+        
+        if (isDistinct) {
+            distinctColors.push(color);
+        }
+        
+        if (distinctColors.length >= 8) break;
+    }
+    
+    return distinctColors;
+}
         function hexToRgb(hex) {
             const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
             return result ? {
@@ -2009,91 +2045,115 @@
         }
 
         function htmlToBBCode(html) {
-            let bbcode = html;
-            
-            // Handle images first
-            bbcode = bbcode.replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, '[img]$1[/img]');
-            
-            // Handle individual gradient letters FIRST (before other span processing)
-            bbcode = bbcode.replace(/<span[^>]*data-gradient-letter="([^"]*)"[^>]*>([^<]*)<\/span>/gi, '[color=$1]$2[/color]');
-            
-            // Handle gradient containers (remove the wrapper but keep the content)
-            bbcode = bbcode.replace(/<span[^>]*data-gradient-container="true"[^>]*>(.*?)<\/span>/gi, '$1');
-            
-            // Handle alignment
-            bbcode = bbcode.replace(/<div style="text-align:\s*center[^"]*"[^>]*>(.*?)<\/div>/gi, '[center]$1[/center]');
-            bbcode = bbcode.replace(/<div style="text-align:\s*left[^"]*"[^>]*>(.*?)<\/div>/gi, '[left]$1[/left]');
-            bbcode = bbcode.replace(/<div style="text-align:\s*right[^"]*"[^>]*>(.*?)<\/div>/gi, '[right]$1[/right]');
-            
-            // Handle font families (both ways)
-            bbcode = bbcode.replace(/<span[^>]*data-font-family="([^"]*)"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
-                const fontMap = {
-                    'Arial, sans-serif': 'Arial',
-                    "'Times New Roman', serif": 'Times New Roman',
-                    'Georgia, serif': 'Georgia',
-                    'Verdana, sans-serif': 'Verdana',
-                    'Tahoma, sans-serif': 'Tahoma',
-                    "'Trebuchet MS', sans-serif": 'Trebuchet MS',
-                    "'Comic Sans MS', cursive": 'Comic Sans MS',
-                    "'Courier New', monospace": 'Courier New',
-                    'Monaco, monospace': 'Monaco',
-                    "'Lucida Console', monospace": 'Lucida Console',
-                    'Impact, sans-serif': 'Impact',
-                    "'Book Antiqua', serif": 'Book Antiqua'
-                };
-                const simpleName = fontMap[fontFamily] || fontFamily.replace(/['"]/g, '');
-                return `[font=${simpleName}]${text}[/font]`;
-            });
-            
-            bbcode = bbcode.replace(/<span style="font-family:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
-                const fontMap = {
-                    'Arial, sans-serif': 'Arial',
-                    "'Times New Roman', serif": 'Times New Roman',
-                    'Georgia, serif': 'Georgia',
-                    'Verdana, sans-serif': 'Verdana',
-                    'Tahoma, sans-serif': 'Tahoma',
-                    "'Trebuchet MS', sans-serif": 'Trebuchet MS',
-                    "'Comic Sans MS', cursive": 'Comic Sans MS',
-                    "'Courier New', monospace": 'Courier New',
-                    'Monaco, monospace': 'Monaco',
-                    "'Lucida Console', monospace": 'Lucida Console',
-                    'Impact, sans-serif': 'Impact',
-                    "'Book Antiqua', serif": 'Book Antiqua'
-                };
-                const simpleName = fontMap[fontFamily] || fontFamily.replace(/['"]/g, '');
-                return `[font=${simpleName}]${text}[/font]`;
-            });
-            
-            // Handle individual colored spans (for non-gradient colored text)
-            bbcode = bbcode.replace(/<span style="color:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, '[color=$1]$2[/color]');
-            bbcode = bbcode.replace(/<font color="([^"]*)"[^>]*>(.*?)<\/font>/gi, '[color=$1]$2[/color]');
-            
-            // Handle font sizes (both ways)
-            bbcode = bbcode.replace(/<span[^>]*data-font-size="([^"]*)"[^>]*>(.*?)<\/span>/gi, '[size=$1]$2[/size]');
-            bbcode = bbcode.replace(/<span style="font-size:\s*(\d+)px[^"]*"[^>]*>(.*?)<\/span>/gi, '[size=$1]$2[/size]');
-            
-            // Basic formatting
-            bbcode = bbcode.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '[b]$1[/b]');
-            bbcode = bbcode.replace(/<b[^>]*>(.*?)<\/b>/gi, '[b]$1[/b]');
-            bbcode = bbcode.replace(/<em[^>]*>(.*?)<\/em>/gi, '[i]$1[/i]');
-            bbcode = bbcode.replace(/<i[^>]*>(.*?)<\/i>/gi, '[i]$1[/i]');
-            bbcode = bbcode.replace(/<u[^>]*>(.*?)<\/u>/gi, '[u]$1[/u]');
-            bbcode = bbcode.replace(/<s[^>]*>(.*?)<\/s>/gi, '[s]$1[/s]');
-            bbcode = bbcode.replace(/<strike[^>]*>(.*?)<\/strike>/gi, '[s]$1[/s]');
-            bbcode = bbcode.replace(/<sub[^>]*>(.*?)<\/sub>/gi, '[sub]$1[/sub]');
-            bbcode = bbcode.replace(/<sup[^>]*>(.*?)<\/sup>/gi, '[sup]$1[/sup]');
-            
-            // Clean up remaining HTML
-            bbcode = bbcode.replace(/<div[^>]*>/gi, '');
-            bbcode = bbcode.replace(/<\/div>/gi, '\n');
-            bbcode = bbcode.replace(/<br[^>]*>/gi, '\n');
-            bbcode = bbcode.replace(/<[^>]*>/g, '');
-            
-            // Clean up extra whitespace but preserve intentional line breaks
-            bbcode = bbcode.replace(/\n{3,}/g, '\n\n').trim();
-            
-            return bbcode;
-        }
+    let bbcode = html;
+    
+ // Handle line breaks more carefully - only structural divs, not formatting divs
+bbcode = bbcode.replace(/<\/div>\s*<div(?![^>]*style="text-align)[^>]*>/gi, '\n');
+bbcode = bbcode.replace(/<div[^>]*>\s*<br[^>]*>\s*<\/div>/gi, '\n');
+
+// Handle remaining structural divs (not alignment divs) 
+bbcode = bbcode.replace(/<div(?![^>]*style="text-align)[^>]*>\s*([^<]+)\s*<\/div>/gi, '\n$1');
+
+// Clean up remaining div tags that aren't alignment-related
+bbcode = bbcode.replace(/<div(?![^>]*style="text-align)[^>]*>/gi, '\n');
+bbcode = bbcode.replace(/<\/div>(?![^[]*\[\/(?:center|left|right)\])/gi, '');
+
+// Handle standalone br tags
+bbcode = bbcode.replace(/<br[^>]*>/gi, '\n');
+    
+    // Clean up empty tags BEFORE processing
+    bbcode = cleanupEmptyTags(bbcode);
+    
+    // Handle images
+    bbcode = bbcode.replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, '[img]$1[/img]');
+    
+    // Handle gradient letters FIRST (most specific)
+    bbcode = bbcode.replace(/<span[^>]*data-gradient-letter="([^"]*)"[^>]*>([^<]*)<\/span>/gi, '[color=$1]$2[/color]');
+    
+    // Handle gradient containers (remove wrapper)
+    bbcode = bbcode.replace(/<span[^>]*data-gradient-container="true"[^>]*>(.*?)<\/span>/gi, '$1');
+    
+    // Process in order of nesting priority
+    // 1. Font families and sizes (outermost)
+    bbcode = bbcode.replace(/<span[^>]*data-font-family="([^"]*)"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
+        const fontMap = {
+            'Arial, sans-serif': 'Arial',
+            "'Times New Roman', serif": 'Times New Roman',
+            'Georgia, serif': 'Georgia',
+            'Verdana, sans-serif': 'Verdana',
+            'Tahoma, sans-serif': 'Tahoma',
+            "'Trebuchet MS', sans-serif": 'Trebuchet MS',
+            "'Comic Sans MS', cursive": 'Comic Sans MS',
+            "'Courier New', monospace": 'Courier New',
+            'Monaco, monospace': 'Monaco',
+            "'Lucida Console', monospace": 'Lucida Console',
+            'Impact, sans-serif': 'Impact',
+            "'Book Antiqua', serif": 'Book Antiqua'
+        };
+        const simpleName = fontMap[fontFamily] || fontFamily.replace(/['"]/g, '');
+        return `[font=${simpleName}]${text}[/font]`;
+    });
+    
+    bbcode = bbcode.replace(/<span style="font-family:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, function(match, fontFamily, text) {
+        const fontMap = {
+            'Arial, sans-serif': 'Arial',
+            "'Times New Roman', serif": 'Times New Roman',
+            'Georgia, serif': 'Georgia',
+            'Verdana, sans-serif': 'Verdana',
+            'Tahoma, sans-serif': 'Tahoma',
+            "'Trebuchet MS', sans-serif": 'Trebuchet MS',
+            "'Comic Sans MS', cursive": 'Comic Sans MS',
+            "'Courier New', monospace": 'Courier New',
+            'Monaco, monospace': 'Monaco',
+            "'Lucida Console', monospace": 'Lucida Console',
+            'Impact, sans-serif': 'Impact',
+            "'Book Antiqua', serif": 'Book Antiqua'
+        };
+        const simpleName = fontMap[fontFamily] || fontFamily.replace(/['"]/g, '');
+        return `[font=${simpleName}]${text}[/font]`;
+    });
+    
+    bbcode = bbcode.replace(/<span[^>]*data-font-size="([^"]*)"[^>]*>(.*?)<\/span>/gi, '[size=$1]$2[/size]');
+    bbcode = bbcode.replace(/<span style="font-size:\s*(\d+)px[^"]*"[^>]*>(.*?)<\/span>/gi, '[size=$1]$2[/size]');
+    
+    // 2. Basic formatting (middle layer)
+    bbcode = bbcode.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '[b]$1[/b]');
+    bbcode = bbcode.replace(/<b[^>]*>(.*?)<\/b>/gi, '[b]$1[/b]');
+    bbcode = bbcode.replace(/<em[^>]*>(.*?)<\/em>/gi, '[i]$1[/i]');
+    bbcode = bbcode.replace(/<i[^>]*>(.*?)<\/i>/gi, '[i]$1[/i]');
+    bbcode = bbcode.replace(/<u[^>]*>(.*?)<\/u>/gi, '[u]$1[/u]');
+    bbcode = bbcode.replace(/<s[^>]*>(.*?)<\/s>/gi, '[s]$1[/s]');
+    bbcode = bbcode.replace(/<strike[^>]*>(.*?)<\/strike>/gi, '[s]$1[/s]');
+    bbcode = bbcode.replace(/<sub[^>]*>(.*?)<\/sub>/gi, '[sub]$1[/sub]');
+    bbcode = bbcode.replace(/<sup[^>]*>(.*?)<\/sup>/gi, '[sup]$1[/sup]');
+    
+    // 3. Colors (innermost - already handled above)
+    bbcode = bbcode.replace(/<span style="color:\s*([^;"]+)[^"]*"[^>]*>(.*?)<\/span>/gi, '[color=$1]$2[/color]');
+    bbcode = bbcode.replace(/<font color="([^"]*)"[^>]*>(.*?)<\/font>/gi, '[color=$1]$2[/color]');
+    
+    // Handle alignment
+    bbcode = bbcode.replace(/<div style="text-align:\s*center[^"]*"[^>]*>(.*?)<\/div>/gi, '[center]$1[/center]');
+    bbcode = bbcode.replace(/<div style="text-align:\s*left[^"]*"[^>]*>(.*?)<\/div>/gi, '[left]$1[/left]');
+    bbcode = bbcode.replace(/<div style="text-align:\s*right[^"]*"[^>]*>(.*?)<\/div>/gi, '[right]$1[/right]');
+    
+    // Clean up remaining HTML
+    bbcode = bbcode.replace(/<[^>]*>/g, '');
+    
+    // Clean up whitespace
+    bbcode = bbcode.replace(/\n{3,}/g, '\n\n').trim();
+    
+    // AGGRESSIVE final cleanup for mixed formatting
+    bbcode = bbcode.replace(/\[b\]\[\/b\]|\[i\]\[\/i\]|\[u\]\[\/u\]|\[s\]\[\/s\]|\[sub\]\[\/sub\]|\[sup\]\[\/sup\]/g, '');
+    bbcode = bbcode.replace(/\[font=[^\]]*\]\[\/font\]|\[size=[^\]]*\]\[\/size\]|\[color=[^\]]*\]\[\/color\]/g, '');
+    
+    // Consolidate adjacent same formatting
+    bbcode = bbcode.replace(/\[\/b\]\[b\]/g, '');
+    bbcode = bbcode.replace(/\[\/i\]\[i\]/g, '');
+    bbcode = bbcode.replace(/\[\/u\]\[u\]/g, '');
+    bbcode = bbcode.replace(/\[\/s\]\[s\]/g, '');
+    
+    return bbcode;
+}
 
         function bbcodeToHtml(bbcode) {
             return bbcode
@@ -2305,6 +2365,29 @@
             // Apply the color immediately (this will preserve selection)
             applyTextColor();
         }
+
+        function cleanupEmptyTags(html) {
+    // Remove empty formatting tags more aggressively
+    let previousHtml = '';
+    let attempts = 0;
+    
+    while (previousHtml !== html && attempts < 10) {
+        previousHtml = html;
+        
+        // Remove completely empty tags
+        html = html.replace(/<(b|strong|i|em|u|s|strike|sub|sup)\s*[^>]*>\s*<\/\1>/gi, '');
+        
+        // Remove nested empty tags and whitespace-only tags
+        html = html.replace(/<(b|strong|i|em|u|s|strike|sub|sup)\s*[^>]*>(\s*)<\/\1>/gi, '$2');
+        
+        // Remove spans that are empty or only contain whitespace (but preserve color/font spans)
+        html = html.replace(/<span(?![^>]*(?:style|data-gradient|data-font))[^>]*>\s*<\/span>/gi, '');
+        
+        attempts++;
+    }
+    
+    return html;
+}
 
         // Initialize
         visualEditor.focus();
