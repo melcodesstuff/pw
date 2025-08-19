@@ -428,7 +428,8 @@
       const totalActual = items.reduce((s,i)=> s + i.avg, 0);
       const overallMeets = totalActual >= totalRequired;
       const below = items.filter(i => i.shortfall > 0);
-      const eligible = allHavePosts && overallMeets;
+const perCharOk = below.length === 0;
+const eligible = allHavePosts && perCharOk; 
 
       return (
         <section className="mt-5 rounded-2xl border p-4 shadow-sm bg-white border-slate-200/60">
