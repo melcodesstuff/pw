@@ -1714,7 +1714,7 @@ async function tryDirectColorExtraction(img) {
             return false;
         }
         
-        const maxSize = 500;
+        const maxSize = 100;
         const ratio = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
         canvas.width = img.naturalWidth * ratio;
         canvas.height = img.naturalHeight * ratio;
@@ -1756,7 +1756,7 @@ async function tryProxyColorExtraction(originalImg) {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
                         
-                        const maxSize = 500;
+                        const maxSize = 100;
                         const ratio = Math.min(maxSize / this.naturalWidth, maxSize / this.naturalHeight);
                         canvas.width = this.naturalWidth * ratio;
                         canvas.height = this.naturalHeight * ratio;
