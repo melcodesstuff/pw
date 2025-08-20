@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Welcome Generator</title>
+    <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
+    <style>
+        /* ---------- Base reset ---------- */
+        *{margin:0;padding:0;box-sizing:border-box}
+
+        /* ---------- Base layout/typography ---------- */
+        body{
+          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+          background:#f8fafc;
+          color:#0f172a;
+          line-height:1.6;
+          transition:all .3s ease;
+        }
+
+        .container{max-width:1200px;margin:0 auto;padding:2rem 1.5rem;min-height:100vh}
+
+        .header{
+          margin-bottom:2rem;
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:2rem;
+        }
+        
+        .header-buttons {
+          display:flex;
+          align-items:center;
+          flex-shrink:0;
+        }
+        
+        .header > div:first-child {
+          flex: 1;
+        }
+
+        .title{
+          font-size:2.5rem;font-weight:700;
+          background:linear-gradient(135deg,#4f46e5,#7c3aed);
+          -webkit-background-clip:text;background-clip:text;color:transparent;
+          margin-bottom:.5rem;line-height:1.2;
+        }
+        .subtitle{
+          color:#64748b;
+          font-size:1.1rem;
+          max-width:600px;
+          line-height:1.4;
+          margin:0;
+        }
+
+        /* ---------- Home Link ---------- */
+        .home-link{
+          background:#e2e8f0;border:none;padding:.75rem 1.25rem;border-radius:1.5rem;
+          font-weight:500;cursor:pointer;transition:all .2s ease;
+          display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;
+          font-size:0.9rem;
+          flex-shrink:0;
+        }
+        .home-link:hover{background:#cbd5e1;transform:translateY(-1px)}
+        .home-link .icon{font-size:1em;line-height:1;}
+        .home-link:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+
+        /* ---------- Ko-fi Button ---------- */
+        .kofi-btn{
+          background:var(--accent);border:none;padding:.75rem;border-radius:1.5rem;
+          font-weight:500;cursor:pointer;transition:all .2s ease;
+          display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:#fff;
+          font-size:0.9rem;width:44px;height:44px;position:relative;
+          flex-shrink:0;margin-right:0.75rem;
+        }
+        .kofi-btn:hover{background:#3730a3;transform:translateY(-1px);color:#fff}
+        .kofi-btn:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+        
+        .kofi-btn::after {
+          content: "Buy me a coffee";
+          position: absolute;
+          bottom: -2.5rem;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(0,0,0,0.8);
+          color: white;
+          padding: 0.5rem 0.75rem;
+          border-radius: 6px;
+          font-size: 0.75rem;
+          white-space: nowrap;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s ease;
+          z-index: 1000;
+        }
+        
+        .kofi-btn:hover::after {
+          opacity: 1;
+        }
+
+        /* ---------- Tokens ---------- */
+        :root{
+          --bg:#f8fafc;
+          --ink:#0f172a;
+          --panel:#ffffff;
+          --border:rgba(226,232,240,.7);
+          --muted:#64748b;
+          --accent:#4f46e5;
+          
+          /* House Colors */
+          --gryffindor-primary: #d4332a;
+          --gryffindor-secondary: #ffc500;
+          --slytherin-primary: #2a9d3a;
+          --slytherin-secondary: #c0c0c0;
+          --ravenclaw-primary: #0e4a99;
+          --ravenclaw-secondary: #cd7f32;
+          --hufflepuff-primary: #ecb939;
+          --hufflepuff-secondary: #2c2c2c;
+        }
+
+        /* ---------- Cards ---------- */
+        .card{
+          background:#fff;border:1px solid rgba(226,232,240,.7);border-radius:1rem;padding:2rem;
+          box-shadow:0 1px 3px rgba(0,0,0,.1);transition:all .3s ease;
+          margin-bottom:1.5rem;
+        }
+        .card:hover{box-shadow:0 10px 25px rgba(0,0,0,.1)}
+        .card-desc{font-size:.95rem;color:#64748b;margin-bottom:2rem;text-align:center}
+
+        /* ---------- Buttons ---------- */
+        .btn{
+          background:var(--accent);color:#fff;border:none;padding:.75rem 1.5rem;
+          border-radius:8px;font-size:0.9rem;cursor:pointer;
+          transition:all 0.2s ease;font-weight:500;
+          display:inline-flex;align-items:center;gap:0.5rem;
+        }
+        .btn:hover{
+          background:#3730a3;transform:translateY(-1px);
+        }
+        .btn:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
+
+        .btn-secondary{
+          background:#f1f5f9;color:var(--ink);border:1px solid var(--border);
+        }
+        .btn-secondary:hover{
+          background:#e2e8f0;color:var(--ink);
+        }
+
+        /* ---------- Form Elements ---------- */
+        .form-group{
+          margin-bottom:1.5rem;
+        }
+
+        .form-label{
+          display:block;font-weight:500;color:var(--ink);
+          margin-bottom:.75rem;font-size:.9rem;
+        }
+
+        .form-input{
+          background:#fff;border:1px solid var(--border);border-radius:8px;
+          padding:0.75rem 1rem;font-family:inherit;font-size:1rem;
+          transition:all .2s ease;width:100%;color:var(--ink);
+        }
+        .form-input:focus{
+          outline:2px solid rgba(79,70,229,.5);outline-offset:2px;
+          border-color:var(--accent);
+        }
+
+        .form-textarea{
+          background:#fff;border:1px solid var(--border);border-radius:8px;
+          padding:1rem;font-family:inherit;font-size:1rem;
+          transition:all .2s ease;width:100%;color:var(--ink);
+          min-height:80px;resize:vertical;
+        }
+        .form-textarea:focus{
+          outline:2px solid rgba(79,70,229,.5);outline-offset:2px;
+          border-color:var(--accent);
+        }
+
+        .form-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+            margin-right: 8px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-group:hover {
+            background: #f1f5f9;
+        }
+
+        .checkbox-label {
+            font-weight: 500;
+            color: var(--ink);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .section-toggle {
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .section-toggle.disabled {
+            background: #94a3b8;
+            transform: none;
+        }
+
+        .section-toggle .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+
+        .section-toggle.disabled .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .section-content.collapsed {
+            opacity: 0.3;
+            pointer-events: none;
+            max-height: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .disabled-section {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* House-themed link colors */
+        .preview-content.gryffindor .house-link-primary {
+            color: var(--gryffindor-primary);
+            font-weight: bold;
+        }
+
+        .preview-content.gryffindor .house-link-secondary {
+            color: var(--gryffindor-secondary);
+            font-weight: bold;
+        }
+
+        .preview-content.slytherin .house-link-primary {
+            color: var(--slytherin-primary);
+            font-weight: bold;
+        }
+
+        .preview-content.slytherin .house-link-secondary {
+            color: var(--slytherin-secondary);
+            font-weight: bold;
+        }
+
+        .preview-content.ravenclaw .house-link-primary {
+            color: var(--ravenclaw-primary);
+            font-weight: bold;
+        }
+
+        .preview-content.ravenclaw .house-link-secondary {
+            color: var(--ravenclaw-secondary);
+            font-weight: bold;
+        }
+
+        .preview-content.hufflepuff .house-link-primary {
+            color: var(--hufflepuff-primary);
+            font-weight: bold;
+        }
+
+        .preview-content.hufflepuff .house-link-secondary {
+            color: var(--hufflepuff-secondary);
+            font-weight: bold;
+        }
+
+        /* House-themed icon colors */
+        .preview-content.gryffindor .house-icon {
+            color: var(--gryffindor-primary);
+            font-weight: bold;
+        }
+
+        .preview-content.slytherin .house-icon {
+            color: var(--slytherin-primary);
+            font-weight: bold;
+        }
+
+        .preview-content.ravenclaw .house-icon {
+            color: var(--ravenclaw-primary);
+            font-weight: bold;
+        }
+
+        .preview-content.hufflepuff .house-icon {
+            color: var(--hufflepuff-primary);
+            font-weight: bold;
+        }
+
+        /* House-themed accents */
+        .house-gryffindor { --accent: var(--gryffindor-primary); }
+        .house-slytherin { --accent: var(--slytherin-primary); }
+        .house-ravenclaw { --accent: var(--ravenclaw-primary); }
+        .house-hufflepuff { --accent: var(--hufflepuff-primary); }
+
+        /* ---------- Grid System ---------- */
+        .grid{
+          display:grid;gap:1.5rem;
+        }
+        .grid-cols-1{grid-template-columns:1fr}
+        .grid-cols-2{grid-template-columns:1fr 1fr}
+        .grid-cols-3{grid-template-columns:1fr 1fr 1fr}
+
+        /* ---------- Two Column Layout ---------- */
+        .two-column {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2rem;
+          align-items: start;
+        }
+
+        /* ---------- Preview Styles ---------- */
+        .preview-area {
+          background: #f8fafc;
+          border: 2px solid var(--border);
+          border-radius: 12px;
+          padding: 2rem;
+          font-family: inherit;
+          line-height: 1.8;
+          position: sticky;
+          top: 2rem;
+        }
+
+        .preview-content {
+          background: white;
+          padding: 2rem;
+          border-radius: 8px;
+          border: 1px solid var(--border);
+          white-space: pre-line;
+        }
+
+        .convert-btn {
+          margin-top: 1rem;
+          width: 100%;
+        }
+
+        /* ---------- Utilities ---------- */
+        .text-center{text-align:center}
+        .text-left{text-align:left}
+        .text-right{text-align:right}
+        .mb-4{margin-bottom:1rem}
+        .mb-8{margin-bottom:2rem}
+        .mt-4{margin-top:1rem}
+        .mt-8{margin-top:2rem}
+
+        /* ---------- Footer ---------- */
+        .footer{
+          font-size:.875rem;color:#94a3b8;border-top:1px solid rgba(226,232,240,.6);
+          padding-top:2rem;margin-top:2rem;text-align:center;
+        }
+
+        /* ---------- Mobile Responsive ---------- */
+        @media (max-width:768px){
+          .header{
+            flex-direction:column;
+            align-items:flex-start;
+            gap:1rem;
+          }
+          
+          .title{
+            font-size:2rem;
+          }
+          
+          .header > div:last-child{
+            align-self:flex-end;
+            width:100%;
+            display:flex;
+            justify-content:flex-end;
+          }
+          
+          .container{padding:1.5rem 1rem;}
+          .grid-cols-2, .grid-cols-3{grid-template-columns:1fr;}
+          .two-column{grid-template-columns:1fr;}
+          
+          .preview-area {
+            position: static;
+            margin-top: 1rem;
+          }
+        }
+
+        /* Success animation */
+        .success-flash {
+          animation: successFlash 0.5s ease-in-out;
+        }
+
+        @keyframes successFlash {
+          0% { background-color: #10b981; }
+          100% { background-color: var(--accent); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div>
+                <h1 class="title">House Welcome Generator</h1>
+                <p class="subtitle">
+                    Create formatted welcome messages for your house with easy text and link inputs. Fill out the form and see your message update in real-time!
+                </p>
+            </div>
+            <div class="header-buttons">
+                <a href="https://ko-fi.com/N4N81JRSGT" class="kofi-btn" target="_blank" rel="noopener">
+                    ☕
+                </a>
+                <a href="../index.html" class="home-link">
+                    <span class="icon">🏰</span>
+                    Home
+                </a>
+            </div>
+        </header>
+        
+        <div class="two-column">
+            <!-- Input Form -->
+            <div class="card">
+                <h3 class="mb-4">Welcome Message Settings</h3>
+                
+                <!-- Introduction Section -->
+                <h4 class="mt-4 mb-4 text-center" style="color: var(--accent); font-size: 1.2rem;">🏠 Introduction</h4>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">House Name</label>
+                        <select id="houseName" class="form-input">
+                            <option value="Gryffindor">Gryffindor</option>
+                            <option value="Hufflepuff">Hufflepuff</option>
+                            <option value="Ravenclaw">Ravenclaw</option>
+                            <option value="Slytherin">Slytherin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Welcome Type</label>
+                        <select id="welcomeType" class="form-input">
+                            <option value="WELCOME TO">WELCOME TO</option>
+                            <option value="WELCOME BACK TO">WELCOME BACK TO</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Decorative Icons</label>
+                    <select id="welcomeIcons" class="form-input">
+                        <option value="auto">Auto (House Theme)</option>
+                        <option value="⭐">⭐ Stars</option>
+                        <option value="✨">✨ Sparkles</option>
+                        <option value="❤️">❤️ Hearts</option>
+                        <option value="🌟">🌟 Glowing Stars</option>
+                        <option value="💫">💫 Dizzy Stars</option>
+                        <option value="🎉">🎉 Party</option>
+                        <option value="🏰">🏰 Castle</option>
+                        <option value="⚡">⚡ Lightning</option>
+                        <option value="🔮">🔮 Crystal Ball</option>
+                        <option value="★">★ Star Outline</option>
+                        <option value="♦">♦ Diamond</option>
+                        <option value="♥">♥ Heart Outline</option>
+                        <option value="◆">◆ Diamond Filled</option>
+                        <option value="none">No Icons</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Introduction Paragraph</label>
+                    <textarea id="introParagraph" class="form-textarea" placeholder="Write your house introduction here..."></textarea>
+                </div>
+
+                <!-- House Events Section -->
+                <h4 class="mt-8 mb-4 text-center" style="color: var(--accent); font-size: 1.2rem;">🎉 House Events</h4>
+                
+                <button type="button" class="section-toggle" id="toggleHouseEvents">
+                    <span>Include House Events Section</span>
+                    <span class="toggle-icon">▼</span>
+                </button>
+                
+                <div class="section-content" id="houseEventsContent">
+                    <div class="form-group">
+                        <label class="form-label">Opening Text (before house table link)</label>
+                        <input type="text" id="openingText" class="form-input" placeholder="e.g., Join us at our">
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableHouseTable" class="form-checkbox" checked>
+                        <label for="enableHouseTable" class="checkbox-label">Include House Table Link</label>
+                    </div>
+                    <div id="houseTableSection">
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">House Table Link Text</label>
+                                <input type="text" id="houseTableText" class="form-input" placeholder="HOUSE TABLE">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">House Table URL</label>
+                                <input type="text" id="houseTableUrl" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Middle Text (between house table and welcome party)</label>
+                        <input type="text" id="middleText" class="form-input" placeholder="e.g., and attend our">
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableWelcomeParty" class="form-checkbox" checked>
+                        <label for="enableWelcomeParty" class="checkbox-label">Include Welcome Party Link</label>
+                    </div>
+                    <div id="welcomePartySection">
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">Welcome Party Link Text</label>
+                                <input type="text" id="welcomePartyText" class="form-input" placeholder="WELCOME PARTY">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Welcome Party URL</label>
+                                <input type="text" id="welcomePartyUrl" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Closing Text (after welcome party link)</label>
+                        <input type="text" id="closingText" class="form-input" placeholder="e.g., for fun activities and bonding!">
+                    </div>
+                </div>
+
+                <!-- Quidditch Section -->
+                <h4 class="mt-8 mb-4 text-center" style="color: var(--accent); font-size: 1.2rem;">🏆 Quidditch Tryouts</h4>
+
+                <button type="button" class="section-toggle" id="toggleQuidditch">
+                    <span>Include Quidditch Tryouts Section</span>
+                    <span class="toggle-icon">▼</span>
+                </button>
+                
+                <div class="section-content" id="quidditchContent">
+                    <div class="form-group">
+                        <label class="form-label">Tryout Opening Text</label>
+                        <input type="text" id="tryoutOpeningText" class="form-input" placeholder="e.g., Show your house spirit and">
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableQuidditch" class="form-checkbox" checked>
+                        <label for="enableQuidditch" class="checkbox-label">Include Quidditch Position</label>
+                    </div>
+                    <div id="quidditchSection">
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">Quidditch Link Text</label>
+                                <input type="text" id="quidditchText" class="form-input" placeholder="QUIDDITCH">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quidditch URL</label>
+                                <input type="text" id="quidditchUrl" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableAlternate" class="form-checkbox" checked>
+                        <label for="enableAlternate" class="checkbox-label">Include Alternate Position</label>
+                    </div>
+                    <div id="alternateSection">
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">Alternate Link Text</label>
+                                <input type="text" id="alternateText" class="form-input" placeholder="ALTERNATE">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Alternate URL</label>
+                                <input type="text" id="alternateUrl" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableAnnouncer" class="form-checkbox" checked>
+                        <label for="enableAnnouncer" class="checkbox-label">Include Announcer Position</label>
+                    </div>
+                    <div id="announcerSection">
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">Announcer Link Text</label>
+                                <input type="text" id="announcerText" class="form-input" placeholder="ANNOUNCER">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Announcer URL</label>
+                                <input type="text" id="announcerUrl" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableMascot" class="form-checkbox" checked>
+                        <label for="enableMascot" class="checkbox-label">Include Mascot Position</label>
+                    </div>
+                    <div id="mascotSection">
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">Mascot Link Text</label>
+                                <input type="text" id="mascotText" class="form-input" placeholder="MASCOT">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Mascot URL</label>
+                                <input type="text" id="mascotUrl" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tryout Closing Text</label>
+                        <input type="text" id="tryoutClosingText" class="form-input" placeholder="e.g., Positions are filling up fast!">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tryout Date</label>
+                        <input type="text" id="tryoutDate" class="form-input" placeholder="e.g., March 15th">
+                    </div>
+                </div>
+
+                <!-- House Points Section -->
+                <h4 class="mt-8 mb-4 text-center" style="color: var(--accent); font-size: 1.2rem;">⭐ House Points Activities</h4>
+
+                <button type="button" class="section-toggle" id="toggleHousePoints">
+                    <span>Include House Points Activities Section</span>
+                    <span class="toggle-icon">▼</span>
+                </button>
+                
+                <div class="section-content" id="housePointsContent">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableQuests" class="form-checkbox" checked>
+                        <label for="enableQuests" class="checkbox-label">Include Quests</label>
+                    </div>
+                    <div id="questsSection">
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">Quests Link Text</label>
+                                <input type="text" id="questsText" class="form-input" placeholder="QUESTS">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quests URL</label>
+                                <input type="text" id="questsUrl" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableClasses" class="form-checkbox" checked>
+                        <label for="enableClasses" class="checkbox-label">Include Classes</label>
+                    </div>
+                    <div id="classesSection">
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">Classes Link Text</label>
+                                <input type="text" id="classesText" class="form-input" placeholder="CLASSES">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Classes URL</label>
+                                <input type="text" id="classesUrl" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableOwl" class="form-checkbox" checked>
+                        <label for="enableOwl" class="checkbox-label">Include OWL Badge</label>
+                    </div>
+                    <div id="owlSection">
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">OWL Link Text</label>
+                                <input type="text" id="owlText" class="form-input" placeholder="OWL">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">OWL URL</label>
+                                <input type="text" id="owlUrl" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableNewt" class="form-checkbox" checked>
+                        <label for="enableNewt" class="checkbox-label">Include NEWT Badge</label>
+                    </div>
+                    <div id="newtSection">
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">NEWT Link Text</label>
+                                <input type="text" id="newtText" class="form-input" placeholder="NEWT">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">NEWT URL</label>
+                                <input type="text" id="newtUrl" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prefects Section -->
+                <h4 class="mt-8 mb-4 text-center" style="color: var(--accent); font-size: 1.2rem;">👥 Prefects</h4>
+
+                <div class="form-group">
+                    <label class="form-label">Prefect Names (comma-separated)</label>
+                    <input type="text" id="prefects" class="form-input" placeholder="Alice, Bob, Charlie, Diana">
+                </div>
+
+                <!-- Optional Section -->
+                <h4 class="mt-8 mb-4 text-center" style="color: var(--accent); font-size: 1.2rem;">📝 Optional</h4>
+
+                <div class="form-group">
+                    <label class="form-label">Optional P.S. Text</label>
+                    <textarea id="psText" class="form-textarea" placeholder="Any additional message..."></textarea>
+                </div>
+            </div>
+
+            <!-- Preview Area -->
+            <div class="preview-area">
+                <h3 class="mb-4">Live Preview</h3>
+                <div class="preview-content" id="preview">
+                    Fill out the form to see your welcome message appear here!
+                </div>
+                <button class="btn convert-btn" id="convertBtn">🔄 Convert to BBCode</button>
+                
+                <div id="bbcodeOutput" style="display: none; margin-top: 1.5rem;">
+                    <h4 class="mb-4">BBCode Output</h4>
+                    <div class="bbcode-content">
+                        <textarea id="bbcodeText" readonly style="width: 100%; min-height: 200px; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.9rem; background: #f8fafc; resize: vertical;"></textarea>
+                    </div>
+                    <button class="btn" id="copyBBCodeBtn" style="margin-top: 0.75rem; width: 100%;">📋 Copy BBCode</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
+        </footer>
+    </div>
+
+    <script>
+        // Get all form elements
+        const inputs = {
+            houseName: document.getElementById('houseName'),
+            welcomeType: document.getElementById('welcomeType'),
+            welcomeIcons: document.getElementById('welcomeIcons'),
+            introParagraph: document.getElementById('introParagraph'),
+            openingText: document.getElementById('openingText'),
+            middleText: document.getElementById('middleText'),
+            closingText: document.getElementById('closingText'),
+            tryoutOpeningText: document.getElementById('tryoutOpeningText'),
+            tryoutClosingText: document.getElementById('tryoutClosingText'),
+            houseTableText: document.getElementById('houseTableText'),
+            houseTableUrl: document.getElementById('houseTableUrl'),
+            welcomePartyText: document.getElementById('welcomePartyText'),
+            welcomePartyUrl: document.getElementById('welcomePartyUrl'),
+            tryoutDate: document.getElementById('tryoutDate'),
+            quidditchText: document.getElementById('quidditchText'),
+            quidditchUrl: document.getElementById('quidditchUrl'),
+            alternateText: document.getElementById('alternateText'),
+            alternateUrl: document.getElementById('alternateUrl'),
+            announcerText: document.getElementById('announcerText'),
+            announcerUrl: document.getElementById('announcerUrl'),
+            mascotText: document.getElementById('mascotText'),
+            mascotUrl: document.getElementById('mascotUrl'),
+            questsText: document.getElementById('questsText'),
+            questsUrl: document.getElementById('questsUrl'),
+            classesText: document.getElementById('classesText'),
+            classesUrl: document.getElementById('classesUrl'),
+            owlText: document.getElementById('owlText'),
+            owlUrl: document.getElementById('owlUrl'),
+            newtText: document.getElementById('newtText'),
+            newtUrl: document.getElementById('newtUrl'),
+            prefects: document.getElementById('prefects'),
+            psText: document.getElementById('psText')
+        };
+
+        // Get all checkbox elements
+        const checkboxes = {
+            enableHouseTable: document.getElementById('enableHouseTable'),
+            enableWelcomeParty: document.getElementById('enableWelcomeParty'),
+            enableQuidditch: document.getElementById('enableQuidditch'),
+            enableAlternate: document.getElementById('enableAlternate'),
+            enableAnnouncer: document.getElementById('enableAnnouncer'),
+            enableMascot: document.getElementById('enableMascot'),
+            enableQuests: document.getElementById('enableQuests'),
+            enableClasses: document.getElementById('enableClasses'),
+            enableOwl: document.getElementById('enableOwl'),
+            enableNewt: document.getElementById('enableNewt')
+        };
+
+        // Get all sections
+        const sections = {
+            houseTableSection: document.getElementById('houseTableSection'),
+            welcomePartySection: document.getElementById('welcomePartySection'),
+            quidditchSection: document.getElementById('quidditchSection'),
+            alternateSection: document.getElementById('alternateSection'),
+            announcerSection: document.getElementById('announcerSection'),
+            mascotSection: document.getElementById('mascotSection'),
+            questsSection: document.getElementById('questsSection'),
+            classesSection: document.getElementById('classesSection'),
+            owlSection: document.getElementById('owlSection'),
+            newtSection: document.getElementById('newtSection')
+        };
+
+        const preview = document.getElementById('preview');
+
+        // Toggle section visibility based on checkbox state
+        function toggleSection(checkboxId, sectionId) {
+            const checkbox = checkboxes[checkboxId];
+            const section = sections[sectionId];
+            
+            function updateVisibility() {
+                if (checkbox.checked) {
+                    section.classList.remove('disabled-section');
+                } else {
+                    section.classList.add('disabled-section');
+                }
+                updatePreview();
+            }
+            
+            checkbox.addEventListener('change', updateVisibility);
+            updateVisibility(); // Initialize
+        }
+
+        // Get all section toggles
+        const sectionToggles = {
+            houseEvents: document.getElementById('toggleHouseEvents'),
+            quidditch: document.getElementById('toggleQuidditch'),
+            housePoints: document.getElementById('toggleHousePoints')
+        };
+
+        const sectionContents = {
+            houseEvents: document.getElementById('houseEventsContent'),
+            quidditch: document.getElementById('quidditchContent'),
+            housePoints: document.getElementById('housePointsContent')
+        };
+
+        // Section toggle state
+        const sectionEnabled = {
+            houseEvents: true,
+            quidditch: true,
+            housePoints: true
+        };
+
+        // Setup section toggles
+        function setupSectionToggle(sectionName) {
+            const toggle = sectionToggles[sectionName];
+            const content = sectionContents[sectionName];
+            
+            toggle.addEventListener('click', () => {
+                sectionEnabled[sectionName] = !sectionEnabled[sectionName];
+                
+                if (sectionEnabled[sectionName]) {
+                    toggle.classList.remove('disabled');
+                    content.classList.remove('collapsed');
+                    toggle.querySelector('span:first-child').textContent = toggle.querySelector('span:first-child').textContent.replace('Enable', 'Include');
+                } else {
+                    toggle.classList.add('disabled');
+                    content.classList.add('collapsed');
+                    toggle.querySelector('span:first-child').textContent = toggle.querySelector('span:first-child').textContent.replace('Include', 'Enable');
+                }
+                
+                updatePreview();
+            });
+        }
+
+        // Initialize section toggles
+        setupSectionToggle('houseEvents');
+        setupSectionToggle('quidditch');
+        setupSectionToggle('housePoints');
+
+        // Set up all individual item toggles
+        toggleSection('enableHouseTable', 'houseTableSection');
+        toggleSection('enableWelcomeParty', 'welcomePartySection');
+        toggleSection('enableQuidditch', 'quidditchSection');
+        toggleSection('enableAlternate', 'alternateSection');
+        toggleSection('enableAnnouncer', 'announcerSection');
+        toggleSection('enableMascot', 'mascotSection');
+        toggleSection('enableQuests', 'questsSection');
+        toggleSection('enableClasses', 'classesSection');
+        toggleSection('enableOwl', 'owlSection');
+        toggleSection('enableNewt', 'newtSection');
+
+        // Get the appropriate icons based on selection
+        function getWelcomeIcons(iconSelection, houseName) {
+            if (iconSelection === 'none') {
+                return { left: '', right: '' };
+            }
+            
+            if (iconSelection === 'auto') {
+                // House-themed defaults
+                const houseIcons = {
+                    'Gryffindor': '🦁',
+                    'Slytherin': '🐍', 
+                    'Ravenclaw': '🦅',
+                    'Hufflepuff': '🦡'
+                };
+                const icon = houseIcons[houseName] || '⭐';
+                return { left: icon, right: icon };
+            }
+            
+            // Check if it's a black/white icon that should be colored
+            const colorableIcons = ['★', '♦', '♥', '◆', '♠', '♣'];
+            const isColorable = colorableIcons.includes(iconSelection);
+            
+            if (isColorable) {
+                return { 
+                    left: `<span class="house-icon">${iconSelection}</span>`, 
+                    right: `<span class="house-icon">${iconSelection}</span>`,
+                    plain: iconSelection // for copying
+                };
+            }
+            
+            return { left: iconSelection, right: iconSelection };
+        }
+
+        // Create a clickable link if both text and URL are provided AND the checkbox is enabled
+        function createLink(text, url, isEnabled, forPreview = false, linkType = 'primary') {
+            if (isEnabled && text && url) {
+                if (forPreview) {
+                    return `<span class="house-link-${linkType}">${text}</span>`;
+                } else {
+                    // Get house colors for BBCode
+                    const selectedHouse = inputs.houseName.value.toLowerCase();
+                    const colors = {
+                        'gryffindor': { primary: '#d4332a', secondary: '#ffc500' },
+                        'slytherin': { primary: '#2a9d3a', secondary: '#c0c0c0' },
+                        'ravenclaw': { primary: '#0e4a99', secondary: '#cd7f32' },
+                        'hufflepuff': { primary: '#ecb939', secondary: '#2c2c2c' }
+                    };
+                    const houseColors = colors[selectedHouse] || colors['gryffindor'];
+                    const color = linkType === 'primary' ? houseColors.primary : houseColors.secondary;
+                    return `[url=${url}][color=${color}][b]${text}[/b][/color][/url]`;
+                }
+            } else if (isEnabled && text) {
+                if (forPreview) {
+                    return `<span class="house-link-${linkType}">${text.toUpperCase()}</span>`;
+                } else {
+                    // Get house colors for BBCode
+                    const selectedHouse = inputs.houseName.value.toLowerCase();
+                    const colors = {
+                        'gryffindor': { primary: '#d4332a', secondary: '#ffc500' },
+                        'slytherin': { primary: '#2a9d3a', secondary: '#c0c0c0' },
+                        'ravenclaw': { primary: '#0e4a99', secondary: '#cd7f32' },
+                        'hufflepuff': { primary: '#ecb939', secondary: '#2c2c2c' }
+                    };
+                    const houseColors = colors[selectedHouse] || colors['gryffindor'];
+                    const color = linkType === 'primary' ? houseColors.primary : houseColors.secondary;
+                    return `[color=${color}][b]${text.toUpperCase()}[/b][/color]`;
+                }
+            }
+            return '';
+        }
+
+        // Update house theme
+        function updateHouseTheme() {
+            const selectedHouse = inputs.houseName.value.toLowerCase();
+            const body = document.body;
+            const previewContent = document.querySelector('.preview-content');
+            
+            // Remove all house classes
+            body.classList.remove('house-gryffindor', 'house-slytherin', 'house-ravenclaw', 'house-hufflepuff');
+            previewContent.classList.remove('gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff');
+            
+            // Add current house class
+            body.classList.add(`house-${selectedHouse}`);
+            previewContent.classList.add(selectedHouse);
+        }
+
+        // Update preview in real-time
+        function updatePreview() {
+            const data = {};
+            for (const [key, input] of Object.entries(inputs)) {
+                data[key] = input.value;
+            }
+
+            // Update house theme
+            updateHouseTheme();
+
+            // Get checkbox states
+            const enabled = {};
+            for (const [key, checkbox] of Object.entries(checkboxes)) {
+                enabled[key] = checkbox.checked;
+            }
+
+            // Format prefects with house colors
+            const prefectsList = data.prefects 
+                ? data.prefects.split(',').map(p => p.trim()).filter(p => p)
+                : [];
+            
+            let prefectsText = '';
+            let prefectsTextPreview = '';
+            if (prefectsList.length > 0) {
+                // Create colored prefects for preview
+                const coloredPrefects = prefectsList.map((prefect, index) => {
+                    const colorClass = index % 2 === 0 ? 'primary' : 'secondary';
+                    return `<span class="house-link-${colorClass}">${prefect}</span>`;
+                });
+
+                // Create plain prefects for copying
+                if (prefectsList.length === 1) {
+                    prefectsText = prefectsList[0];
+                    prefectsTextPreview = coloredPrefects[0];
+                } else if (prefectsList.length === 2) {
+                    prefectsText = prefectsList.join(' and ');
+                    prefectsTextPreview = coloredPrefects.join(' and ');
+                } else {
+                    prefectsText = prefectsList.slice(0, -1).join(', ') + ' and ' + prefectsList[prefectsList.length - 1];
+                    prefectsTextPreview = coloredPrefects.slice(0, -1).join(', ') + ' and ' + coloredPrefects[coloredPrefects.length - 1];
+                }
+            }
+
+            // Build house events section (for preview)
+            let houseEventsTextPreview = '';
+            if (sectionEnabled.houseEvents && (enabled.enableHouseTable || enabled.enableWelcomeParty)) {
+                const houseTableLink = createLink(data.houseTableText, data.houseTableUrl, enabled.enableHouseTable, true, 'primary');
+                const welcomePartyLink = createLink(data.welcomePartyText, data.welcomePartyUrl, enabled.enableWelcomeParty, true, 'secondary');
+                
+                if (houseTableLink && welcomePartyLink) {
+                    houseEventsTextPreview = `${data.openingText} ${houseTableLink} ${data.middleText} ${welcomePartyLink} ${data.closingText}`;
+                } else if (houseTableLink) {
+                    houseEventsTextPreview = `${data.openingText} ${houseTableLink} ${data.closingText}`;
+                } else if (welcomePartyLink) {
+                    houseEventsTextPreview = `${data.openingText} ${welcomePartyLink} ${data.closingText}`;
+                }
+            }
+
+            // Build Quidditch positions list (for preview)
+            const quidditchPositionsPreview = [];
+            if (sectionEnabled.quidditch) {
+                if (enabled.enableQuidditch) {
+                    quidditchPositionsPreview.push(createLink(data.quidditchText, data.quidditchUrl, true, true, 'primary'));
+                }
+                if (enabled.enableAlternate) {
+                    quidditchPositionsPreview.push(createLink(data.alternateText, data.alternateUrl, true, true, 'secondary'));
+                }
+                if (enabled.enableAnnouncer) {
+                    quidditchPositionsPreview.push(createLink(data.announcerText, data.announcerUrl, true, true, 'primary'));
+                }
+                if (enabled.enableMascot) {
+                    quidditchPositionsPreview.push(createLink(data.mascotText, data.mascotUrl, true, true, 'secondary'));
+                }
+            }
+
+            let quidditchTextPreview = '';
+            if (sectionEnabled.quidditch && quidditchPositionsPreview.length > 0) {
+                quidditchTextPreview = `${data.tryoutOpeningText} try out for ${quidditchPositionsPreview.join(' or ')}. ${data.tryoutClosingText} Tryouts close ${data.tryoutDate}.`;
+            }
+
+            // Build house points activities list (for preview)
+            const activitiesPreview = [];
+            if (sectionEnabled.housePoints) {
+                if (enabled.enableQuests) {
+                    activitiesPreview.push(`doing ${createLink(data.questsText, data.questsUrl, true, true, 'primary')}`);
+                }
+                if (enabled.enableClasses) {
+                    activitiesPreview.push(`attending ${createLink(data.classesText, data.classesUrl, true, true, 'secondary')}`);
+                }
+                
+                const badgesPreview = [];
+                if (enabled.enableOwl) {
+                    badgesPreview.push(createLink(data.owlText, data.owlUrl, true, true, 'primary'));
+                }
+                if (enabled.enableNewt) {
+                    badgesPreview.push(createLink(data.newtText, data.newtUrl, true, true, 'secondary'));
+                }
+                
+                if (badgesPreview.length > 0) {
+                    activitiesPreview.push(`earning an ${badgesPreview.join(' and ')} badge`);
+                }
+            }
+
+            let housePointsTextPreview = '';
+            if (sectionEnabled.housePoints && activitiesPreview.length > 0) {
+                housePointsTextPreview = `Help to EARN HOUSE POINTS by ${activitiesPreview.join(', ')}.`;
+            }
+
+            // Get welcome icons
+            const icons = getWelcomeIcons(data.welcomeIcons, data.houseName);
+
+            // Build the preview message (with HTML)
+            let welcomeTitle = '';
+            if (icons.left || icons.right) {
+                welcomeTitle = `${icons.left} <strong>${data.welcomeType} ${data.houseName.toUpperCase()}</strong> ${icons.right}`;
+            } else {
+                welcomeTitle = `<strong>${data.welcomeType} ${data.houseName.toUpperCase()}</strong>`;
+            }
+            
+            let previewMessage = `${welcomeTitle}\n\n${data.introParagraph}`;
+
+            if (houseEventsTextPreview) {
+                previewMessage += `\n\n${houseEventsTextPreview}`;
+            }
+
+            if (quidditchTextPreview) {
+                previewMessage += `\n\n${quidditchTextPreview}`;
+            }
+
+            if (housePointsTextPreview) {
+                previewMessage += `\n\n${housePointsTextPreview}`;
+            }
+
+            previewMessage += `\n\nFeel free to reach out with any questions.\n\nYour prefects,\n${prefectsTextPreview}`;
+
+            if (data.psText.trim()) {
+                previewMessage += `\n\n${data.psText}`;
+            }
+
+            // Set preview with HTML rendering
+            preview.innerHTML = previewMessage.replace(/\n/g, '<br>');
+
+            // Store plain text version for copying (BBCode format)
+            window.plainTextMessage = generatePlainTextMessage(data, enabled, prefectsText, icons);
+        }
+
+        // Generate plain text message for copying (with BBCode)
+        function generatePlainTextMessage(data, enabled, prefectsText, icons) {
+            const selectedHouse = data.houseName.toLowerCase();
+            const colors = {
+                'gryffindor': { primary: '#d4332a', secondary: '#ffc500' },
+                'slytherin': { primary: '#2a9d3a', secondary: '#c0c0c0' },
+                'ravenclaw': { primary: '#0e4a99', secondary: '#cd7f32' },
+                'hufflepuff': { primary: '#ecb939', secondary: '#2c2c2c' }
+            };
+            const houseColors = colors[selectedHouse] || colors['gryffindor'];
+
+            // Format prefects with alternating house colors for BBCode
+            const prefectsList = data.prefects 
+                ? data.prefects.split(',').map(p => p.trim()).filter(p => p)
+                : [];
+            
+            let prefectsTextBBCode = '';
+            if (prefectsList.length > 0) {
+                const coloredPrefects = prefectsList.map((prefect, index) => {
+                    const color = index % 2 === 0 ? houseColors.primary : houseColors.secondary;
+                    return `[color=${color}][b]${prefect}[/b][/color]`;
+                });
+
+                if (prefectsList.length === 1) {
+                    prefectsTextBBCode = coloredPrefects[0];
+                } else if (prefectsList.length === 2) {
+                    prefectsTextBBCode = coloredPrefects.join(' and ');
+                } else {
+                    prefectsTextBBCode = coloredPrefects.slice(0, -1).join(', ') + ' and ' + coloredPrefects[coloredPrefects.length - 1];
+                }
+            }
+
+            // Build house events section (for copying)
+            let houseEventsText = '';
+            if (sectionEnabled.houseEvents && (enabled.enableHouseTable || enabled.enableWelcomeParty)) {
+                const houseTableLink = createLink(data.houseTableText, data.houseTableUrl, enabled.enableHouseTable, false, 'primary');
+                const welcomePartyLink = createLink(data.welcomePartyText, data.welcomePartyUrl, enabled.enableWelcomeParty, false, 'secondary');
+                
+                if (houseTableLink && welcomePartyLink) {
+                    houseEventsText = `${data.openingText} ${houseTableLink} ${data.middleText} ${welcomePartyLink} ${data.closingText}`;
+                } else if (houseTableLink) {
+                    houseEventsText = `${data.openingText} ${houseTableLink} ${data.closingText}`;
+                } else if (welcomePartyLink) {
+                    houseEventsText = `${data.openingText} ${welcomePartyLink} ${data.closingText}`;
+                }
+            }
+
+            // Build Quidditch positions list (for copying)
+            const quidditchPositions = [];
+            if (sectionEnabled.quidditch) {
+                if (enabled.enableQuidditch) {
+                    quidditchPositions.push(createLink(data.quidditchText, data.quidditchUrl, true, false, 'primary'));
+                }
+                if (enabled.enableAlternate) {
+                    quidditchPositions.push(createLink(data.alternateText, data.alternateUrl, true, false, 'secondary'));
+                }
+                if (enabled.enableAnnouncer) {
+                    quidditchPositions.push(createLink(data.announcerText, data.announcerUrl, true, false, 'primary'));
+                }
+                if (enabled.enableMascot) {
+                    quidditchPositions.push(createLink(data.mascotText, data.mascotUrl, true, false, 'secondary'));
+                }
+            }
+
+            let quidditchText = '';
+            if (sectionEnabled.quidditch && quidditchPositions.length > 0) {
+                quidditchText = `${data.tryoutOpeningText} try out for ${quidditchPositions.join(' or ')}. ${data.tryoutClosingText} Tryouts close ${data.tryoutDate}.`;
+            }
+
+            // Build house points activities list (for copying)
+            const activities = [];
+            if (sectionEnabled.housePoints) {
+                if (enabled.enableQuests) {
+                    activities.push(`doing ${createLink(data.questsText, data.questsUrl, true, false, 'primary')}`);
+                }
+                if (enabled.enableClasses) {
+                    activities.push(`attending ${createLink(data.classesText, data.classesUrl, true, false, 'secondary')}`);
+                }
+                
+                const badges = [];
+                if (enabled.enableOwl) {
+                    badges.push(createLink(data.owlText, data.owlUrl, true, false, 'primary'));
+                }
+                if (enabled.enableNewt) {
+                    badges.push(createLink(data.newtText, data.newtUrl, true, false, 'secondary'));
+                }
+                
+                if (badges.length > 0) {
+                    activities.push(`earning an ${badges.join(' and ')} badge`);
+                }
+            }
+
+            let housePointsText = '';
+            if (sectionEnabled.housePoints && activities.length > 0) {
+                housePointsText = `Help to [b]EARN HOUSE POINTS[/b] by ${activities.join(', ')}.`;
+            }
+
+            // Build welcome title with icons for copying
+            let welcomeTitle = '';
+            if (icons.plain) {
+                // Use plain icon for colorable ones
+                welcomeTitle = `[center]${icons.plain} [color=${houseColors.primary}][b][size=150]${data.welcomeType} ${data.houseName.toUpperCase()}[/size][/b][/color] ${icons.plain}[/center]`;
+            } else if (icons.left || icons.right) {
+                welcomeTitle = `[center]${icons.left} [color=${houseColors.primary}][b][size=150]${data.welcomeType} ${data.houseName.toUpperCase()}[/size][/b][/color] ${icons.right}[/center]`;
+            } else {
+                welcomeTitle = `[center][color=${houseColors.primary}][b][size=150]${data.welcomeType} ${data.houseName.toUpperCase()}[/size][/b][/color][/center]`;
+            }
+
+            // Build the copy message (with BBCode)
+            let message = `${welcomeTitle}\n\n[center]${data.introParagraph}[/center]`;
+
+            if (houseEventsText) {
+                message += `\n\n[center]${houseEventsText}[/center]`;
+            }
+
+            if (quidditchText) {
+                message += `\n\n[center]${quidditchText}[/center]`;
+            }
+
+            if (housePointsText) {
+                message += `\n\n[center]${housePointsText}[/center]`;
+            }
+
+            message += `\n\n[center]Feel free to reach out with any questions.\n\nYour prefects,\n${prefectsTextBBCode}[/center]`;
+
+            if (data.psText.trim()) {
+                message += `\n\n[center]${data.psText}[/center]`;
+            }
+
+            return message;
+        }
+
+        // Add event listeners to all inputs and checkboxes
+        for (const input of Object.values(inputs)) {
+            input.addEventListener('input', updatePreview);
+        }
+        
+        for (const checkbox of Object.values(checkboxes)) {
+            checkbox.addEventListener('change', updatePreview);
+        }
+
+        // Get BBCode elements
+        const convertBtn = document.getElementById('convertBtn');
+        const bbcodeOutput = document.getElementById('bbcodeOutput');
+        const bbcodeText = document.getElementById('bbcodeText');
+        const copyBBCodeBtn = document.getElementById('copyBBCodeBtn');
+
+        // Convert to BBCode functionality
+        if (convertBtn && bbcodeOutput && bbcodeText) {
+            convertBtn.addEventListener('click', () => {
+                const bbcodeMessage = window.plainTextMessage || preview.textContent;
+                bbcodeText.value = bbcodeMessage;
+                bbcodeOutput.style.display = 'block';
+                
+                // Scroll to BBCode output
+                bbcodeOutput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                
+                // Update button text temporarily
+                const originalText = convertBtn.textContent;
+                convertBtn.textContent = '✅ Converted!';
+                convertBtn.classList.add('success-flash');
+                
+                setTimeout(() => {
+                    convertBtn.textContent = originalText;
+                    convertBtn.classList.remove('success-flash');
+                }, 2000);
+            });
+        }
+
+        // Copy BBCode functionality
+        if (copyBBCodeBtn && bbcodeText) {
+            copyBBCodeBtn.addEventListener('click', async () => {
+                const textToCopy = bbcodeText.value;
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                    const originalText = copyBBCodeBtn.textContent;
+                    copyBBCodeBtn.textContent = '✅ Copied!';
+                    copyBBCodeBtn.classList.add('success-flash');
+                    
+                    setTimeout(() => {
+                        copyBBCodeBtn.textContent = originalText;
+                        copyBBCodeBtn.classList.remove('success-flash');
+                    }, 2000);
+                } catch (err) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    const originalText = copyBBCodeBtn.textContent;
+                    copyBBCodeBtn.textContent = '✅ Copied!';
+                    setTimeout(() => {
+                        copyBBCodeBtn.textContent = originalText;
+                    }, 2000);
+                }
+            });
+        }
+
+        // Initialize with some default values
+        inputs.houseName.value = 'Gryffindor';
+        inputs.welcomeType.value = 'WELCOME TO';
+        inputs.welcomeIcons.value = 'auto';
+        inputs.openingText.value = 'Join us at our';
+        inputs.middleText.value = 'and attend our';
+        inputs.closingText.value = 'for fun activities and bonding!';
+        inputs.tryoutOpeningText.value = 'Show your house spirit and';
+        inputs.tryoutClosingText.value = 'Positions are filling up fast!';
+        inputs.houseTableText.value = 'HOUSE TABLE';
+        inputs.welcomePartyText.value = 'WELCOME PARTY';
+        inputs.quidditchText.value = 'QUIDDITCH';
+        inputs.alternateText.value = 'ALTERNATE';
+        inputs.announcerText.value = 'ANNOUNCER';
+        inputs.mascotText.value = 'MASCOT';
+        inputs.questsText.value = 'QUESTS';
+        inputs.classesText.value = 'CLASSES';
+        inputs.owlText.value = 'OWL';
+        inputs.newtText.value = 'NEWT';
+        
+        updatePreview();
+    </script>
+</body>
+</html>
