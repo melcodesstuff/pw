@@ -655,6 +655,33 @@
                 </button>
                 
                 <div class="section-content" id="housePointsContent">
+                    <div class="form-group">
+                        <label class="form-label">House Points Opening Text</label>
+                        <input type="text" id="housePointsOpeningText" class="form-input" placeholder="e.g., Help to">
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableHousePointsLink" class="form-checkbox" checked>
+                        <label for="enableHousePointsLink" class="checkbox-label">Include House Points Link</label>
+                    </div>
+                    <div id="housePointsLinkSection">
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">House Points Link Text</label>
+                                <input type="text" id="housePointsLinkText" class="form-input" placeholder="EARN HOUSE POINTS">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">House Points URL</label>
+                                <input type="text" id="housePointsUrl" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Activities Text</label>
+                        <input type="text" id="activitiesText" class="form-input" placeholder="e.g., by">
+                    </div>
+
                     <div class="checkbox-group">
                         <input type="checkbox" id="enableQuests" class="form-checkbox" checked>
                         <label for="enableQuests" class="checkbox-label">Include Quests</label>
@@ -789,6 +816,10 @@
             announcerUrl: document.getElementById('announcerUrl'),
             mascotText: document.getElementById('mascotText'),
             mascotUrl: document.getElementById('mascotUrl'),
+            housePointsOpeningText: document.getElementById('housePointsOpeningText'),
+            housePointsLinkText: document.getElementById('housePointsLinkText'),
+            housePointsUrl: document.getElementById('housePointsUrl'),
+            activitiesText: document.getElementById('activitiesText'),
             questsText: document.getElementById('questsText'),
             questsUrl: document.getElementById('questsUrl'),
             classesText: document.getElementById('classesText'),
@@ -809,6 +840,7 @@
             enableAlternate: document.getElementById('enableAlternate'),
             enableAnnouncer: document.getElementById('enableAnnouncer'),
             enableMascot: document.getElementById('enableMascot'),
+            enableHousePointsLink: document.getElementById('enableHousePointsLink'),
             enableQuests: document.getElementById('enableQuests'),
             enableClasses: document.getElementById('enableClasses'),
             enableOwl: document.getElementById('enableOwl'),
@@ -823,6 +855,7 @@
             alternateSection: document.getElementById('alternateSection'),
             announcerSection: document.getElementById('announcerSection'),
             mascotSection: document.getElementById('mascotSection'),
+            housePointsLinkSection: document.getElementById('housePointsLinkSection'),
             questsSection: document.getElementById('questsSection'),
             classesSection: document.getElementById('classesSection'),
             owlSection: document.getElementById('owlSection'),
@@ -903,12 +936,56 @@
         toggleSection('enableAlternate', 'alternateSection');
         toggleSection('enableAnnouncer', 'announcerSection');
         toggleSection('enableMascot', 'mascotSection');
+        toggleSection('enableHousePointsLink', 'housePointsLinkSection');
         toggleSection('enableQuests', 'questsSection');
         toggleSection('enableClasses', 'classesSection');
         toggleSection('enableOwl', 'owlSection');
         toggleSection('enableNewt', 'newtSection');
 
-        // Get the appropriate icons based on selection
+        // Set default URLs based on house and common links
+        function setDefaultUrls() {
+            const selectedHouse = inputs.houseName.value;
+            
+            // House table URLs
+            const houseTableUrls = {
+                'Gryffindor': 'https://forums.pottersworld.org/topic/450001-the-gryffindor-table/',
+                'Slytherin': 'https://forums.pottersworld.org/topic/449569-the-slytherin-table/',
+                'Ravenclaw': 'https://forums.pottersworld.org/topic/450141-the-ravenclaw-table/',
+                'Hufflepuff': 'https://forums.pottersworld.org/topic/449606-the-hufflepuff-table/'
+            };
+            
+            // Only set if the field is empty or contains a house table URL
+            if (!inputs.houseTableUrl.value || 
+                inputs.houseTableUrl.value.includes('the-gryffindor-table') ||
+                inputs.houseTableUrl.value.includes('the-slytherin-table') ||
+                inputs.houseTableUrl.value.includes('the-ravenclaw-table') ||
+                inputs.houseTableUrl.value.includes('the-hufflepuff-table')) {
+                inputs.houseTableUrl.value = houseTableUrls[selectedHouse] || '';
+            }
+            
+            // Set default URLs for house points activities (only if empty)
+            if (!inputs.housePointsUrl.value) {
+                inputs.housePointsUrl.value = 'https://forums.pottersworld.org/topic/473397-01-quests-information-reporting-completed-quests/';
+            }
+            
+            if (!inputs.questsUrl.value) {
+                inputs.questsUrl.value = 'https://forums.pottersworld.org/topic/179561-a-list-of-available-quests/';
+            }
+            
+            if (!inputs.classesUrl.value) {
+                inputs.classesUrl.value = 'https://forums.pottersworld.org/topic/485311-current-list-of-classroom-and-open-threads/';
+            }
+            
+            if (!inputs.owlUrl.value) {
+                inputs.owlUrl.value = 'https://forums.pottersworld.org/topic/473401-02-owl-badges-information-and-reporting/';
+            }
+            
+            if (!inputs.newtUrl.value) {
+                inputs.newtUrl.value = 'https://forums.pottersworld.org/topic/473402-03-newt-badges-information-and-reporting/';
+            }
+        }
+
+        // Get welcome icons based on selection and house
         function getWelcomeIcons(iconSelection, houseName) {
             if (iconSelection === 'none') {
                 return { left: '', right: '' };
@@ -992,6 +1069,9 @@
             // Add current house class
             body.classList.add(`house-${selectedHouse}`);
             previewContent.classList.add(selectedHouse);
+            
+            // Update default URLs when house changes
+            setDefaultUrls();
         }
 
         // Update preview in real-time
@@ -1098,8 +1178,16 @@
             }
 
             let housePointsTextPreview = '';
-            if (sectionEnabled.housePoints && activitiesPreview.length > 0) {
-                housePointsTextPreview = `Help to EARN HOUSE POINTS by ${activitiesPreview.join(', ')}.`;
+            if (sectionEnabled.housePoints && (enabled.enableHousePointsLink || activitiesPreview.length > 0)) {
+                const housePointsLink = createLink(data.housePointsLinkText, data.housePointsUrl, enabled.enableHousePointsLink, true, 'primary');
+                
+                if (housePointsLink && activitiesPreview.length > 0) {
+                    housePointsTextPreview = `${data.housePointsOpeningText} ${housePointsLink} ${data.activitiesText} ${activitiesPreview.join(', ')}.`;
+                } else if (housePointsLink) {
+                    housePointsTextPreview = `${data.housePointsOpeningText} ${housePointsLink}.`;
+                } else if (activitiesPreview.length > 0) {
+                    housePointsTextPreview = `${data.housePointsOpeningText} earn house points ${data.activitiesText} ${activitiesPreview.join(', ')}.`;
+                }
             }
 
             // Get welcome icons
@@ -1233,8 +1321,16 @@
             }
 
             let housePointsText = '';
-            if (sectionEnabled.housePoints && activities.length > 0) {
-                housePointsText = `Help to [b]EARN HOUSE POINTS[/b] by ${activities.join(', ')}.`;
+            if (sectionEnabled.housePoints && (enabled.enableHousePointsLink || activities.length > 0)) {
+                const housePointsLink = createLink(data.housePointsLinkText, data.housePointsUrl, enabled.enableHousePointsLink, false, 'primary');
+                
+                if (housePointsLink && activities.length > 0) {
+                    housePointsText = `${data.housePointsOpeningText} ${housePointsLink} ${data.activitiesText} ${activities.join(', ')}.`;
+                } else if (housePointsLink) {
+                    housePointsText = `${data.housePointsOpeningText} ${housePointsLink}.`;
+                } else if (activities.length > 0) {
+                    housePointsText = `${data.housePointsOpeningText} [color=${houseColors.primary}][b]EARN HOUSE POINTS[/b][/color] ${data.activitiesText} ${activities.join(', ')}.`;
+                }
             }
 
             // Build welcome title with icons for copying
@@ -1356,10 +1452,16 @@
         inputs.alternateText.value = 'ALTERNATE';
         inputs.announcerText.value = 'ANNOUNCER';
         inputs.mascotText.value = 'MASCOT';
+        inputs.housePointsOpeningText.value = 'Help to';
+        inputs.housePointsLinkText.value = 'EARN HOUSE POINTS';
+        inputs.activitiesText.value = 'by';
         inputs.questsText.value = 'QUESTS';
         inputs.classesText.value = 'CLASSES';
         inputs.owlText.value = 'OWL';
         inputs.newtText.value = 'NEWT';
+        
+        // Set default URLs
+        setDefaultUrls();
         
         updatePreview();
     </script>
