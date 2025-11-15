@@ -187,7 +187,6 @@ Year 178 -- July 5 - August 15 (2025)
 Year 179 -- August 16 - September 26 (2025)
 Year 180 -- October 4 - November 14 (2025)
 Year 181 -- November 15 - December 27 (2025)
-Year 182 -- January 3 - February 13 (2025/2026)
 
 `;
 
