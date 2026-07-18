@@ -1,69 +1,60 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PW Term Date Reference</title>
   <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
   <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body>
   <div class="container">
-    <!-- Header with Home pill (same look as your Dark Mode pill) -->
-    <header class="header" style="margin-bottom:1rem;">
+    <header class="header">
       <div>
         <h1 class="title">Term Date Reference</h1>
         <p class="subtitle">Quick reference for Potterworld term start and end dates, sourced from the official PW Timeline.</p>
       </div>
-      <a class="theme-toggle home-link" href="../index.html" aria-label="Go to home">
-        <span class="icon" aria-hidden="true">🏰</span>
-        Home
+      <a class="home-link" href="../index.html" aria-label="Go to home">
+        <span class="icon" aria-hidden="true">🏰</span> Home
       </a>
     </header>
 
-    <!-- Summary card (filled by terms.js) -->
     <section id="currentCard" class="surface summary-card" style="display:none;"></section>
 
-    <!-- Controls card -->
     <section class="surface controls-card">
-  <div class="controls" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
-    <div class="input" style="display:flex; align-items:center; gap:8px;">
-      <span aria-hidden="true">🔎</span>
-      <input id="searchInput" type="text" placeholder="Search by term, date, month, or year…" style="border:none; outline:none; background:transparent; width:260px;">
-    </div>
+      <div class="controls" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+        <div class="input" style="display:flex; align-items:center; gap:8px;">
+          <span aria-hidden="true">🔎</span>
+          <input id="searchInput" type="text" placeholder="Search by term, date, month, or year…" style="border:none; outline:none; background:transparent; width:260px;">
+        </div>
+        <select id="monthSelect" class="select">
+          <option value="any">Any month</option>
+          <option value="january">January</option><option value="february">February</option>
+          <option value="march">March</option><option value="april">April</option>
+          <option value="may">May</option><option value="june">June</option>
+          <option value="july">July</option><option value="august">August</option>
+          <option value="september">September</option><option value="october">October</option>
+          <option value="november">November</option><option value="december">December</option>
+        </select>
+        <select id="lastSelect" class="select">
+          <option value="20" selected>Show last 20</option>
+          <option value="50">Show last 50</option>
+          <option value="all">Show all</option>
+        </select>
+        <div style="flex:1"></div>
+        <button id="resetBtn" class="btn btn--secondary" type="button">Reset</button>
+      </div>
+    </section>
 
-    <select id="monthSelect" class="select">
-      <option value="any">Any month</option>
-      <option value="january">January</option><option value="february">February</option>
-      <option value="march">March</option><option value="april">April</option>
-      <option value="may">May</option><option value="june">June</option>
-      <option value="july">July</option><option value="august">August</option>
-      <option value="september">September</option><option value="october">October</option>
-      <option value="november">November</option><option value="december">December</option>
-    </select>
-
-    <select id="lastSelect" class="select">
-      <option value="20" selected>Show last 20</option>
-      <option value="50">Show last 50</option>
-      <option value="all">Show all</option>
-    </select>
-
-    <div style="flex:1"></div>
-    <button id="resetBtn" class="btn" type="button">Reset</button>
-  </div>
-</section>
-
-
-    <!-- Table card -->
     <div class="surface table-card">
       <div class="table-wrap">
         <table class="term-table">
           <thead>
             <tr>
-              <th style="text-align:left;">Term</th>
-              <th style="text-align:left;">Start</th>
-              <th style="text-align:left;">End</th>
-              <th style="text-align:left;">Year</th>
+              <th>Term</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Year</th>
             </tr>
           </thead>
           <tbody id="termBody"></tbody>
@@ -76,7 +67,6 @@
     </footer>
   </div>
 
-  <!-- Scripts: data first, then page logic -->
   <script src="../assets/data/terms-data.js" defer></script>
   <script src="../assets/js/terms.js" defer></script>
 </body>
