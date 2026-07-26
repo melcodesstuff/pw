@@ -288,7 +288,6 @@
           </section>
 
           <Twins characters={characters} computed={computed} effectiveAvg={effectiveAvg} />
-          <PlusEligibility characters={characters} computed={computed} effectiveAvg={effectiveAvg} />
           <AdultEligibility characters={characters} computed={computed} effectiveAvg={effectiveAvg} />
         </div>
       );
@@ -363,52 +362,6 @@
                         <li key={i.id}><span className="font-medium">{i.name}</span> — {formatAvg(i.avg)}/term; needs ~<span className="font-semibold">{formatAvg(i.shortfall)}</span> to reach <span className="font-semibold">{i.min}</span>/term.</li>
                       ))}
                     </ul>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </section>
-      );
-    }
-
-    function PlusEligibility({ characters, computed, effectiveAvg }) {
-      const showPlusIsDynamic = characters.length >= 7;
-      const plusLabel = `${Math.max(7, characters.length + (characters.length >= 7 ? 1 : 0))}+ Character Eligibility`;
-
-      const allHavePosts = characters.every(c => c.currentPosts !== "");
-      const items = characters.map(c => {
-        const pc = computed[c.id];
-        const avg = effectiveAvg(c, pc) ?? 0;
-        const min = c.isSpirit ? 0 : (pc?.twoPlusYears ? 5 : 20);
-        return { id: c.id, name: c.name || '(unnamed)', avg, min, shortfall: Math.max(0, min - avg) };
-      });
-      const totalRequired = items.reduce((s,i)=> s + i.min, 0);
-      const totalActual = items.reduce((s,i)=> s + i.avg, 0);
-      const overallMeets = totalActual >= totalRequired;
-      const below = items.filter(i => i.shortfall > 0);
-      const perCharOk = below.length === 0;
-      const eligible = allHavePosts && perCharOk;
-
-      return (
-        <section className="mt-5 rounded-2xl border p-4 shadow-sm bg-white border-slate-200/60">
-          <h2 className="text-lg font-semibold mb-2">{showPlusIsDynamic ? plusLabel : '7th+ Character Eligibility'}</h2>
-          <p className="text-sm text-slate-600 mb-2">
-            Baseline is <span className="font-medium">20+ posts/term per character</span>. Characters that are <span className="font-medium">2+ RL years</span> old need <span className="font-medium">5+/term</span>. Spirit characters have no minimum. Group totals can compensate.
-          </p>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-slate-600">Eligible for {showPlusIsDynamic ? plusLabel.replace(' Character Eligibility','') : '7th+'} application:</span>
-              {!allHavePosts ? (<Badge pending>Pending</Badge>) : eligible ? (<Badge ok>Met</Badge>) : (<Badge ok={false}>Not met</Badge>)}
-            </div>
-            <div className="text-sm text-slate-700 mb-2">Total avg across characters: <span className="font-medium">{formatAvg(totalActual)}</span> · Required total: <span className="font-medium">{formatAvg(totalRequired)}</span></div>
-            {allHavePosts && !eligible && (
-              <div className="mt-2 rounded-lg bg-slate-50 border border-slate-200/60 p-3 text-sm">
-                {!overallMeets && (<p className="mb-2">Your combined per-term average across all characters is below the required total. You need about <span className="font-semibold">{formatAvg(Math.max(0, totalRequired - totalActual))}</span> more posts/term overall.</p>)}
-                {below.length > 0 && (
-                  <div>
-                    <p className="mb-1">These characters are below their personal minimum:</p>
-                    <ul className="list-disc pl-5 space-y-1">{below.map(i => (<li key={i.id}><span className="font-medium">{i.name}</span> — {formatAvg(i.avg)}/term; needs ~<span className="font-semibold">{formatAvg(i.shortfall)}</span> to reach <span className="font-semibold">{i.min}</span>/term.</li>))}</ul>
                   </div>
                 )}
               </div>
