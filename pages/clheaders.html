@@ -1,0 +1,513 @@
+import { useState, useRef, useEffect, useCallback } from "react";
+
+const SHAPES = [
+  {id:"flat",name:"Flat"},{id:"pill",name:"Pill"},{id:"rounded",name:"Rounded"},
+  {id:"bottombar",name:"Bottom Bar"},{id:"sidestripe",name:"Side Stripe"},{id:"split",name:"Split"},
+  {id:"border",name:"Border Frame"},{id:"ornate",name:"Ornate"},{id:"floating",name:"Floating Tag"},
+];
+const BORDER_VARIANTS = [
+  {id:"b-simple",name:"Simple"},{id:"b-double",name:"Double"},{id:"b-thickthin",name:"Thick+Thin"},
+  {id:"b-dashed",name:"Dashed"},{id:"b-notched",name:"Notched"},{id:"b-inset",name:"Inset"},
+  {id:"b-tabs",name:"Corner Tabs"},{id:"b-rounded",name:"Rounded"},{id:"b-shadow",name:"Shadow"},
+  {id:"b-cross",name:"Cross Corners"},
+];
+const ORNATE_VARIANTS = [
+  {id:"o-brackets",name:"Brackets"},{id:"o-double",name:"Double Brackets"},{id:"o-nouveau",name:"Art Nouveau"},
+  {id:"o-filigree",name:"Filigree Bar"},{id:"o-gothic",name:"Gothic Arch"},{id:"o-stars",name:"Star Corners"},
+  {id:"o-hatch",name:"Cross Hatch"},{id:"o-crest",name:"Minimal Crest"},{id:"o-wings",name:"Flourish Wings"},
+  {id:"o-chain",name:"Chain Border"},
+];
+const ICON_LAYOUTS = [
+  {id:"icon-left",name:"Left"},{id:"icon-left-block",name:"Left Block"},
+  {id:"icon-right-block",name:"Right Block"},{id:"icon-both",name:"Both Sides"},
+  {id:"icon-subtitle",name:"Left + Sub"},{id:"icon-badge",name:"Badge"},
+  {id:"icon-watermark",name:"Watermark"},{id:"icon-diamond",name:"Diamond"},
+];
+const SIZES = [
+  {label:"Default (320\u00d7100)",w:320,h:100},
+  {label:"Wide (480\u00d780)",w:480,h:80},
+];
+const COLOR_PRESETS = [
+  {id:"dark-academia",g:"dark",bg1:"#1a1510",bg2:"#2d261e",accent:"#c9a96e",text:"#e8dcc8"},
+  {id:"moonlit",g:"dark",bg1:"#0d1117",bg2:"#161b22",accent:"#7aa2c7",text:"#c9d6e3"},
+  {id:"emerald",g:"dark",bg1:"#0a1f1a",bg2:"#122b23",accent:"#4ecca3",text:"#d0ebe0"},
+  {id:"crimson",g:"dark",bg1:"#1a0a0a",bg2:"#2b1216",accent:"#c4953a",text:"#f0e0c0"},
+  {id:"raven",g:"dark",bg1:"#0f0f1a",bg2:"#1a1a2e",accent:"#9b72cf",text:"#d4c5f0"},
+  {id:"rosegold",g:"dark",bg1:"#1c1419",bg2:"#2a1f25",accent:"#d4a0a0",text:"#f0dede"},
+  {id:"ocean",g:"dark",bg1:"#0a1628",bg2:"#132238",accent:"#48a9a6",text:"#c5dfe0"},
+  {id:"ember",g:"dark",bg1:"#1f0f07",bg2:"#2d1a10",accent:"#e87040",text:"#f0d8c8"},
+  {id:"midnight",g:"dark",bg1:"#0a0a1a",bg2:"#12122a",accent:"#6366f1",text:"#c7d2fe"},
+  {id:"forest",g:"dark",bg1:"#0a120a",bg2:"#141e14",accent:"#5a8a5a",text:"#c0d8c0"},
+  {id:"frost",g:"light",bg1:"#e8edf2",bg2:"#d4dce6",accent:"#5a7a9b",text:"#2c3e50"},
+  {id:"parchment",g:"light",bg1:"#d4c5a9",bg2:"#c2b28f",accent:"#6b4c3b",text:"#3d2b1f"},
+  {id:"ivory",g:"light",bg1:"#f0ece4",bg2:"#e4ddd2",accent:"#8b7355",text:"#3a322a"},
+  {id:"blush",g:"light",bg1:"#f5e8ea",bg2:"#ebd8dc",accent:"#b06878",text:"#4a2830"},
+  {id:"cloud",g:"light",bg1:"#eef2f7",bg2:"#dfe6ef",accent:"#6082a8",text:"#1e3a5f"},
+  {id:"linen",g:"light",bg1:"#f0e8dd",bg2:"#e4d8c8",accent:"#9a7b5b",text:"#3a2e20"},
+  {id:"mint",g:"light",bg1:"#e4f0ea",bg2:"#d0e4d8",accent:"#4a8a6a",text:"#1a3a2a"},
+  {id:"pearl",g:"light",bg1:"#f2f0f5",bg2:"#e4e0ec",accent:"#7a6a9a",text:"#2a2040"},
+  {id:"sand",g:"light",bg1:"#f0e8d8",bg2:"#e0d4c0",accent:"#a08050",text:"#3a3020"},
+  {id:"daybreak",g:"light",bg1:"#f0eae5",bg2:"#e5dbd2",accent:"#c08060",text:"#3a2820"},
+  {id:"slate",g:"neutral",bg1:"#2a2e34",bg2:"#3a4048",accent:"#78909c",text:"#cfd8dc"},
+  {id:"charcoal",g:"neutral",bg1:"#262626",bg2:"#333333",accent:"#a0a0a0",text:"#e0e0e0"},
+  {id:"stone",g:"neutral",bg1:"#3a3632",bg2:"#4a4440",accent:"#b0a898",text:"#e0dcd6"},
+  {id:"graphite",g:"neutral",bg1:"#2c2c30",bg2:"#3c3c42",accent:"#8888a0",text:"#d0d0dc"},
+  {id:"clay",g:"neutral",bg1:"#3a3230",bg2:"#4a4240",accent:"#b09080",text:"#e0d4cc"},
+  {id:"storm",g:"neutral",bg1:"#282c32",bg2:"#383e48",accent:"#6890a8",text:"#c8d8e4"},
+  {id:"ash",g:"neutral",bg1:"#302e2c",bg2:"#403e3c",accent:"#a09888",text:"#dcd8d0"},
+  {id:"steel",g:"neutral",bg1:"#282a30",bg2:"#383c44",accent:"#7090b0",text:"#c8d4e0"},
+  {id:"dusk",g:"neutral",bg1:"#302830",bg2:"#403840",accent:"#9880a0",text:"#dcd0e0"},
+  {id:"smoke",g:"neutral",bg1:"#2e2e2e",bg2:"#3e3e3e",accent:"#909090",text:"#d8d8d8"},
+];
+const FONTS = ["Cinzel","Cormorant Garamond","Playfair Display","Raleway","Libre Baskerville","Lora","EB Garamond","Crimson Text","Italiana","Marcellus","Spectral","Josefin Sans","Antic Didone","Poiret One","Bellefair","Philosopher"];
+const POPULAR_ICONS = [
+  "\u2726","\u2727","\u2666","\u2660","\u2663","\u25c6","\u25c7",
+  "\u2605","\u2606","\u2736","\u2737","\u2738","\u2739","\u273a","\u2735","\u2734",
+  "\u2741","\u2742","\u2743","\u273f","\u2740",
+  "\u2744","\u2745","\u2746","\u2747","\u2748","\u274b",
+  "\u2730","\u2731","\u2732","\u2733",
+  "\u2720","\u2722","\u2723","\u2724","\u2725",
+  "\u269c","\u2756","\u25c8","\u2b25","\u2b26","\u2b27",
+  "\u25b3","\u25bd","\u25cb","\u25cf","\u25b2","\u25bc",
+  "\u2661","\u2662","\u2664","\u2667",
+  "\u265b","\u265a","\u2655","\u2654",
+  "\u22b9","\u27e1","\u27e2","\u2b22",
+];
+const FONTS_URL = "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Raleway:wght@300;400;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Crimson+Text:wght@400;600;700&family=Italiana&family=Marcellus&family=Spectral:wght@300;400;600&family=Josefin+Sans:wght@300;400;600&family=Antic+Didone&family=Poiret+One&family=Bellefair&family=Philosopher:wght@400;700&display=swap";
+
+/* ═══ BORDER DRAWING ═══ */
+function drawBorderDecor(ctx, w, h, accent, variant) {
+  ctx.strokeStyle = accent; ctx.fillStyle = accent;
+  const v = variant || "b-simple";
+  if (v === "b-simple") {
+    ctx.globalAlpha=0.6; ctx.lineWidth=1.5; ctx.strokeRect(6,6,w-12,h-12);
+    for (const [cx,cy] of [[6,6],[w-6,6],[6,h-6],[w-6,h-6]]) { ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill(); }
+  } else if (v === "b-double") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=1; ctx.strokeRect(5,5,w-10,h-10); ctx.strokeRect(10,10,w-20,h-20);
+  } else if (v === "b-thickthin") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=3; ctx.strokeRect(5,5,w-10,h-10); ctx.lineWidth=0.8; ctx.strokeRect(11,11,w-22,h-22);
+  } else if (v === "b-dashed") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=1; ctx.setLineDash([8,4]); ctx.strokeRect(8,8,w-16,h-16); ctx.setLineDash([]);
+    const s=4; for (const [cx,cy] of [[8,8],[w-8,8],[8,h-8],[w-8,h-8]]) ctx.fillRect(cx-s/2,cy-s/2,s,s);
+  } else if (v === "b-notched") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=1.5; const n=12,i=6;
+    ctx.beginPath(); ctx.moveTo(i+n,i); ctx.lineTo(w-i-n,i); ctx.lineTo(w-i,i+n); ctx.lineTo(w-i,h-i-n); ctx.lineTo(w-i-n,h-i); ctx.lineTo(i+n,h-i); ctx.lineTo(i,h-i-n); ctx.lineTo(i,i+n); ctx.closePath(); ctx.stroke();
+  } else if (v === "b-inset") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(8,8); ctx.lineTo(w-8,8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(8,14); ctx.lineTo(w-8,14); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(8,h-8); ctx.lineTo(w-8,h-8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(8,h-14); ctx.lineTo(w-8,h-14); ctx.stroke();
+  } else if (v === "b-tabs") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=1.5; const len=24,i=8;
+    ctx.beginPath(); ctx.moveTo(i,i+len); ctx.lineTo(i,i); ctx.lineTo(i+len,i); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w-i-len,i); ctx.lineTo(w-i,i); ctx.lineTo(w-i,i+len); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(i,h-i-len); ctx.lineTo(i,h-i); ctx.lineTo(i+len,h-i); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w-i-len,h-i); ctx.lineTo(w-i,h-i); ctx.lineTo(w-i,h-i-len); ctx.stroke();
+  } else if (v === "b-rounded") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=1.5; ctx.beginPath(); ctx.roundRect(8,8,w-16,h-16,12); ctx.stroke();
+    for (const [cx,cy] of [[8,8],[w-8,8],[8,h-8],[w-8,h-8]]) { ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.stroke(); }
+  } else if (v === "b-shadow") {
+    ctx.globalAlpha=0.2; ctx.lineWidth=1.5; ctx.strokeRect(10,10,w-16,h-16);
+    ctx.globalAlpha=0.5; ctx.strokeRect(6,6,w-16,h-16);
+  } else if (v === "b-cross") {
+    ctx.globalAlpha=0.45; ctx.lineWidth=1; ctx.strokeRect(8,8,w-16,h-16);
+    const cs=6; for (const [cx,cy] of [[8,8],[w-8,8],[8,h-8],[w-8,h-8]]) {
+      ctx.beginPath(); ctx.moveTo(cx-cs,cy); ctx.lineTo(cx+cs,cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx,cy-cs); ctx.lineTo(cx,cy+cs); ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ═══ ORNATE DRAWING ═══ */
+function drawOrnateDecor(ctx, w, h, accent, variant, useIcon, bcy) {
+  ctx.strokeStyle = accent; ctx.fillStyle = accent;
+  const v = variant || "o-brackets";
+  const dm = (cx,cy,s) => { ctx.save(); ctx.translate(cx,cy); ctx.rotate(Math.PI/4); ctx.fillRect(-s,-s,s*2,s*2); ctx.restore(); };
+
+  if (v === "o-brackets") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=1;
+    if (!useIcon) { const ly=bcy,gap=70; ctx.beginPath();ctx.moveTo(20,ly);ctx.lineTo(w/2-gap,ly);ctx.stroke(); ctx.beginPath();ctx.moveTo(w/2+gap,ly);ctx.lineTo(w-20,ly);ctx.stroke(); dm(20,ly,3);dm(w/2-gap,ly,3);dm(w/2+gap,ly,3);dm(w-20,ly,3); }
+    const fl=18,fi=10;
+    ctx.beginPath();ctx.moveTo(fi,fi+fl);ctx.lineTo(fi,fi);ctx.lineTo(fi+fl,fi);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(w-fi-fl,fi);ctx.lineTo(w-fi,fi);ctx.lineTo(w-fi,fi+fl);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(fi,h-fi-fl);ctx.lineTo(fi,h-fi);ctx.lineTo(fi+fl,h-fi);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(w-fi-fl,h-fi);ctx.lineTo(w-fi,h-fi);ctx.lineTo(w-fi,h-fi-fl);ctx.stroke();
+  } else if (v === "o-double") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=1; const fl=18;
+    for (const fi of [8,14]) {
+      ctx.beginPath();ctx.moveTo(fi,fi+fl);ctx.lineTo(fi,fi);ctx.lineTo(fi+fl,fi);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(w-fi-fl,fi);ctx.lineTo(w-fi,fi);ctx.lineTo(w-fi,fi+fl);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(fi,h-fi-fl);ctx.lineTo(fi,h-fi);ctx.lineTo(fi+fl,h-fi);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(w-fi-fl,h-fi);ctx.lineTo(w-fi,h-fi);ctx.lineTo(w-fi,h-fi-fl);ctx.stroke();
+    }
+  } else if (v === "o-nouveau") {
+    ctx.globalAlpha=0.45; ctx.lineWidth=1.2;
+    const pairs = [[8,35,8,8,35,8],[12,40,12,12,40,12]];
+    for (const [x1,y1,cx1,cy1,x2,y2] of pairs) {
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(cx1,cy1,x2,y2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(w-x1,y1);ctx.quadraticCurveTo(w-cx1,cy1,w-x2,y2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x1,h-y1);ctx.quadraticCurveTo(cx1,h-cy1,x2,h-y2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(w-x1,h-y1);ctx.quadraticCurveTo(w-cx1,h-cy1,w-x2,h-y2);ctx.stroke();
+    }
+  } else if (v === "o-filigree") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=1;
+    const y1=h*0.28,y2=h*0.72,L=30,R=w-30;
+    ctx.beginPath();ctx.moveTo(L,y1);ctx.lineTo(R,y1);ctx.stroke();
+    ctx.beginPath();ctx.arc(L,y1+6,6,-Math.PI/2,Math.PI,true);ctx.stroke();
+    ctx.beginPath();ctx.arc(R,y1+6,6,-Math.PI/2,0);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(L,y2);ctx.lineTo(R,y2);ctx.stroke();
+    ctx.beginPath();ctx.arc(L,y2-6,6,Math.PI/2,Math.PI);ctx.stroke();
+    ctx.beginPath();ctx.arc(R,y2-6,6,0,Math.PI/2);ctx.stroke();
+    dm(w/2,y1,2.5);dm(w/2,y2,2.5);
+  } else if (v === "o-gothic") {
+    ctx.globalAlpha=0.45; ctx.lineWidth=1.2; const inX=30,inY=12;
+    ctx.beginPath(); ctx.moveTo(inX,h-inY); ctx.lineTo(inX,inY+20); ctx.quadraticCurveTo(inX,inY,w/2,inY-2); ctx.quadraticCurveTo(w-inX,inY,w-inX,inY+20); ctx.lineTo(w-inX,h-inY); ctx.lineTo(inX,h-inY); ctx.closePath(); ctx.stroke();
+    ctx.beginPath();ctx.moveTo(w/2-4,inY+2);ctx.lineTo(w/2,inY-4);ctx.lineTo(w/2+4,inY+2);ctx.stroke();
+  } else if (v === "o-stars") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=1; ctx.strokeRect(10,10,w-20,h-20);
+    const star = (cx,cy,r) => { for(let i=0;i<4;i++){const a=(i*Math.PI)/2; ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);ctx.stroke();} ctx.beginPath();ctx.arc(cx,cy,1.5,0,Math.PI*2);ctx.fill(); };
+    star(10,10,8);star(w-10,10,8);star(10,h-10,8);star(w-10,h-10,8);
+  } else if (v === "o-hatch") {
+    ctx.globalAlpha=0.35; ctx.lineWidth=0.8; const sz=20,sp=5,off=8;
+    const hatch=(ox,oy)=>{for(let i=0;i<sz;i+=sp){ctx.beginPath();ctx.moveTo(ox+i,oy);ctx.lineTo(ox+i,oy+sz);ctx.stroke();ctx.beginPath();ctx.moveTo(ox,oy+i);ctx.lineTo(ox+sz,oy+i);ctx.stroke();}};
+    hatch(off,off);hatch(w-off-sz,off);hatch(off,h-off-sz);hatch(w-off-sz,h-off-sz);
+    ctx.globalAlpha=0.3; ctx.beginPath();ctx.moveTo(off+sz+4,off+2);ctx.lineTo(w-off-sz-4,off+2);ctx.stroke(); ctx.beginPath();ctx.moveTo(off+sz+4,h-off-2);ctx.lineTo(w-off-sz-4,h-off-2);ctx.stroke();
+  } else if (v === "o-crest") {
+    ctx.globalAlpha=0.5; const cx2=w/2,cy2=h*0.28;
+    ctx.save();ctx.translate(cx2,cy2);ctx.rotate(Math.PI/4);ctx.lineWidth=1;ctx.strokeRect(-6,-6,12,12);ctx.restore();
+    ctx.beginPath();ctx.arc(cx2,cy2,2,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.moveTo(cx2-30,cy2);ctx.lineTo(cx2-10,cy2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx2+10,cy2);ctx.lineTo(cx2+30,cy2);ctx.stroke();
+    const uy=h*0.72; ctx.beginPath();ctx.moveTo(w/2-40,uy);ctx.lineTo(w/2+40,uy);ctx.stroke();
+    ctx.beginPath();ctx.arc(w/2-40,uy,1.5,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(w/2+40,uy,1.5,0,Math.PI*2);ctx.fill();
+  } else if (v === "o-wings") {
+    ctx.globalAlpha=0.5; ctx.lineWidth=1.2; const cy2=h/2;
+    ctx.beginPath();ctx.moveTo(w/2-60,cy2);ctx.quadraticCurveTo(w/2-80,cy2-20,w/2-100,cy2-8);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(w/2-60,cy2);ctx.quadraticCurveTo(w/2-80,cy2+20,w/2-100,cy2+8);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(w/2+60,cy2);ctx.quadraticCurveTo(w/2+80,cy2-20,w/2+100,cy2-8);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(w/2+60,cy2);ctx.quadraticCurveTo(w/2+80,cy2+20,w/2+100,cy2+8);ctx.stroke();
+    dm(w/2-58,cy2,2);dm(w/2+58,cy2,2);
+  } else if (v === "o-chain") {
+    ctx.globalAlpha=0.4; ctx.lineWidth=1; const ds=4,gap=12;
+    for(let x=20;x<w-20;x+=gap){ctx.save();ctx.translate(x,10);ctx.rotate(Math.PI/4);ctx.strokeRect(-ds/2,-ds/2,ds,ds);ctx.restore();}
+    for(let x=20;x<w-20;x+=gap){ctx.save();ctx.translate(x,h-10);ctx.rotate(Math.PI/4);ctx.strokeRect(-ds/2,-ds/2,ds,ds);ctx.restore();}
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ═══ MAIN DRAWING ═══ */
+function drawHeader(canvas, opts) {
+  const { label, subtitle, icon, shape, borderVariant, ornateVariant, iconLayout, size, colors, font, fontSize, letterSpacing, textTransform, useIcon, useSubtitle } = opts;
+  const { w, h } = size; const dpr = 2;
+  canvas.width = w*dpr; canvas.height = h*dpr; canvas.style.width = w+"px"; canvas.style.height = h+"px";
+  const ctx = canvas.getContext("2d"); ctx.scale(dpr, dpr);
+  const { bg1, bg2, accent, text } = colors;
+  const displayText = textTransform === "uppercase" ? label.toUpperCase() : textTransform === "lowercase" ? label.toLowerCase() : label;
+  const weight = font === "Raleway" ? "300" : "600";
+  const fs = fontSize;
+
+  const drawTextSpaced = (txt,cx,cy,align="center") => {
+    ctx.font = `${weight} ${fs}px "${font}", serif`; ctx.fillStyle = text; ctx.textBaseline = "middle";
+    if (letterSpacing > 0) { const chars=txt.split(""); const tw=chars.reduce((s,ch)=>s+ctx.measureText(ch).width,0)+letterSpacing*(chars.length-1); let x=align==="center"?cx-tw/2:cx; ctx.textAlign="left"; for(const ch of chars){ctx.fillText(ch,x,cy);x+=ctx.measureText(ch).width+letterSpacing;} }
+    else { ctx.textAlign = align; ctx.fillText(txt,cx,cy); }
+  };
+  const drawSub = (sub,cx,cy,align="center") => { ctx.font=`300 ${Math.max(9,fs*0.48)}px "${font}", serif`; ctx.fillStyle=accent; ctx.globalAlpha=0.6; ctx.textAlign=align; ctx.textBaseline="middle"; ctx.fillText(sub,cx,cy); ctx.globalAlpha=1; };
+  const drawIconGlyph = (ic,cx,cy,sz=fs) => { ctx.font=`${sz}px "Segoe UI Symbol", "Apple Symbols", sans-serif`; ctx.fillStyle=accent; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(ic,cx,cy); };
+  const fillBg = () => { const g=ctx.createLinearGradient(0,0,w,h); g.addColorStop(0,bg1); g.addColorStop(1,bg2); ctx.fillStyle=g; ctx.fillRect(0,0,w,h); };
+
+  let bx=14, by=6, bw=w-28, bh=h-12;
+  if (shape==="pill") { const pad=h/2+4; bx=pad; bw=w-pad*2; }
+  else if (shape==="rounded") { bx=18;by=16;bw=w-36;bh=h-32; }
+  else if (shape==="floating") { bx=30;by=18;bw=w-60;bh=h-36; }
+  else if (shape==="border") { bx=16;by=16;bw=w-32;bh=h-32; }
+  else if (shape==="ornate") { bx=22;by=18;bw=w-44;bh=h-36; }
+  else if (shape==="sidestripe") { bx=18;bw=w-30; }
+
+  const bcx=bx+bw/2, bcy=by+bh/2;
+  const blockW = Math.min(60, bw*0.22);
+  let iconX=bx+blockW/2, iconY=bcy;
+  let textX=bcx, textY=bcy, textAlign="center";
+  let subY=bcy+bh*0.22;
+
+  if (useIcon && icon) {
+    const il=iconLayout;
+    if (il==="icon-left"||il==="icon-subtitle") { iconX=bx+22; textX=bx+50; textAlign="left"; }
+    else if (il==="icon-left-block") { iconX=bx+blockW/2; textX=bx+blockW+8+(bw-blockW-8)/2; }
+    else if (il==="icon-right-block") { iconX=bx+bw-blockW/2; textX=bx+(bw-blockW-8)/2; }
+    else if (il==="icon-badge") { const br=Math.min(22,bh/2-4); iconX=bx+br+6; textX=bx+br*2+20; textAlign="left"; }
+    else if (il==="icon-diamond") { iconX=bx+22; textX=bx+52; textAlign="left"; }
+  }
+  if (useSubtitle && subtitle) { textY=bcy-bh*0.12; subY=bcy+bh*0.18; }
+
+  const makeShapePath = () => {
+    if (shape==="pill") { const r=h/2; ctx.beginPath();ctx.moveTo(r,0);ctx.lineTo(w-r,0);ctx.arc(w-r,r,r,-Math.PI/2,Math.PI/2);ctx.lineTo(r,h);ctx.arc(r,r,r,Math.PI/2,-Math.PI/2);ctx.closePath(); }
+    else if (shape==="rounded") { ctx.beginPath();ctx.roundRect(4,4,w-8,h-8,14); }
+    else if (shape==="floating") { ctx.beginPath();ctx.roundRect(20,10,w-40,h-20,8); }
+  };
+
+  // Shape background
+  if (shape==="flat") fillBg();
+  else if (shape==="pill") { const g=ctx.createLinearGradient(0,0,w,0);g.addColorStop(0,bg1);g.addColorStop(1,bg2); makeShapePath();ctx.fillStyle=g;ctx.fill(); }
+  else if (shape==="rounded") { ctx.shadowColor="rgba(0,0,0,0.3)";ctx.shadowBlur=12;ctx.shadowOffsetY=4; const g=ctx.createLinearGradient(0,0,w,h);g.addColorStop(0,bg1);g.addColorStop(1,bg2); makeShapePath();ctx.fillStyle=g;ctx.fill();ctx.shadowColor="transparent"; }
+  else if (shape==="bottombar") { fillBg(); ctx.fillStyle=accent;ctx.fillRect(0,h-5,w,5); }
+  else if (shape==="sidestripe") { fillBg(); ctx.fillStyle=accent;ctx.fillRect(0,0,6,h); if(!useIcon){textX=bx+bw/2;textAlign="center";} }
+  else if (shape==="split") { fillBg(); ctx.beginPath();ctx.moveTo(w*0.6,0);ctx.lineTo(w,0);ctx.lineTo(w,h);ctx.lineTo(w*0.4,h);ctx.closePath();ctx.fillStyle=accent+"1e";ctx.fill(); ctx.beginPath();ctx.moveTo(w*0.6,0);ctx.lineTo(w*0.4,h);ctx.strokeStyle=accent;ctx.globalAlpha=0.4;ctx.lineWidth=1.5;ctx.stroke();ctx.globalAlpha=1; }
+  else if (shape==="border") { fillBg(); drawBorderDecor(ctx,w,h,accent,borderVariant); }
+  else if (shape==="ornate") { fillBg(); drawOrnateDecor(ctx,w,h,accent,ornateVariant,useIcon,bcy); }
+  else if (shape==="floating") { const ix=20,iy=10,tw2=w-40,th2=h-20; ctx.shadowColor="rgba(0,0,0,0.35)";ctx.shadowBlur=16;ctx.shadowOffsetY=6; const g=ctx.createLinearGradient(ix,iy,ix+tw2,iy+th2);g.addColorStop(0,bg1);g.addColorStop(1,bg2); makeShapePath();ctx.fillStyle=g;ctx.fill();ctx.shadowColor="transparent"; ctx.fillStyle=accent;ctx.globalAlpha=0.7;ctx.beginPath();ctx.roundRect(ix,iy,tw2,3,[8,8,0,0]);ctx.fill();ctx.globalAlpha=1; }
+
+  // Icons
+  if (useIcon && icon) {
+    const needsClip=["pill","rounded","floating"].includes(shape);
+    if (needsClip) { ctx.save(); makeShapePath(); ctx.clip(); }
+    const il=iconLayout;
+    if (il==="icon-left"||il==="icon-subtitle") { ctx.fillStyle=accent;ctx.globalAlpha=0.12;ctx.beginPath();ctx.arc(iconX,iconY,Math.min(20,bh/2-4),0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;drawIconGlyph(icon,iconX,iconY,fs); }
+    else if (il==="icon-left-block") { ctx.fillStyle=accent;ctx.globalAlpha=0.18;ctx.fillRect(0,0,bx+blockW,h);ctx.globalAlpha=1; ctx.strokeStyle=accent;ctx.globalAlpha=0.4;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(bx+blockW,by+6);ctx.lineTo(bx+blockW,by+bh-6);ctx.stroke();ctx.globalAlpha=1; drawIconGlyph(icon,iconX,iconY,fs); }
+    else if (il==="icon-right-block") { const rbx=bx+bw-blockW; ctx.fillStyle=accent;ctx.globalAlpha=0.18;ctx.fillRect(rbx,0,w-rbx,h);ctx.globalAlpha=1; ctx.strokeStyle=accent;ctx.globalAlpha=0.4;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(rbx,by+6);ctx.lineTo(rbx,by+bh-6);ctx.stroke();ctx.globalAlpha=1; drawIconGlyph(icon,iconX,iconY,fs); }
+    else if (il==="icon-both") { ctx.globalAlpha=0.6;drawIconGlyph(icon,bx+18,iconY,fs*0.85);drawIconGlyph(icon,bx+bw-18,iconY,fs*0.85);ctx.globalAlpha=1; }
+    else if (il==="icon-badge") { const br=Math.min(22,bh/2-4); ctx.strokeStyle=accent;ctx.globalAlpha=0.5;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(iconX,iconY,br,0,Math.PI*2);ctx.stroke(); ctx.fillStyle=accent;ctx.globalAlpha=0.1;ctx.beginPath();ctx.arc(iconX,iconY,br-2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;drawIconGlyph(icon,iconX,iconY,fs); }
+    else if (il==="icon-watermark") { const wmSize=Math.min(60,bh*1.2); ctx.font=`${wmSize}px "Segoe UI Symbol","Apple Symbols",sans-serif`;ctx.fillStyle=accent;ctx.globalAlpha=0.06;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(icon,bcx,bcy);ctx.globalAlpha=1; }
+    else if (il==="icon-diamond") { const ds=Math.min(20,bh/2-6); ctx.save();ctx.translate(iconX,iconY);ctx.rotate(Math.PI/4);ctx.strokeStyle=accent;ctx.globalAlpha=0.5;ctx.lineWidth=1.5;ctx.strokeRect(-ds/2,-ds/2,ds,ds);ctx.fillStyle=accent;ctx.globalAlpha=0.08;ctx.fillRect(-ds/2,-ds/2,ds,ds);ctx.restore();ctx.globalAlpha=1;drawIconGlyph(icon,iconX,iconY,fs*0.8); }
+    if (needsClip) ctx.restore();
+  }
+
+  drawTextSpaced(displayText,textX,textY,textAlign);
+  if (useSubtitle && subtitle) drawSub(subtitle,textX,subY,textAlign);
+}
+
+function downloadCanvas(c,fn) { const a=document.createElement("a");a.download=fn;a.href=c.toDataURL("image/png");a.click(); }
+
+function MiniPreview({ opts }) {
+  const ref = useRef(null);
+  useEffect(() => { if(ref.current){ const t=setTimeout(()=>drawHeader(ref.current,opts),100); return ()=>clearTimeout(t); } }, [opts]);
+  return <div style={{background:"#f1f5f9",borderRadius:12,padding:12,marginTop:10,display:"flex",justifyContent:"center"}}><canvas ref={ref} style={{borderRadius:6,display:"block"}} /></div>;
+}
+function Thumb({ drawFn, active, onClick }) {
+  const ref = useRef(null);
+  useEffect(() => { if(ref.current) drawFn(ref.current); }, [drawFn]);
+  return <canvas ref={ref} onClick={onClick} style={{display:"block",borderRadius:6,cursor:"pointer",border:active?"2px solid #4f46e5":"2px solid transparent"}} />;
+}
+
+const S = {
+  page:{minHeight:"100vh",background:"#f8fafc",color:"#0f172a",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif"},
+  wrap:{maxWidth:760,margin:"0 auto",padding:"32px 20px"},
+  h1:{fontSize:28,fontWeight:700,marginBottom:4,background:"linear-gradient(135deg,#4f46e5,#7c3aed)",WebkitBackgroundClip:"text",backgroundClip:"text",color:"transparent"},
+  sub:{fontSize:14,color:"#64748b",marginBottom:28},
+  card:{background:"#fff",border:"1px solid rgba(226,232,240,0.7)",borderRadius:16,padding:20,boxShadow:"0 1px 3px rgba(0,0,0,0.08)",marginBottom:16},
+  label:{fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.1em",color:"#64748b",marginBottom:10,display:"block"},
+  row:{display:"flex",flexWrap:"wrap",gap:8},
+  input:{flex:1,padding:"8px 12px",borderRadius:12,border:"1px solid #e2e8f0",background:"#f8fafc",fontSize:14,outline:"none",minWidth:120},
+  btnP:{padding:"8px 16px",borderRadius:12,border:"none",background:"#4f46e5",color:"#fff",fontSize:13,cursor:"pointer",fontWeight:600},
+  footer:{fontSize:14,color:"#94a3b8",borderTop:"1px solid rgba(226,232,240,0.6)",paddingTop:24,marginTop:24,textAlign:"center"},
+  stepNum:{display:"inline-flex",alignItems:"center",justifyContent:"center",width:22,height:22,borderRadius:999,background:"#4f46e5",color:"#fff",fontSize:11,fontWeight:700,marginRight:8},
+};
+const tog = on => ({padding:"8px 16px",borderRadius:12,fontSize:13,cursor:"pointer",fontWeight:500,transition:"all 0.15s",border:on?"1px solid #4f46e5":"1px solid #e2e8f0",background:on?"rgba(79,70,229,0.08)":"#f8fafc",color:on?"#4338ca":"#64748b"});
+
+export default function App() {
+  const [useIcon,setUseIcon] = useState(false);
+  const [useSubtitle,setUseSubtitle] = useState(false);
+  const [labels,setLabels] = useState([{title:"About",subtitle:"",icon:"\u2726"},{title:"History",subtitle:"",icon:"\u2726"},{title:"Relationships",subtitle:"",icon:"\u2726"},{title:"Threads",subtitle:"",icon:"\u2726"}]);
+  const [newTitle,setNewTitle] = useState("");
+  const [shape,setShape] = useState("flat");
+  const [borderVariant,setBorderVariant] = useState("b-simple");
+  const [ornateVariant,setOrnateVariant] = useState("o-brackets");
+  const [iconLayout,setIconLayout] = useState("icon-left");
+  const [sizeIdx,setSizeIdx] = useState(0);
+  const [presetId,setPresetId] = useState("dark-academia");
+  const [customMode,setCustomMode] = useState(false);
+  const [customColors,setCustomColors] = useState({bg1:"#1a1510",bg2:"#2d261e",accent:"#c9a96e",text:"#e8dcc8"});
+  const [font,setFont] = useState("Cinzel");
+  const [fontSize,setFontSize] = useState(20);
+  const [letterSpacing,setLetterSpacing] = useState(4);
+  const [textTransform,setTextTransform] = useState("uppercase");
+
+  const preset = COLOR_PRESETS.find(p=>p.id===presetId)||COLOR_PRESETS[0];
+  const colors = customMode ? customColors : {bg1:preset.bg1,bg2:preset.bg2,accent:preset.accent,text:preset.text};
+  const size = SIZES[sizeIdx];
+
+  const addLabel = () => { const t=newTitle.trim(); if(t){setLabels(p=>[...p,{title:t,subtitle:"",icon:"\u2726"}]);setNewTitle("");} };
+  const removeLabel = i => setLabels(p=>p.filter((_,idx)=>idx!==i));
+  const updateLabel = (i,patch) => setLabels(p=>p.map((l,idx)=>idx===i?{...l,...patch}:l));
+  const canvasRefs = useRef({});
+  const setCanvasRef = useCallback(i=>el=>{canvasRefs.current[i]=el;},[]);
+
+  useEffect(() => { if(!document.querySelector("link[data-hf]")){const link=document.createElement("link");link.rel="stylesheet";link.href=FONTS_URL;link.dataset.hf="1";document.head.appendChild(link);} }, []);
+
+  const buildOpts = l => ({label:l.title,subtitle:l.subtitle,icon:l.icon,shape,borderVariant,ornateVariant,iconLayout,size,colors,font,fontSize,letterSpacing,textTransform,useIcon,useSubtitle});
+  const previewOpts = buildOpts(labels[0]||{title:"About",subtitle:"a little about me",icon:"\u2726"});
+
+  useEffect(() => {
+    const t = setTimeout(() => { labels.forEach((l,i)=>{const c=canvasRefs.current[i];if(c&&l.title.trim())drawHeader(c,buildOpts(l));}); }, 300);
+    return () => clearTimeout(t);
+  }, [labels,shape,borderVariant,ornateVariant,iconLayout,size,colors,font,fontSize,letterSpacing,textTransform,useIcon,useSubtitle]);
+
+  const downloadOne = (l,i) => { const c=canvasRefs.current[i]; if(c) downloadCanvas(c,`${l.title.toLowerCase().replace(/\s+/g,"-")}-header.png`); };
+  const downloadAll = () => labels.forEach((l,i)=>setTimeout(()=>downloadOne(l,i),i*200));
+
+  const drawShapeThumb = useCallback(sid => c => {
+    const tw=100,th=32,dpr=2;c.width=tw*dpr;c.height=th*dpr;c.style.width=tw+"px";c.style.height=th+"px";
+    const ctx=c.getContext("2d");ctx.scale(dpr,dpr);
+    const g=ctx.createLinearGradient(0,0,tw,th);g.addColorStop(0,colors.bg1);g.addColorStop(1,colors.bg2);
+    if(sid==="pill"){const r=th/2;ctx.beginPath();ctx.moveTo(r,0);ctx.lineTo(tw-r,0);ctx.arc(tw-r,r,r,-Math.PI/2,Math.PI/2);ctx.lineTo(r,th);ctx.arc(r,r,r,Math.PI/2,-Math.PI/2);ctx.closePath();ctx.fillStyle=g;ctx.fill();}
+    else if(sid==="rounded"){ctx.beginPath();ctx.roundRect(2,2,tw-4,th-4,8);ctx.fillStyle=g;ctx.fill();}
+    else if(sid==="floating"){ctx.shadowColor="rgba(0,0,0,0.3)";ctx.shadowBlur=6;ctx.shadowOffsetY=3;ctx.beginPath();ctx.roundRect(8,4,tw-16,th-8,5);ctx.fillStyle=g;ctx.fill();ctx.shadowColor="transparent";ctx.fillStyle=colors.accent;ctx.globalAlpha=0.7;ctx.beginPath();ctx.roundRect(8,4,tw-16,2,[5,5,0,0]);ctx.fill();ctx.globalAlpha=1;}
+    else{ctx.fillStyle=g;ctx.fillRect(0,0,tw,th);
+      if(sid==="bottombar"){ctx.fillStyle=colors.accent;ctx.fillRect(0,th-3,tw,3);}
+      else if(sid==="sidestripe"){ctx.fillStyle=colors.accent;ctx.fillRect(0,0,4,th);}
+      else if(sid==="split"){ctx.beginPath();ctx.moveTo(tw*0.6,0);ctx.lineTo(tw,0);ctx.lineTo(tw,th);ctx.lineTo(tw*0.4,th);ctx.closePath();ctx.fillStyle=colors.accent+"1e";ctx.fill();}
+      else if(sid==="border"){ctx.strokeStyle=colors.accent;ctx.globalAlpha=0.6;ctx.lineWidth=1;ctx.strokeRect(3,3,tw-6,th-6);ctx.globalAlpha=1;}
+      else if(sid==="ornate"){ctx.strokeStyle=colors.accent;ctx.globalAlpha=0.5;ctx.lineWidth=0.8;const f=5,l=8;
+        ctx.beginPath();ctx.moveTo(f,f+l);ctx.lineTo(f,f);ctx.lineTo(f+l,f);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(tw-f-l,f);ctx.lineTo(tw-f,f);ctx.lineTo(tw-f,f+l);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(f,th-f-l);ctx.lineTo(f,th-f);ctx.lineTo(f+l,th-f);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(tw-f-l,th-f);ctx.lineTo(tw-f,th-f);ctx.lineTo(tw-f,th-f-l);ctx.stroke();ctx.globalAlpha=1;}
+    }
+  }, [colors]);
+
+  const stepN = (n) => useIcon ? n : (n > 4 ? n-1 : n);
+
+  return (
+    <div style={S.page}><div style={S.wrap}>
+      <h1 style={S.h1}>Character Library Headers</h1>
+      <p style={S.sub}>Build your headers step by step. A preview updates after each choice.</p>
+
+      <div style={S.card}>
+        <span style={S.label}><span style={S.stepNum}>1</span>Icons</span>
+        <div style={{display:"flex",gap:6}}>
+          <button style={tog(!useIcon)} onClick={()=>setUseIcon(false)}>Text Only</button>
+          <button style={tog(useIcon)} onClick={()=>setUseIcon(true)}>Text & Icon</button>
+        </div>
+        <MiniPreview opts={previewOpts} />
+      </div>
+
+      <div style={S.card}>
+        <span style={S.label}><span style={S.stepNum}>2</span>Subtitle</span>
+        <div style={{display:"flex",gap:6}}>
+          <button style={tog(!useSubtitle)} onClick={()=>setUseSubtitle(false)}>Title Only</button>
+          <button style={tog(useSubtitle)} onClick={()=>setUseSubtitle(true)}>Title & Subtitle</button>
+        </div>
+        <MiniPreview opts={{...previewOpts, subtitle: useSubtitle ? (labels[0]?.subtitle || "a little about me") : ""}} />
+      </div>
+
+      <div style={S.card}>
+        <span style={S.label}><span style={S.stepNum}>3</span>Shape</span>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(110px,1fr))",gap:8}}>
+          {SHAPES.map(s => <div key={s.id} style={{textAlign:"center"}}>
+            <Thumb drawFn={drawShapeThumb(s.id)} active={shape===s.id} onClick={()=>setShape(s.id)} />
+            <div style={{fontSize:11,color:shape===s.id?"#4338ca":"#94a3b8",marginTop:4,fontWeight:shape===s.id?600:400}}>{s.name}</div>
+          </div>)}
+        </div>
+
+        {shape==="border" && (<div style={{marginTop:12,paddingTop:12,borderTop:"1px solid #e2e8f0"}}>
+          <span style={{fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.1em",color:"#94a3b8",display:"block",marginBottom:8}}>Border Style</span>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(85px,1fr))",gap:6}}>
+            {BORDER_VARIANTS.map(v => <button key={v.id} onClick={()=>setBorderVariant(v.id)} style={{...tog(borderVariant===v.id),padding:"6px 8px",fontSize:11,textAlign:"center"}}>{v.name}</button>)}
+          </div>
+        </div>)}
+
+        {shape==="ornate" && (<div style={{marginTop:12,paddingTop:12,borderTop:"1px solid #e2e8f0"}}>
+          <span style={{fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.1em",color:"#94a3b8",display:"block",marginBottom:8}}>Ornate Style</span>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(85px,1fr))",gap:6}}>
+            {ORNATE_VARIANTS.map(v => <button key={v.id} onClick={()=>setOrnateVariant(v.id)} style={{...tog(ornateVariant===v.id),padding:"6px 8px",fontSize:11,textAlign:"center"}}>{v.name}</button>)}
+          </div>
+        </div>)}
+
+        <MiniPreview opts={previewOpts} />
+      </div>
+
+      {useIcon && <div style={S.card}>
+        <span style={S.label}><span style={S.stepNum}>4</span>Icon Layout</span>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(90px,1fr))",gap:8}}>
+          {ICON_LAYOUTS.map(il => <button key={il.id} onClick={()=>setIconLayout(il.id)} style={{...tog(iconLayout===il.id),padding:"8px 10px",fontSize:12,textAlign:"center"}}>{il.name}</button>)}
+        </div>
+        <MiniPreview opts={previewOpts} />
+      </div>}
+
+      <div style={S.card}>
+        <span style={S.label}><span style={S.stepNum}>{stepN(5)}</span>Size</span>
+        <div style={S.row}>{SIZES.map((s,i) => <button key={i} style={tog(sizeIdx===i)} onClick={()=>setSizeIdx(i)}>{s.label}</button>)}</div>
+        <MiniPreview opts={previewOpts} />
+      </div>
+
+      <div style={S.card}>
+        <span style={S.label}><span style={S.stepNum}>{stepN(6)}</span>Colors</span>
+        {["dark","light","neutral"].map(group => (
+          <div key={group} style={{marginBottom:10}}>
+            <div style={{fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.1em",color:"#94a3b8",marginBottom:6}}>{group}</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+              {COLOR_PRESETS.filter(p=>p.g===group).map(p => (
+                <button key={p.id} onClick={()=>{setPresetId(p.id);setCustomMode(false);}} title={p.id.replace(/-/g," ")}
+                  style={{width:36,height:36,borderRadius:8,cursor:"pointer",transition:"all 0.15s",background:`linear-gradient(135deg,${p.bg1},${p.bg2})`,border:!customMode&&presetId===p.id?`2px solid ${p.accent}`:"2px solid transparent",boxShadow:!customMode&&presetId===p.id?`0 0 0 1px ${p.accent}40`:"none"}}>
+                  <div style={{width:8,height:8,borderRadius:99,background:p.accent,margin:"auto",opacity:0.8}} />
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+        <button onClick={()=>setCustomMode(true)} style={{borderRadius:10,padding:"8px 14px",fontSize:11,cursor:"pointer",background:customMode?"rgba(79,70,229,0.08)":"#f8fafc",color:"#4338ca",border:customMode?"1px solid #4f46e5":"1px solid #e2e8f0",fontWeight:500}}>{"\u270e"} Customize</button>
+        {customMode && <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:12,paddingTop:10,marginTop:10,borderTop:"1px solid #e2e8f0"}}>
+          {[["bg1","Bg Start"],["bg2","Bg End"],["text","Text"],["accent","Accent"]].map(([k,lbl]) => <div key={k}>
+            <span style={{fontSize:11,color:"#64748b"}}>{lbl}</span>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginTop:4}}>
+              <input type="color" value={customColors[k]} onChange={e=>setCustomColors(p=>({...p,[k]:e.target.value}))} style={{width:32,height:32,border:"1px solid #e2e8f0",borderRadius:6,cursor:"pointer",padding:1}} />
+              <span style={{fontSize:11,color:"#94a3b8",fontFamily:"monospace"}}>{customColors[k]}</span>
+            </div>
+          </div>)}
+        </div>}
+        <MiniPreview opts={previewOpts} />
+      </div>
+
+      <div style={S.card}>
+        <span style={S.label}><span style={S.stepNum}>{stepN(7)}</span>Typography</span>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12}}>
+          <div><span style={{fontSize:11,color:"#64748b"}}>Font</span>
+            <select value={font} onChange={e=>setFont(e.target.value)} style={{display:"block",marginTop:4,width:"100%",padding:"8px 10px",borderRadius:12,border:"1px solid #e2e8f0",background:"#f8fafc",fontSize:13,outline:"none"}}>{FONTS.map(f=><option key={f} value={f}>{f}</option>)}</select></div>
+          <div><span style={{fontSize:11,color:"#64748b"}}>Size ({fontSize}px)</span><input type="range" min={14} max={36} value={fontSize} onChange={e=>setFontSize(+e.target.value)} style={{width:"100%",marginTop:8,accentColor:"#4f46e5"}} /></div>
+          <div><span style={{fontSize:11,color:"#64748b"}}>Spacing ({letterSpacing}px)</span><input type="range" min={0} max={12} value={letterSpacing} onChange={e=>setLetterSpacing(+e.target.value)} style={{width:"100%",marginTop:8,accentColor:"#4f46e5"}} /></div>
+          <div><span style={{fontSize:11,color:"#64748b"}}>Case</span><div style={{display:"flex",gap:6,marginTop:4}}><button style={tog(textTransform==="uppercase")} onClick={()=>setTextTransform("uppercase")}>UPPER</button><button style={tog(textTransform==="none")} onClick={()=>setTextTransform("none")}>Title</button><button style={tog(textTransform==="lowercase")} onClick={()=>setTextTransform("lowercase")}>lower</button></div></div>
+        </div>
+        <MiniPreview opts={previewOpts} />
+      </div>
+
+      <div style={S.card}>
+        <span style={S.label}><span style={S.stepNum}>{stepN(8)}</span>Labels</span>
+        <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:10}}>
+          {labels.map((l,i) => (
+            <div key={i} style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+              <input style={{...S.input,flex:2,minWidth:100}} value={l.title} onChange={e=>updateLabel(i,{title:e.target.value})} placeholder="Title" />
+              {useSubtitle && <input style={{...S.input,flex:2,minWidth:100}} value={l.subtitle} onChange={e=>updateLabel(i,{subtitle:e.target.value})} placeholder="Subtitle" />}
+              {useIcon && <input style={{...S.input,flex:0,width:50,minWidth:50,textAlign:"center"}} value={l.icon} onChange={e=>updateLabel(i,{icon:e.target.value})} />}
+              <button onClick={()=>removeLabel(i)} style={{background:"none",border:"none",color:"#94a3b8",cursor:"pointer",fontSize:18,padding:"0 4px"}}>{"\u00d7"}</button>
+            </div>
+          ))}
+        </div>
+        <div style={S.row}>
+          <input style={S.input} value={newTitle} onChange={e=>setNewTitle(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addLabel()} placeholder="Add a label..." />
+          <button style={S.btnP} onClick={addLabel}>Add</button>
+        </div>
+        {useIcon && <div style={{marginTop:10}}>
+          <span style={{fontSize:11,color:"#94a3b8"}}>Quick icons (sets all):</span>
+          <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:4}}>
+            {POPULAR_ICONS.map((ic,i) => <button key={i} onClick={()=>setLabels(p=>p.map(l=>({...l,icon:ic})))} style={{width:32,height:32,borderRadius:8,border:"1px solid #e2e8f0",background:"#f8fafc",cursor:"pointer",fontSize:15,display:"flex",alignItems:"center",justifyContent:"center"}}>{ic}</button>)}
+          </div>
+        </div>}
+      </div>
+
+      <div style={S.card}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+          <span style={{...S.label,margin:0}}>{"\ud83c\udfa8"} Final Preview</span>
+          {labels.length>1 && <button style={S.btnP} onClick={downloadAll}>Download All</button>}
+        </div>
+        {labels.length===0 && <p style={{fontSize:13,color:"#94a3b8",fontStyle:"italic"}}>Add labels above to preview.</p>}
+        {labels.map((l,i) => <div key={i+l.title} style={{display:"flex",alignItems:"center",gap:12,marginBottom:10,flexWrap:"wrap"}}>
+          <canvas ref={setCanvasRef(i)} style={{borderRadius:8,display:"block",flexShrink:0}} />
+          <button onClick={()=>downloadOne(l,i)} style={{padding:"6px 12px",borderRadius:8,border:"1px solid #e2e8f0",background:"#fff",color:"#64748b",fontSize:12,cursor:"pointer"}}>Save PNG</button>
+        </div>)}
+      </div>
+
+      <div style={S.footer}>Unofficial Potterworld utilities {"\u2022"} Made by {"\u2728"} mel for the community</div>
+    </div></div>
+  );
+}
