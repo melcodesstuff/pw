@@ -1,5 +1,39 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Character Library Headers</title>
+  <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="header" style="margin-bottom:1rem;">
+      <div>
+        <h1 class="title">Character Library Headers</h1>
+        <p class="subtitle">Generate styled panel headers for your character libraries. Add labels, pick a template, customize, and download as PNGs.</p>
+      </div>
+      <a class="home-link" href="../index.html" aria-label="Go to home">
+        <span class="icon" aria-hidden="true">🏰</span>
+        Home
+      </a>
+    </header>
 
+    <div id="root"></div>
+
+    <footer class="footer" style="margin-top:2rem;">
+      <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
+    </footer>
+  </div>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+const { useState, useRef, useEffect, useCallback } = React;
 const SHAPES = [
   {id:"flat",name:"Flat"},{id:"pill",name:"Pill"},{id:"rounded",name:"Rounded"},
   {id:"bottombar",name:"Bottom Bar"},{id:"sidestripe",name:"Side Stripe"},{id:"split",name:"Split"},
@@ -305,7 +339,7 @@ const S = {
 };
 const tog = on => ({padding:"8px 16px",borderRadius:12,fontSize:13,cursor:"pointer",fontWeight:500,transition:"all 0.15s",border:on?"1px solid #4f46e5":"1px solid #e2e8f0",background:on?"rgba(79,70,229,0.08)":"#f8fafc",color:on?"#4338ca":"#64748b"});
 
-export default function App() {
+function App() {
   const [useIcon,setUseIcon] = useState(false);
   const [useSubtitle,setUseSubtitle] = useState(false);
   const [labels,setLabels] = useState([{title:"About",subtitle:"",icon:"\u2726"},{title:"History",subtitle:"",icon:"\u2726"},{title:"Relationships",subtitle:"",icon:"\u2726"},{title:"Threads",subtitle:"",icon:"\u2726"}]);
@@ -369,9 +403,7 @@ export default function App() {
   const stepN = (n) => useIcon ? n : (n > 4 ? n-1 : n);
 
   return (
-    <div style={S.page}><div style={S.wrap}>
-      <h1 style={S.h1}>Character Library Headers</h1>
-      <p style={S.sub}>Build your headers step by step. A preview updates after each choice.</p>
+    <div>
 
       <div style={S.card}>
         <span style={S.label}><span style={S.stepNum}>1</span>Icons</span>
@@ -507,7 +539,12 @@ export default function App() {
         </div>)}
       </div>
 
-      <div style={S.footer}>Unofficial Potterworld utilities {"\u2022"} Made by {"\u2728"} mel for the community</div>
-    </div></div>
+    </div>
   );
 }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
