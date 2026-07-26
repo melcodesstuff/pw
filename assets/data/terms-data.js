@@ -4,7 +4,7 @@
 */
 
 (function () {
-  // Raw lines copied from the forum (through Year 178).
+  // Raw lines copied from the forum (through Year 186).
   const RAW_TIMELINE = `
 Year 1 -- February 14 - March 24 (2007)
 Year 2 -- March 25 - April 14 (2007)
