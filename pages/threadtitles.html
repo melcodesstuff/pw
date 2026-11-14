@@ -1,349 +1,158 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shakespeare vs Swift Generator - PW Tools</title>
-    <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
-    <style>
-        /* ---------- Base reset ---------- */
-        *{margin:0;padding:0;box-sizing:border-box}
-
-        /* ---------- Base layout/typography ---------- */
-        body{
-          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-          background:#f8fafc;
-          color:#0f172a;
-          line-height:1.6;
-          transition:all .3s ease;
-        }
-        .container{max-width:800px;margin:0 auto;padding:2.5rem 1.5rem;min-height:100vh}
-
-        .header{margin-bottom:2rem;display:flex;flex-direction:column;gap:1rem;text-align:center}
-
-        .title{
-          font-size:2.5rem;font-weight:700;
-          background:linear-gradient(135deg,#4f46e5,#7c3aed);
-          -webkit-background-clip:text;background-clip:text;color:transparent;
-          margin-bottom:.5rem;
-        }
-        .subtitle{color:#64748b;font-size:1.1rem;max-width:600px;margin:0 auto}
-
-        /* ---------- Tokens ---------- */
-        :root{
-          --bg:#f8fafc;
-          --ink:#0f172a;
-          --panel:#ffffff;
-          --border:rgba(226,232,240,.7);
-          --muted:#64748b;
-          --accent:#4f46e5;
-          --shakespeare:#8b5cf6;
-          --swift:#ec4899;
-        }
-
-        /* ---------- Cards ---------- */
-        .card{
-          background:#fff;border:1px solid rgba(226,232,240,.7);border-radius:1rem;padding:1.5rem;
-          box-shadow:0 1px 3px rgba(0,0,0,.1);transition:all .3s ease;
-          margin-bottom:1.5rem;text-align:center;
-        }
-        .card:hover{box-shadow:0 10px 25px rgba(0,0,0,.1)}
-        .card-title{font-size:1.25rem;font-weight:600;margin-bottom:.75rem;color:#0f172a}
-        .card-desc{font-size:.95rem;color:#64748b;margin-bottom:1.5rem}
-
-        /* ---------- Button ---------- */
-        .btn{
-          background:linear-gradient(135deg,var(--shakespeare),var(--swift));
-          color:#fff;border:none;font-weight:600;cursor:pointer;
-          padding:1rem 2rem;border-radius:12px;font-size:1rem;
-          transition:all .3s ease;box-shadow:0 4px 15px rgba(79,70,229,.3);
-        }
-        .btn:hover{
-          transform:translateY(-2px);
-          box-shadow:0 8px 25px rgba(79,70,229,.4);
-        }
-        .btn:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
-
-        /* ---------- Result Area ---------- */
-        .result-card{
-          background:rgba(79,70,229,.05);border:1px solid rgba(79,70,229,.2);
-          border-radius:12px;padding:2rem;min-height:150px;
-          display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-        }
-
-        .result-card.shakespeare{
-          background:rgba(139,92,246,.05);border-color:rgba(139,92,246,.2);
-        }
-
-        .result-card.swift{
-          background:rgba(236,72,153,.05);border-color:rgba(236,72,153,.2);
-        }
-
-        .generated-title{
-          font-size:1.4rem;font-weight:600;color:var(--accent);
-          font-style:italic;line-height:1.4;margin-bottom:1rem;
-        }
-
-        .generated-title.shakespeare{
-          color:var(--shakespeare);
-          font-family:serif;
-        }
-
-        .generated-title.swift{
-          color:var(--swift);
-        }
-
-        .placeholder-text{
-          color:var(--muted);font-style:italic;font-size:1.1rem;
-        }
-
-        .author-label{
-          font-size:1rem;
-          color:var(--muted);
-          font-weight:600;
-          padding:.5rem 1rem;
-          border-radius:20px;
-          background:rgba(255,255,255,.7);
-        }
-
-        .author-label.shakespeare{
-          background:rgba(139,92,246,.1);
-          color:var(--shakespeare);
-        }
-
-        .author-label.swift{
-          background:rgba(236,72,153,.1);
-          color:var(--swift);
-        }
-
-        .reveal-btn {
-          background: rgba(79,70,229,.1);
-          border: 1px solid rgba(79,70,229,.3);
-          color: var(--accent);
-          padding: 0.5rem 1rem;
-          border-radius: 8px;
-          font-size: 0.85rem;
-          cursor: pointer;
-          margin-top: 1rem;
-          transition: all 0.2s ease;
-        }
-        
-        .reveal-btn:hover {
-          background: rgba(79,70,229,.2);
-          transform: translateY(-1px);
-        }
-
-        /* ---------- Checkbox ---------- */
-        input[type="checkbox"] {
-          width: 16px;
-          height: 16px;
-          accent-color: var(--accent);
-        }
-
-        /* ---------- Footer ---------- */
-        .footer{
-          font-size:.875rem;color:#94a3b8;border-top:1px solid rgba(226,232,240,.6);
-          padding-top:2rem;margin-top:2rem;text-align:center;
-        }
-
-        /* ---------- Home Link ---------- */
-        .home-link{
-          background:#e2e8f0;border:none;padding:.5rem 1rem;border-radius:1.5rem;
-          font-weight:500;cursor:pointer;transition:all .2s ease;
-          display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:inherit;
-          font-size:0.9rem;
-        }
-        .home-link:hover{background:#cbd5e1;transform:translateY(-1px)}
-        .home-link .icon{font-size:1em;line-height:1;}
-        .home-link:focus-visible{outline:2px solid rgba(79,70,229,.5);outline-offset:2px}
-
-        @media (min-width:768px){
-          .header{flex-direction:row;align-items:center;justify-content:space-between;text-align:left}
-          .subtitle{margin:0}
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shakespeare vs Swift Generator - PW Tools</title>
+  <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
+  <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div>
-                <h1 class="title">Shakespeare vs Swift</h1>
-                <p class="subtitle">
-                    Get a random Shakespearean quote or Taylor Swift-inspired phrase for your thread title!
-                </p>
-            </div>
-            <a href="../index.html" class="home-link">
-                <span class="icon">🏠</span>
-                Home
-            </a>
-        </header>
-        
-        <div class="card">
-            <p class="card-desc">Choose to hide the author for a fun guessing game, or see the source right away!</p>
-            
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; color: var(--muted);">
-                    <input type="checkbox" id="hideAuthor" style="cursor: pointer;">
-                    Hide author for surprise reveal
-                </label>
-            </div>
-            
-            <button class="btn" onclick="generateLiteraryTitle()">✨ Generate Quote ✨</button>
-        </div>
-        
-        <div class="card">
-            <div class="result-card" id="resultCard">
-                <div id="titleResult" class="placeholder-text">
-                    Click the button above to reveal your literary inspiration...
-                </div>
-            </div>
-        </div>
-        
-        <footer class="footer">
-            <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
-        </footer>
+  <div class="container container--narrow">
+    <header class="header" style="text-align:center; flex-direction:column;">
+      <div>
+        <h1 class="title">Shakespeare vs Swift</h1>
+        <p class="subtitle" style="margin:0 auto;">Get a random Shakespearean quote or Taylor Swift-inspired phrase for your thread title!</p>
+      </div>
+      <a href="../index.html" class="home-link" style="align-self:center;">
+        <span class="icon">🏠</span> Home
+      </a>
+    </header>
+
+    <div class="card" style="text-align:center;">
+      <p class="card-desc">Choose to hide the author for a fun guessing game, or see the source right away!</p>
+      <div class="mb-6">
+        <label style="display:flex; align-items:center; justify-content:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; color:var(--muted);">
+          <input type="checkbox" id="hideAuthor"> Hide author for surprise reveal
+        </label>
+      </div>
+      <button class="btn btn--shakespeare-swift btn--wide btn--lg" onclick="generateLiteraryTitle()">✨ Generate Quote ✨</button>
     </div>
 
-    <script>
-        let currentQuote = null;
+    <div class="card">
+      <div class="result-card" id="resultCard">
+        <div id="titleResult" class="placeholder-text">Click the button above to reveal your literary inspiration...</div>
+      </div>
+    </div>
 
-        // Shakespeare quotes (public domain)
-        const shakespeareQuotes = [
-            "All the world's a stage",
-            "To be or not to be",
-            "What's in a name? That which we call a rose",
-            "The course of true love never did run smooth",
-            "Fair is foul, and foul is fair",
-            "All that glisters is not gold",
-            "We are such stuff as dreams are made on",
-            "Brevity is the soul of wit",
-            "Though this be madness, yet there is method in it",
-            "The better part of valor is discretion",
-            "Some are born great, some achieve greatness",
-            "Lord, what fools these mortals be",
-            "The fault, dear Brutus, is not in our stars",
-            "Double, double toil and trouble",
-            "A rose by any other name would smell as sweet",
-            "Neither a borrower nor a lender be",
-            "This above all: to thine own self be true",
-            "The lady doth protest too much",
-            "Something wicked this way comes",
-            "Parting is such sweet sorrow",
-            "What's done cannot be undone",
-            "The world is mine oyster",
-            "All's well that ends well",
-            "Love looks not with the eyes, but with the mind",
-            "Cowards die many times before their deaths",
-            "The pen is mightier than the sword",
-            "Honesty is the best policy",
-            "The wheel is come full circle",
-            "What light through yonder window breaks",
-            "Now is the winter of our discontent"
-        ];
+    <footer class="footer">
+      <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
+    </footer>
+  </div>
 
-        // Taylor Swift-inspired phrases (original, not actual lyrics)
-        const swiftStylePhrases = [
-            "Golden Hour Confessions",
-            "Midnight Rain Thoughts",
-            "Paper Hearts and Broken Dreams",
-            "Sparks Fly in the Library",
-            "Red Lipstick Secrets",
-            "Enchanted Evening Whispers",
-            "Fearless Hearts Collide",
-            "Wildest Dreams Come True",
-            "Dancing in the Moonlight",
-            "Purple Skies and Love Songs",
-            "Invisible String Theory",
-            "Cardigan Weather Blues",
-            "Champagne Problems",
-            "Dorothea's Diary",
-            "August Afternoon Magic",
-            "Folklore and Fairytales",
-            "Evermore than Expected",
-            "Lavender Haze Moments",
-            "Bejeweled Conversations",
-            "Mastermind Meetings",
-            "Thirteen Reasons Why",
-            "All Too Well Remembered",
-            "Begin Again Tomorrow",
-            "State of Grace",
-            "Holy Ground Encounters",
-            "Everything Has Changed",
-            "The Lucky One's Story",
-            "I Knew You Were Trouble",
-            "Stay Stay Stay Forever",
-            "Delicate Conversations"
-        ];
+  <script>
+    let currentQuote = null;
 
-        function generateLiteraryTitle() {
-            const resultDiv = document.getElementById('titleResult');
-            const resultCard = document.getElementById('resultCard');
-            const hideAuthor = document.getElementById('hideAuthor').checked;
-            const isShakespeare = Math.random() < 0.5;
-            
-            let title, author, authorClass;
-            
-            if (isShakespeare) {
-                title = shakespeareQuotes[Math.floor(Math.random() * shakespeareQuotes.length)];
-                author = "Shakespeare";
-                authorClass = "shakespeare";
-            } else {
-                title = swiftStylePhrases[Math.floor(Math.random() * swiftStylePhrases.length)];
-                author = "Swift-inspired";
-                authorClass = "swift";
-            }
-            
-            // Store current quote data for potential reveal
-            currentQuote = { title, author, authorClass };
-            
-            // Update card styling (only if not hiding author)
-            if (hideAuthor) {
-                resultCard.className = 'result-card';
-            } else {
-                resultCard.className = `result-card ${authorClass}`;
-            }
-            
-            // Show title and optionally author
-            if (hideAuthor) {
-                resultDiv.innerHTML = `
-                    <div class="generated-title">"${title}"</div>
-                    <button class="reveal-btn" onclick="revealAuthor()">🎭 Reveal Author</button>
-                `;
-            } else {
-                resultDiv.innerHTML = `
-                    <div class="generated-title ${authorClass}">"${title}"</div>
-                    <div class="author-label ${authorClass}">~ ${author}</div>
-                `;
-            }
-        }
+    const shakespeareQuotes = [
+      "All the world's a stage",
+      "To be or not to be",
+      "What's in a name? That which we call a rose",
+      "The course of true love never did run smooth",
+      "Fair is foul, and foul is fair",
+      "All that glisters is not gold",
+      "We are such stuff as dreams are made on",
+      "Brevity is the soul of wit",
+      "Though this be madness, yet there is method in it",
+      "The better part of valor is discretion",
+      "Some are born great, some achieve greatness",
+      "Lord, what fools these mortals be",
+      "The fault, dear Brutus, is not in our stars",
+      "Double, double toil and trouble",
+      "A rose by any other name would smell as sweet",
+      "Neither a borrower nor a lender be",
+      "This above all: to thine own self be true",
+      "The lady doth protest too much",
+      "Something wicked this way comes",
+      "Parting is such sweet sorrow",
+      "What's done cannot be undone",
+      "The world is mine oyster",
+      "All's well that ends well",
+      "Love looks not with the eyes, but with the mind",
+      "Cowards die many times before their deaths",
+      "The pen is mightier than the sword",
+      "Honesty is the best policy",
+      "The wheel is come full circle",
+      "What light through yonder window breaks",
+      "Now is the winter of our discontent"
+    ];
 
-        function revealAuthor() {
-            if (!currentQuote) return;
-            
-            const resultDiv = document.getElementById('titleResult');
-            const resultCard = document.getElementById('resultCard');
-            
-            // Update card styling
-            resultCard.className = `result-card ${currentQuote.authorClass}`;
-            
-            // Show the full result with author
-            resultDiv.innerHTML = `
-                <div class="generated-title ${currentQuote.authorClass}">"${currentQuote.title}"</div>
-                <div class="author-label ${currentQuote.authorClass}">~ ${currentQuote.author}</div>
-            `;
-        }
+    const swiftStylePhrases = [
+      "Golden Hour Confessions",
+      "Midnight Rain Thoughts",
+      "Paper Hearts and Broken Dreams",
+      "Sparks Fly in the Library",
+      "Red Lipstick Secrets",
+      "Enchanted Evening Whispers",
+      "Fearless Hearts Collide",
+      "Wildest Dreams Come True",
+      "Dancing in the Moonlight",
+      "Purple Skies and Love Songs",
+      "Invisible String Theory",
+      "Cardigan Weather Blues",
+      "Champagne Problems",
+      "Dorothea's Diary",
+      "August Afternoon Magic",
+      "Folklore and Fairytales",
+      "Evermore than Expected",
+      "Lavender Haze Moments",
+      "Bejeweled Conversations",
+      "Mastermind Meetings",
+      "Thirteen Reasons Why",
+      "All Too Well Remembered",
+      "Begin Again Tomorrow",
+      "State of Grace",
+      "Holy Ground Encounters",
+      "Everything Has Changed",
+      "The Lucky One's Story",
+      "I Knew You Were Trouble",
+      "Stay Stay Stay Forever",
+      "Delicate Conversations"
+    ];
 
-        // Allow Enter key to generate title
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                generateLiteraryTitle();
-            }
-        });
+    function generateLiteraryTitle() {
+      const resultDiv = document.getElementById('titleResult');
+      const resultCard = document.getElementById('resultCard');
+      const hideAuthor = document.getElementById('hideAuthor').checked;
+      const isShakespeare = Math.random() < 0.5;
 
-        // Generate one on page load for demo
-        window.addEventListener('load', function() {
-            setTimeout(generateLiteraryTitle, 500);
-        });
-    </script>
+      let title, author, authorClass;
+      if (isShakespeare) {
+        title = shakespeareQuotes[Math.floor(Math.random() * shakespeareQuotes.length)];
+        author = "Shakespeare";
+        authorClass = "shakespeare";
+      } else {
+        title = swiftStylePhrases[Math.floor(Math.random() * swiftStylePhrases.length)];
+        author = "Swift-inspired";
+        authorClass = "swift";
+      }
+
+      currentQuote = { title, author, authorClass };
+
+      if (hideAuthor) {
+        resultCard.className = 'result-card';
+        resultDiv.innerHTML = `
+          <div class="generated-title">"${title}"</div>
+          <button class="reveal-btn" onclick="revealAuthor()">🎭 Reveal Author</button>`;
+      } else {
+        resultCard.className = `result-card ${authorClass}`;
+        resultDiv.innerHTML = `
+          <div class="generated-title ${authorClass}">"${title}"</div>
+          <div class="author-label ${authorClass}">~ ${author}</div>`;
+      }
+    }
+
+    function revealAuthor() {
+      if (!currentQuote) return;
+      const resultDiv = document.getElementById('titleResult');
+      const resultCard = document.getElementById('resultCard');
+      resultCard.className = `result-card ${currentQuote.authorClass}`;
+      resultDiv.innerHTML = `
+        <div class="generated-title ${currentQuote.authorClass}">"${currentQuote.title}"</div>
+        <div class="author-label ${currentQuote.authorClass}">~ ${currentQuote.author}</div>`;
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') generateLiteraryTitle(); });
+    window.addEventListener('load', () => setTimeout(generateLiteraryTitle, 500));
+  </script>
 </body>
 </html>

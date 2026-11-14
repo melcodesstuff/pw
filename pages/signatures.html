@@ -1,67 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signature Formatter</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8fafc;color:#0f172a;line-height:1.6;}
-        .container{max-width:1200px;margin:0 auto;padding:3rem 2rem;min-height:100vh}
-        .header{margin-bottom:3rem;display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;}
-        .header-buttons{display:flex;align-items:center;flex-shrink:0;gap:1rem;}
-        .header>div:first-child{flex:1;}
-        .title{font-size:3rem;font-weight:700;background:linear-gradient(135deg,#4f46e5,#7c3aed);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:.75rem;line-height:1.1;}
-        .subtitle{color:#64748b;font-size:1.25rem;max-width:700px;line-height:1.5;margin:0;}
-        .home-link{background:#e2e8f0;border:none;padding:.875rem 1.5rem;border-radius:1.5rem;font-weight:500;cursor:pointer;transition:all .2s ease;display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:inherit;font-size:1rem;flex-shrink:0;}
-        .home-link:hover{background:#cbd5e1;transform:translateY(-1px)}
-        .kofi-btn{background:#4f46e5;border:none;padding:.875rem;border-radius:1.5rem;font-weight:500;cursor:pointer;transition:all .2s ease;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:#fff;font-size:1rem;width:50px;height:50px;position:relative;flex-shrink:0;}
-        .kofi-btn:hover{background:#3730a3;transform:translateY(-1px);color:#fff}
-        :root{--border:rgba(226,232,240,.7);--muted:#64748b;--accent:#4f46e5;}
-        .card{background:#fff;border:1px solid var(--border);border-radius:1.25rem;padding:2.5rem;box-shadow:0 4px 6px rgba(0,0,0,.07);margin-bottom:2rem;}
-        .card-desc{font-size:1.1rem;color:#64748b;margin-bottom:2.5rem;text-align:center;max-width:800px;margin-left:auto;margin-right:auto;}
-        .editor-container{margin-bottom:2.5rem}
-        .visual-editor{background:#fff;border:1px solid var(--border);border-radius:14px;padding:24px 30px;font-family:inherit;font-size:1.1rem;transition:all .2s ease;width:100%;color:#0f172a;min-height:250px;line-height:1.4;outline:none;overflow-y:auto;}
-        .visual-editor:focus{outline:2px solid rgba(79,70,229,.5);outline-offset:2px;border-color:var(--accent);}
-        .visual-editor:empty:before{content:'Start typing here... Select text to format it!';color:#94a3b8;font-style:italic;font-size:1.1rem;}
-        .visual-editor img{max-width:100%;height:auto;display:block;margin:2px 0;border:1px solid #e2e8f0;border-radius:10px;}
-        .selection-info{background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:1.25rem;margin-bottom:2.5rem;font-size:0.95rem;color:#0369a1;}
-        .generate-btn{background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;padding:1.25rem 2.5rem;border-radius:14px;font-weight:600;cursor:pointer;transition:all 0.2s ease;font-size:1.2rem;color:#fff;width:100%;margin-bottom:2.5rem;display:flex;align-items:center;justify-content:center;gap:1rem;}
-        .generate-btn:hover{background:linear-gradient(135deg,#3730a3,#6d28d9);transform:translateY(-2px);box-shadow:0 12px 30px rgba(79,70,229,0.3);}
-        .toolbar{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:2.5rem;display:grid;gap:1.25rem;}
-        .toolbar-row{display:flex;gap:1.25rem;align-items:stretch;flex-wrap:wrap;}
-        .toolbar-group{display:flex;align-items:center;gap:0.6rem;padding:0.75rem 1rem;border-radius:10px;background:#fff;border:1px solid rgba(226,232,240,.5);min-height:56px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
-        .toolbar-group.full-width{width:100%;justify-content:space-between;overflow-x:auto;flex-wrap:wrap;gap:1rem;}
-        .toolbar-btn{background:#fff;border:1px solid var(--border);border-radius:8px;padding:0.75rem 1.25rem;cursor:pointer;transition:all 0.2s ease;font-weight:500;font-size:0.9rem;white-space:nowrap;min-height:44px;display:flex;align-items:center;justify-content:center;}
-        .toolbar-btn:hover{background:#f1f5f9;border-color:var(--accent);transform:translateY(-1px);}
-        .toolbar-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 4px rgba(79,70,229,0.2);}
-        .color-input{width:44px;height:44px;border:2px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.2s ease;}
-        .color-input:hover{border-color:var(--accent);transform:scale(1.05);}
-        .hex-input{border:1px solid var(--border);border-radius:8px;padding:0.75rem;background:#fff;font-size:0.9rem;width:85px;text-transform:uppercase;font-family:monospace;min-height:44px;}
-        .url-input{border:1px solid var(--border);border-radius:8px;padding:0.75rem;background:#fff;font-size:0.9rem;width:200px;min-height:44px;}
-        .size-select,.font-select,.symbol-select{border:1px solid var(--border);border-radius:8px;padding:0.75rem;background:#fff;cursor:pointer;font-size:0.9rem;min-height:44px;}
-        .size-select{min-width:110px;} .font-select{min-width:140px;} .symbol-select{min-width:160px;}
-        .size-select.compact{min-width:80px;padding:0.6rem;} .font-select.compact{min-width:100px;padding:0.6rem;} .toolbar-btn.compact{padding:0.6rem 1rem;font-size:0.85rem;}
-        .symbol-search{border:1px solid var(--border);border-radius:8px;padding:0.75rem;background:#fff;font-size:0.9rem;width:130px;margin-right:0.75rem;min-height:44px;}
-        .group-label{font-size:0.85rem;color:var(--muted);font-weight:600;margin-right:0.75rem;white-space:nowrap;text-transform:uppercase;letter-spacing:0.5px;}
-        .color-controls{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;}
-        .recent-colors{display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:0.75rem;}
-        .recent-color{display:flex;flex-direction:column;align-items:center;gap:0.375rem;cursor:pointer;transition:all 0.2s ease;}
-        .recent-color:hover{transform:scale(1.1);}
-        .recent-color-swatch{width:30px;height:30px;border:2px solid var(--border);border-radius:6px;}
-        .recent-color-hex{font-size:0.7rem;color:var(--muted);font-family:monospace;font-weight:500;}
-        .swap-btn{background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:0.375rem;cursor:pointer;transition:all 0.2s ease;font-size:0.8rem;display:flex;align-items:center;justify-content:center;width:32px;height:32px;}
-        .swap-btn:hover{background:#f1f5f9;border-color:var(--accent);transform:scale(1.1);}
-        .bbcode-output-section{background:#fff;border:1px solid var(--border);border-radius:14px;padding:2.5rem;margin-top:2rem;}
-        .bbcode-output{font-family:monospace;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:2rem;white-space:pre-wrap;word-wrap:break-word;font-size:1rem;line-height:1.6;min-height:140px;color:#64748b;font-style:italic;}
-        .bbcode-output.has-content{color:#0f172a;font-style:normal;}
-        .copy-btn{background:rgba(79,70,229,.1);border:1px solid rgba(79,70,229,.3);color:var(--accent);padding:1rem 2rem;border-radius:10px;font-size:1rem;cursor:pointer;margin-top:2rem;transition:all 0.2s ease;font-weight:500;}
-        .copy-btn:hover{background:rgba(79,70,229,.2);transform:translateY(-2px);box-shadow:0 4px 12px rgba(79,70,229,0.2);}
-        .copy-btn:disabled{opacity:0.5;cursor:not-allowed;}
-        .footer{font-size:1rem;color:#94a3b8;border-top:1px solid rgba(226,232,240,.6);padding-top:2.5rem;margin-top:3rem;text-align:center;}
-        @media (max-width:1024px){.container{padding:2rem 1.5rem;} .title{font-size:2.5rem;} .toolbar{padding:1.25rem;} .toolbar-row{gap:1rem;}}
-        @media (max-width:768px){.header{flex-direction:column;gap:1.5rem;} .title{font-size:2rem;} .toolbar{padding:1rem;} .toolbar-row{flex-direction:column;align-items:stretch;} .format-row{flex-direction:row !important;} .format-group{flex-wrap:wrap !important;} .container{padding:1.5rem 1rem;} .url-input{width:160px;} .hex-input{width:70px;} .font-select{min-width:120px;} .symbol-select{min-width:140px;} .symbol-search{width:120px;}}
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signature Formatter - PW Tools</title>
+  <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
+  <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body>
     <div class="container">
@@ -72,7 +16,7 @@
             </div>
             <div class="header-buttons">
                 <a href="https://ko-fi.com/melcodesstuff" class="kofi-btn" target="_blank">☕</a>
-                <a href="https://melcodesstuff.github.io/pw/" class="home-link"><span>🏰</span>Home</a>
+                <a href="../index.html" class="home-link"><span>🏰</span>Home</a>
             </div>
         </header>
         
