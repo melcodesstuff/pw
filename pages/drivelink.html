@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drive Image Link Converter - PW Tools</title>
+  <link rel="icon" type="image/png" href="../assets/img/witch-hat.png">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <style>
+    /* Page-specific tweaks (kept minimal; everything else is shared styles) */
+    .dl-output {
+      font-family: monospace; background: var(--bg); border: 1px solid #e2e8f0;
+      border-radius: 10px; padding: 1.25rem; white-space: pre-wrap; word-break: break-all;
+      font-size: 0.9rem; line-height: 1.7; min-height: 72px; color: var(--muted); font-style: italic;
+    }
+    .dl-output.has-content { color: var(--ink); font-style: normal; }
+    .dl-warn {
+      background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
+      border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.85rem; margin-top: 1rem;
+    }
+    .dl-warn ul { margin: 0.4rem 0 0 1.1rem; }
+    .dl-previews { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
+    .dl-thumb {
+      width: 96px; height: 96px; object-fit: cover; border-radius: 10px;
+      border: 1px solid var(--border); background: #f1f5f9;
+    }
+    .dl-count { font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="container container--narrow">
+    <header class="header" style="text-align:center; flex-direction:column;">
+      <div>
+        <h1 class="title">Drive Image Link Converter</h1>
+        <p class="subtitle" style="margin:0 auto;">
+          Paste a Google Drive image share link and get a direct
+          <code>lh3.googleusercontent.com</code> link you can embed anywhere.
+        </p>
+      </div>
+      <a href="../index.html" class="home-link" style="align-self:center;">
+        <span class="icon">🏠</span> Home
+      </a>
+    </header>
+
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label" for="driveInput">Google Drive link(s)</label>
+        <textarea id="driveInput" class="form-textarea" rows="4"
+          placeholder="Paste one or more Drive links (one per line), e.g.&#10;https://drive.google.com/file/d/1A2b3C4d5E6f7G8h9I0j/view?usp=sharing"></textarea>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="wrapImg">
+        <label class="checkbox-label" for="wrapImg">Wrap each link in <code>[img]…[/img]</code> BBCode</label>
+      </div>
+
+      <p class="text-xs text-muted mb-2">
+        Tip: make sure the file's sharing is set to <strong>“Anyone with the link”</strong>, or the image won’t load for others.
+      </p>
+    </div>
+
+    <div class="card">
+      <label class="form-label" for="dlOutput">Converted link(s)</label>
+      <div id="dlOutput" class="dl-output" aria-live="polite">Your converted links will appear here…</div>
+      <div id="dlCount" class="dl-count"></div>
+      <div id="dlWarn"></div>
+
+      <button id="copyBtn" class="copy-btn" disabled>📋 Copy</button>
+
+      <div id="dlPreviews" class="dl-previews"></div>
+    </div>
+
+    <footer class="footer">
+      <p>Unofficial Potterworld utilities • Made by ✨ mel for the community</p>
+    </footer>
+  </div>
+
+  <script>
+    const input    = document.getElementById('driveInput');
+    const wrapImg  = document.getElementById('wrapImg');
+    const output   = document.getElementById('dlOutput');
+    const countEl  = document.getElementById('dlCount');
+    const warnEl   = document.getElementById('dlWarn');
+    const copyBtn  = document.getElementById('copyBtn');
+    const previews = document.getElementById('dlPreviews');
+
+    const BASE = 'https://lh3.googleusercontent.com/d/';
+
+    // Pull a Google Drive file ID out of a variety of link formats.
+    function extractFileId(raw) {
+      const s = (raw || '').trim();
+      if (!s) return null;
+      // .../d/FILE_ID  — covers /file/d/ID/view and existing lh3 .../d/ID links
+      let m = s.match(/\/d\/([-\w]{10,})/);
+      if (m) return m[1];
+      // ?id=FILE_ID or &id=FILE_ID — covers open?id= and uc?id=
+      m = s.match(/[?&]id=([-\w]{10,})/);
+      if (m) return m[1];
+      // A bare ID pasted on its own
+      if (/^[-\w]{20,}$/.test(s)) return s;
+      return null;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+    }
+
+    function convert() {
+      const lines = input.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const urls = [];
+      const failed = [];
+
+      for (const line of lines) {
+        const id = extractFileId(line);
+        if (id) urls.push(BASE + id);
+        else failed.push(line);
+      }
+
+      // Output text (deduplicated, order preserved)
+      const seen = new Set();
+      const unique = urls.filter(u => (seen.has(u) ? false : seen.add(u)));
+      const outLines = unique.map(u => wrapImg.checked ? `[img]${u}[/img]` : u);
+
+      if (outLines.length) {
+        output.textContent = outLines.join('\n');
+        output.classList.add('has-content');
+        copyBtn.disabled = false;
+      } else {
+        output.textContent = 'Your converted links will appear here…';
+        output.classList.remove('has-content');
+        copyBtn.disabled = true;
+      }
+
+      // Count line
+      countEl.textContent = unique.length
+        ? `${unique.length} link${unique.length === 1 ? '' : 's'} converted`
+        : '';
+
+      // Warnings for lines we couldn't parse
+      if (failed.length) {
+        warnEl.innerHTML =
+          `<div class="dl-warn">Couldn’t find a file ID in ${failed.length} line${failed.length === 1 ? '' : 's'}:` +
+          `<ul>${failed.map(f => `<li>${escapeHtml(f)}</li>`).join('')}</ul></div>`;
+      } else {
+        warnEl.innerHTML = '';
+      }
+
+      // Thumbnail previews
+      previews.innerHTML = unique.map(u =>
+        `<img class="dl-thumb" src="${u}" alt="preview" loading="lazy" onerror="this.style.display='none'">`
+      ).join('');
+    }
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(output.textContent);
+        const original = copyBtn.textContent;
+        copyBtn.textContent = '✅ Copied!';
+        setTimeout(() => { copyBtn.textContent = original; }, 1500);
+      } catch (e) {
+        // Fallback: select the text so the user can copy manually
+        const range = document.createRange();
+        range.selectNodeContents(output);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    });
+
+    input.addEventListener('input', convert);
+    wrapImg.addEventListener('change', convert);
+  </script>
+</body>
+</html>
